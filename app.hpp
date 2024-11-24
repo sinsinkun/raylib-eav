@@ -1,7 +1,17 @@
 #include <vector>
+#include <string>
 #include <raylib.h>
+#include <sqlite3.h>
 
 namespace App {
+  class DbInterface {
+    public:
+      bool connected = false;
+      std::string db_path = "assets/main.db";
+      sqlite3* db;
+      void init();
+      void disconnect();
+  };
   class EventLoop {
     public:
       // global states
@@ -10,6 +20,7 @@ namespace App {
       Vector2 screenCenter = { 0.0, 0.0 };
       int fps = 0;
       double elapsed = 0.0;
+      DbInterface dbInterface;
       // methods
       void init();
       void update();

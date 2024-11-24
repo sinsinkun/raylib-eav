@@ -7,7 +7,7 @@ using namespace App;
 
 void EventLoop::init() {
   // initialize assets
-  // ...
+  dbInterface.init();
 }
 
 void EventLoop::update() {
@@ -28,7 +28,7 @@ void EventLoop::render() {
 
 void EventLoop::cleanup() {
   // destroy instantiated resources
-  // ...
+  dbInterface.disconnect();
 }
 
 void EventLoop::_updateSystem() {
