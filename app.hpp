@@ -5,7 +5,7 @@
 
 namespace App {
   enum EavValueType { NONE, INT, FLOAT, STR, BOOL, BLOB };
-  enum EavItemType { UNKNOWN, SCHEMA, ENTITY, ATTR, VALUE, VIEW };
+  enum EavItemType { UNKNOWN, BLUEPRINT, ENTITY, ATTR, VALUE, VIEW };
   class EavItem {
     public:
       EavItemType type = EavItemType::UNKNOWN;
@@ -37,17 +37,17 @@ namespace App {
       void setup_tables();
       void disconnect();
       // create new db entries
-      void new_schema(std::string name);
-      void new_entity(std::string name, int entityTypeId);
+      void new_blueprint(std::string name);
+      void new_entity(std::string name, int blueprintId);
       void new_attr(std::string name, EavValueType valueType, bool allowMultiple);
       void new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit);
-      void new_eta_link(int entityTypeId, int attrId);
+      void new_eta_link(int blueprintId, int attrId);
       void new_value(int entityId, int attrId, std::string str_value);
       void new_value(int entityId, int attrId, int int_value);
       void new_value(int entityId, int attrId, float float_value);
       // fetch entries
       void get_tables();
-      void get_schemas();
+      void get_blueprints();
     private:
       unsigned int _now();
       int _exec(std::string query);

@@ -8,7 +8,7 @@ using namespace App;
 void EventLoop::init() {
   // initialize assets
   dbInterface.init();
-  dbInterface.get_schemas();
+  dbInterface.get_blueprints();
 }
 
 void EventLoop::update() {

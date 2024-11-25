@@ -20,6 +20,7 @@ void DbInterface::init() {
   }
 }
 
+#pragma region helpers
 // get time since epoch in ms
 unsigned int DbInterface::_now() {
   auto instant = std::chrono::system_clock::now();
@@ -65,19 +66,19 @@ int DbInterface::_exec_get_eav(std::string query, EavItemType type, std::vector<
 // resets database tables. WARNING: ERASES ALL DATA - CANNOT BE UNDONE
 void DbInterface::setup_tables() {
   // delete old tables
-  _exec("DROP TABLE IF EXISTS eav_schemas;");
+  _exec("DROP TABLE IF EXISTS eav_blueprints;");
   _exec("DROP TABLE IF EXISTS eav_entities;");
   _exec("DROP TABLE IF EXISTS eav_attrs;");
-  _exec("DROP TABLE IF EXISTS eav_sa_links;");
+  _exec("DROP TABLE IF EXISTS eav_ba_links;");
   _exec("DROP TABLE IF EXISTS eav_values;");
 
-  // create eav_schemas
-  std::string et_create = "CREATE TABLE eav_schemas (" \
+  // create eav_blueprints
+  std::string b_create = "CREATE TABLE eav_blueprints (" \
     "id INTEGER PRIMARY KEY, " \
     // created_at time as milliseconds from epoch
     "created_at INTEGER, " \
-    "entity_type TEXT UNIQUE NOT NULL);";
-  _exec(et_create);
+    "blueprint TEXT UNIQUE NOT NULL);";
+  _exec(b_create);
 
   // create eav_entities
   std::string e_create = "CREATE TABLE eav_entities (" \
@@ -85,7 +86,7 @@ void DbInterface::setup_tables() {
     // created_at time as milliseconds from epoch
     "created_at INTEGER, " \
     "entity TEXT NOT NULL, " \
-    "entity_type_id INTEGER UNIQUE NOT NULL);";
+    "blueprint_id INTEGER NOT NULL);";
   _exec(e_create);
 
   // create eav_attrs
@@ -102,14 +103,14 @@ void DbInterface::setup_tables() {
 	  "allow_multiple BOOLEAN NOT NULL);";
   _exec(a_create);
 
-  // create eav_sa_links
-  std::string sa_create = "CREATE TABLE eav_sa_links (" \
+  // create eav_ba_links
+  std::string ba_create = "CREATE TABLE eav_ba_links (" \
     "id INTEGER PRIMARY KEY, " \
     // created_at time as milliseconds from epoch
     "created_at INTEGER, " \
-    "schema_id INTEGER NOT NULL, "
+    "blueprint_id INTEGER NOT NULL, "
     "attr_id INTEGER NOT NULL);";
-  _exec(sa_create);
+  _exec(ba_create);
 
   // create eav_values
   std::string v_create = "CREATE TABLE eav_values (" \
@@ -122,9 +123,11 @@ void DbInterface::setup_tables() {
 
   std::cout << "Finished database setup" << std::endl;
 }
+#pragma endregion helpers
 
-void DbInterface::new_schema(std::string name) {
-  std::string query = "INSERT INTO eav_schemas (entity_type, created_at) VALUES (\"";
+#pragma region new_entries
+void DbInterface::new_blueprint(std::string name) {
+  std::string query = "INSERT INTO eav_blueprints (blueprint, created_at) VALUES (\"";
   std::string now = std::to_string(_now());
   query += name + "\"," + now + ");";
   int ec = _exec(query);
@@ -134,7 +137,7 @@ void DbInterface::new_schema(std::string name) {
 }
 
 void DbInterface::new_entity(std::string name, int entityTypeId) {
-  std::string query = "INSERT INTO eav_entities (entity, entity_type_id, created_at) VALUES (\"";
+  std::string query = "INSERT INTO eav_entities (entity, schema_id, created_at) VALUES (\"";
   std::string etid = std::to_string(entityTypeId);
   std::string now = std::to_string(_now());
   query += name + "\"," + etid + "," + now + ");";
@@ -144,6 +147,16 @@ void DbInterface::new_entity(std::string name, int entityTypeId) {
   }
 }
 
+void DbInterface::new_attr(std::string name, EavValueType valueType, bool allowMultiple) {
+
+}
+
+void DbInterface::new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit) {
+
+}
+#pragma endregion new_entries
+
+#pragma region fetch_entries
 void DbInterface::get_tables() {
   std::string query = "SELECT name FROM sqlite_master WHERE TYPE = 'table';";
   sqlite3_stmt* stmt;
@@ -170,12 +183,13 @@ void DbInterface::get_tables() {
   }
 }
 
-void DbInterface::get_schemas() {
-  std::string query = "SELECT * FROM eav_schemas;";
+void DbInterface::get_blueprints() {
+  std::string query = "SELECT * FROM eav_blueprints;";
   std::vector<EavItem> items;
-  int rc = _exec_get_eav(query, EavItemType::SCHEMA, &items);
+  int rc = _exec_get_eav(query, EavItemType::BLUEPRINT, &items);
   std::cout << "Got entity types" << std::endl;
 }
+#pragma endregion fetch_entries
 
 void DbInterface::disconnect() {
   int rcode = sqlite3_close(db);
