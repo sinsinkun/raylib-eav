@@ -37,14 +37,15 @@ namespace App {
       void setup_tables();
       void disconnect();
       // create new db entries
-      void new_blueprint(std::string name);
-      void new_entity(std::string name, int blueprintId);
-      void new_attr(std::string name, EavValueType valueType, bool allowMultiple);
-      void new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit);
-      void new_eta_link(int blueprintId, int attrId);
-      void new_value(int entityId, int attrId, std::string str_value);
-      void new_value(int entityId, int attrId, int int_value);
-      void new_value(int entityId, int attrId, float float_value);
+      int new_blueprint(std::string name);
+      int new_entity(std::string name, int blueprintId);
+      int new_attr(std::string name, EavValueType valueType, bool allowMultiple);
+      int new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit);
+      int new_ba_link(int blueprintId, int attrId);
+      int new_value(int entityId, int attrId, std::string str_value);
+      int new_value(int entityId, int attrId, int int_value);
+      int new_value(int entityId, int attrId, float float_value);
+      int new_value(int entityId, int attrId, bool bool_value);
       // fetch entries
       void get_tables();
       void get_blueprints();
