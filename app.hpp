@@ -4,27 +4,26 @@
 #include <sqlite3.h>
 
 namespace App {
-  enum EavValueType { NONE, INT, FLOAT, STR, BOOL, BLOB };
-  enum EavItemType { UNKNOWN, BLUEPRINT, ENTITY, ATTR, VALUE, VIEW };
-  class EavItem {
-    public:
-      EavItemType type = EavItemType::UNKNOWN;
-      int schema_id = 0;
-      int entity_id = 0;
-      int attr_id = 0;
-      int value_id = 0;
-      int created_at = 0;
-      std::string schema = "";
-      std::string entity = "";
-      std::string attr = "";
-      std::string value_unit = "";
-      bool allow_multiple = false;
-      EavValueType value_type = EavValueType::NONE;
-      std::string str_value;
-      int int_value;
-      float float_value;
-      bool bool_value;
-      unsigned char* blob_value;
+  enum EavValueType { NONE, INT, FLOAT, STR, BOOL };
+  enum EavItemType { UNKNOWN, BLUEPRINT, ENTITY, ATTR, BA_LINK, VALUE, VIEW };
+  struct EavItem {
+    EavItemType type = EavItemType::UNKNOWN;
+    int blueprint_id = 0;
+    int entity_id = 0;
+    int attr_id = 0;
+    int ba_id = 0;
+    int value_id = 0;
+    int created_at = 0;
+    std::string blueprint = "";
+    std::string entity = "";
+    std::string attr = "";
+    std::string value_unit = "";
+    bool allow_multiple = false;
+    EavValueType value_type = EavValueType::NONE;
+    std::string str_value = "";
+    int int_value = 0;
+    float float_value = 0.0;
+    bool bool_value = false;
   };
   class DbInterface {
     public:
@@ -38,6 +37,7 @@ namespace App {
       void disconnect();
       // create new db entries
       int new_blueprint(std::string name);
+      int new_entity(std::string name);
       int new_entity(std::string name, int blueprintId);
       int new_attr(std::string name, EavValueType valueType, bool allowMultiple);
       int new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit);
