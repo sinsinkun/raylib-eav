@@ -53,6 +53,9 @@
     "typeinfo": "cpp",
     "variant": "cpp",
     "string": "cpp",
-    "vector": "cpp"
+    "vector": "cpp",
+    "chrono": "cpp",
+    "ratio": "cpp",
+    "iomanip": "cpp"
   }
 }

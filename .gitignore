@@ -2,6 +2,7 @@
 build/
 *.exe
 *.pdb
+*.db
 
 # ignore temp items
 temp*
