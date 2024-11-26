@@ -8,6 +8,12 @@ using namespace App;
 void EventLoop::init() {
   // initialize assets
   dbInterface.init();
+  int err = dbInterface.check_tables();
+  if (err != 0) {
+    std::cout << "ERR: db structure is corrupted" << std::endl;
+    CloseWindow();
+    return;
+  }
   // dbInterface.setup_tables();
   // dbInterface.new_blueprint("movies");
   // dbInterface.new_blueprint("books");
@@ -21,8 +27,14 @@ void EventLoop::init() {
   // dbInterface.new_ba_link(1, 3);
   // dbInterface.new_ba_link(2, 1);
   // dbInterface.new_ba_link(2, 3);
-  // dbInterface.new_value(1, 1, "drama");
-  // dbInterface.new_value(2, 1, "alt history");
+  // std::string s1 = "drama";
+  // dbInterface.new_value(1, 1, s1.data(), sizeof(s1));
+  // std::string s2 = "alt history";
+  // dbInterface.new_value(2, 1, s2.data(), sizeof(s2));
+  // std::string s3 = "romance";
+  // dbInterface.new_value(1, 1, s3.data(), sizeof(s3));
+  DbI::EavResponse res = dbInterface.get_entity_values(1);
+  std::cout << "done" << std::endl;
 }
 
 void EventLoop::update() {

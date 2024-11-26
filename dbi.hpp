@@ -29,10 +29,15 @@ namespace DbI {
     DbResponse(T d) {
       data = d;
     }
-    int errCode = 0;
+    int code = 0;
     std::string msg = "";
     T data;
   };
+  class BlobUtil {
+    public:
+      sqlite3_blob from_string(std::string s);
+  };
+  typedef DbResponse<std::vector<EavItem>> EavResponse;
   class DbInterface {
     public:
       // parameters
@@ -41,7 +46,7 @@ namespace DbI {
       sqlite3* db;
       // general functions
       void init();
-      void check_tables();
+      int check_tables();
       void setup_tables();
       void disconnect();
       // create new db entries
@@ -51,22 +56,15 @@ namespace DbI {
       DbResponse<int> new_attr(std::string name, EavValueType valueType, bool allowMultiple);
       DbResponse<int> new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit);
       DbResponse<int> new_ba_link(int blueprintId, int attrId);
-      DbResponse<int> new_value(int entityId, int attrId, std::string str_value);
-      DbResponse<int> new_value(int entityId, int attrId, int int_value);
-      DbResponse<int> new_value(int entityId, int attrId, float float_value);
-      DbResponse<int> new_value(int entityId, int attrId, bool bool_value);
+      DbResponse<int> new_value(int entityId, int attrId, void* blob, int blobSize);
       // fetch entries
-      DbResponse<std::vector<EavItem>> get_blueprints();
-      DbResponse<EavItem> get_blueprint(int id);
-      DbResponse<std::vector<EavItem>> get_entities();
-      DbResponse<std::vector<EavItem>> get_entities(int blueprintId);
-      DbResponse<EavItem> get_entity(int id);
-      DbResponse<std::vector<EavItem>> get_attrs();
-      DbResponse<std::vector<EavItem>> get_attrs(int blueprintId);
-      DbResponse<EavItem> get_attr(int id);
+      EavResponse get_blueprints();
+      EavResponse get_blueprint_entities(int id);
+      EavResponse get_entity_values(int id);
     private:
       unsigned int _now();
+      bool _row_exists(EavItemType type, int id);
       DbResponse<int> _exec(std::string query);
-      DbResponse<std::vector<EavItem>> _exec_get_eav(std::string query, EavItemType type);
+      EavResponse _exec_get_eav(std::string query, EavItemType type);
   };
 }
