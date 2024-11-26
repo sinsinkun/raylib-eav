@@ -136,15 +136,24 @@ EavResponse DbInterface::_exec_get_eav(std::string query, EavItemType type) {
         item.value_type = _str_to_value_type(vt);
       } else if (colstr == "value") {
         // note: value_type MUST be interpreted before value
+        bool conversion_failed = false;
         const unsigned char* v = sqlite3_column_text(stmt, i);
         if (v != NULL) {
           std::string strv = reinterpret_cast<const char*>(v);
           switch (item.value_type) {
             case INT:
-              item.int_value = stoi(strv);
+              try {
+                item.int_value = stoi(strv);
+              } catch (...) {
+                conversion_failed = true;
+              }
               break;
             case FLOAT:
-              item.float_value = stof(strv);
+              try {
+                item.float_value = stof(strv);
+              } catch (...) {
+                conversion_failed = true;
+              }
               break;
             case BOOL:
               if (strv == "true" || strv == "TRUE" || strv == "1") {
@@ -156,6 +165,11 @@ EavResponse DbInterface::_exec_get_eav(std::string query, EavItemType type) {
               item.str_value = strv;
               break;
           }
+        }
+        if (conversion_failed) {
+          res.code = 91;
+          res.msg = "Invalid data in value column - Could not be converted";
+          return res;
         }
       }
     }
@@ -411,31 +425,73 @@ DbResponse<int> DbInterface::new_ba_link(int blueprintId, int attrId) {
 }
 
 DbResponse<int> DbInterface::new_value(int entityId, int attrId, std::string value) {
-  // check entity exists
-  bool e_exists = _row_exists(BLUEPRINT, entityId);
-  if (!e_exists) {
-    DbResponse<int> res = DbResponse(0);
-    res.code = 1;
-    res.msg = "Entity does not exist";
-    return res;
-  }
+  DbResponse<int> res = DbResponse(0);
   // check attribute exists
   bool attr_exists = _row_exists(ATTR, attrId);
   if (!attr_exists) {
-    DbResponse<int> res = DbResponse(0);
-    res.code = 2;
+    res.code = 1;
     res.msg = "Attr does not exist";
     return res;
   }
-  // todo: check entity is allowed to have attribute
-  // todo: check if attribute already exists and allow_multiple == true
+  // check entity exists and is allowed to have attribute
+  std::string equery = "SELECT * FROM eav_entities WHERE id = " + std::to_string(entityId);
+  EavResponse entities = _exec_get_eav(equery, ENTITY);
+  if (entities.code != SQLITE_OK) {
+    res.code = entities.code;
+    res.msg = entities.msg;
+    return res;
+  }
+  if (entities.data.size() == 0) {
+    res.code = 2;
+    res.msg = "Entity does not exist";
+    return res;
+  }
+  EavItem entity = entities.data.at(0);
+  // check if blueprint allows attribute
+  if (entity.blueprint_id != 0) {
+    std::string cquery = "SELECT eb.id as blueprint_id, ea.id as attr_id, eb.blueprint, ea.attr " \
+      "FROM eav_blueprints eb " \
+      "LEFT JOIN eav_ba_links ebl ON ebl.blueprint_id = eb.id " \
+      "LEFT JOIN eav_attrs ea ON ebl.attr_id = ea.id " \
+      "WHERE eb.id = " + std::to_string(entity.blueprint_id) + " AND ea.id = " + std::to_string(attrId);
+    EavResponse attrs = _exec_get_eav(cquery, VIEW);
+    if (attrs.code != SQLITE_OK) {
+      res.code = entities.code;
+      res.msg = entities.msg;
+      return res;
+    }
+    if (attrs.data.size() == 0) {
+      res.code = 3;
+      res.msg = "Blueprint does not allow attribute on this entity";
+      return res;
+    }
+  }
+  // check if entity + attr already exist, and if multiple is allowed
+  std::string vquery = "SELECT ev.id as value_id, ev.attr_id, ea.allow_multiple, ea.value_type " \
+  "FROM eav_values ev " \
+  "LEFT JOIN eav_attrs ea ON ev.attr_id = ea.id " \
+  "WHERE ev.entity_id = " + std::to_string(entityId) + " AND ev.attr_id = " + std::to_string(attrId);
+  EavResponse values = _exec_get_eav(vquery, VIEW);
+  if (values.code != SQLITE_OK) {
+    res.code = entities.code;
+    res.msg = entities.msg;
+    return res;
+  }
+  if (values.data.size() > 0) {
+    EavItem ev = values.data.at(0);
+    if (!ev.allow_multiple) {
+      res.code = 5;
+      res.msg = "Attribute value already exists";
+      return res;
+    }
+  }
   // build value
   std::string query = "INSERT INTO eav_values (entity_id, attr_id, value, created_at) VALUES (";
   std::string eid = std::to_string(entityId);
   std::string aid = std::to_string(attrId);
   std::string now = std::to_string(_now());
   query += eid + "," + aid + ",\"" + value + "\"," + now + ");";
-  DbResponse<int> res = _exec(query);
+  res = _exec(query);
   return res;
 }
 #pragma endregion new_entries
