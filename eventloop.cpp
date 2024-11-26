@@ -27,12 +27,11 @@ void EventLoop::init() {
   // dbInterface.new_ba_link(1, 3);
   // dbInterface.new_ba_link(2, 1);
   // dbInterface.new_ba_link(2, 3);
-  // std::string s1 = "drama";
-  // dbInterface.new_value(1, 1, s1.data(), sizeof(s1));
-  // std::string s2 = "alt history";
-  // dbInterface.new_value(2, 1, s2.data(), sizeof(s2));
-  // std::string s3 = "romance";
-  // dbInterface.new_value(1, 1, s3.data(), sizeof(s3));
+  // dbInterface.new_value(1, 1, "drama");
+  // dbInterface.new_value(2, 1, "alt history");
+  // dbInterface.new_value(1, 1, "romance");
+  // dbInterface.new_value(1, 2, "1.25");
+  // dbInterface.new_value(1, 3, "true");
   DbI::EavResponse res = dbInterface.get_entity_values(1);
   std::cout << "done" << std::endl;
 }

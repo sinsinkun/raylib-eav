@@ -33,10 +33,6 @@ namespace DbI {
     std::string msg = "";
     T data;
   };
-  class BlobUtil {
-    public:
-      sqlite3_blob from_string(std::string s);
-  };
   typedef DbResponse<std::vector<EavItem>> EavResponse;
   class DbInterface {
     public:
@@ -56,11 +52,13 @@ namespace DbI {
       DbResponse<int> new_attr(std::string name, EavValueType valueType, bool allowMultiple);
       DbResponse<int> new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit);
       DbResponse<int> new_ba_link(int blueprintId, int attrId);
-      DbResponse<int> new_value(int entityId, int attrId, void* blob, int blobSize);
+      DbResponse<int> new_value(int entityId, int attrId, std::string value);
       // fetch entries
       EavResponse get_blueprints();
       EavResponse get_blueprint_entities(int id);
       EavResponse get_entity_values(int id);
+      // update entries
+      DbResponse<int> update_value(int id, std::string value);
     private:
       unsigned int _now();
       bool _row_exists(EavItemType type, int id);

@@ -136,27 +136,26 @@ EavResponse DbInterface::_exec_get_eav(std::string query, EavItemType type) {
         item.value_type = _str_to_value_type(vt);
       } else if (colstr == "value") {
         // note: value_type MUST be interpreted before value
-        const unsigned char* sv = sqlite3_column_text(stmt, i);
-        sqlite3_value* v = sqlite3_column_value(stmt, i);
-        float dv = sqlite3_value_double(v);
-        int iv = sqlite3_value_int(v);
-        switch (item.value_type) {
-          case STR:
-            if (sv != NULL) {
-              item.str_value = reinterpret_cast<const char*>(sv);
-            }
-            break;
-          case INT:
-            item.int_value = sqlite3_column_int(stmt, i);
-            break;
-          case FLOAT:
-            item.float_value = sqlite3_column_double(stmt, i);
-            break;
-          case BOOL:
-            item.bool_value = sqlite3_column_int(stmt, i);
-            break;
-          default:
-            break;
+        const unsigned char* v = sqlite3_column_text(stmt, i);
+        if (v != NULL) {
+          std::string strv = reinterpret_cast<const char*>(v);
+          switch (item.value_type) {
+            case INT:
+              item.int_value = stoi(strv);
+              break;
+            case FLOAT:
+              item.float_value = stof(strv);
+              break;
+            case BOOL:
+              if (strv == "true" || strv == "TRUE" || strv == "1") {
+                item.bool_value = true;
+              }
+              break;
+            case STR:
+            default:
+              item.str_value = strv;
+              break;
+          }
         }
       }
     }
@@ -279,7 +278,8 @@ void DbInterface::setup_tables() {
     "created_at INTEGER, " \
     "entity_id INTEGER NOT NULL, " \
     "attr_id INTEGER NOT NULL, " \
-    "value BLOB);";
+    // comparison operators interpret text as numbers
+    "value TEXT);";
   _exec(v_create);
 
   std::cout << "Finished database setup" << std::endl;
@@ -410,7 +410,7 @@ DbResponse<int> DbInterface::new_ba_link(int blueprintId, int attrId) {
   return res;
 }
 
-DbResponse<int> DbInterface::new_value(int entityId, int attrId, void* blob, int size) {
+DbResponse<int> DbInterface::new_value(int entityId, int attrId, std::string value) {
   // check entity exists
   bool e_exists = _row_exists(BLUEPRINT, entityId);
   if (!e_exists) {
@@ -428,37 +428,14 @@ DbResponse<int> DbInterface::new_value(int entityId, int attrId, void* blob, int
     return res;
   }
   // todo: check entity is allowed to have attribute
+  // todo: check if attribute already exists and allow_multiple == true
   // build value
-  DbResponse<int> res = DbResponse(0);
-  sqlite3_stmt* stmt;
   std::string query = "INSERT INTO eav_values (entity_id, attr_id, value, created_at) VALUES (";
   std::string eid = std::to_string(entityId);
   std::string aid = std::to_string(attrId);
   std::string now = std::to_string(_now());
-  query += eid + "," + aid + ", ? ," + now + ");";
-  int rc = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
-  if (rc != SQLITE_OK) {
-    res.code = rc;
-    std::string db_error_msg = sqlite3_errmsg(db);
-    std::cout << "SqliteError prepare - " << db_error_msg << std::endl;
-    res.msg = db_error_msg;
-    return res;
-  }
-  rc = sqlite3_bind_blob(stmt, 1, blob, size, SQLITE_STATIC);
-  if (rc != SQLITE_OK) {
-    res.code = rc;
-    std::string db_error_msg = sqlite3_errmsg(db);
-    std::cout << "SqliteError bind - " << db_error_msg << std::endl;
-    res.msg = db_error_msg;
-    return res;
-  }
-  rc = sqlite3_step(stmt);
-  if (rc != SQLITE_DONE) {
-    res.code = 1012;
-    std::cout << "SqliteError execution - failed" << std::endl;
-    res.msg = "Execution failed";
-  }
-  sqlite3_finalize(stmt);
+  query += eid + "," + aid + ",\"" + value + "\"," + now + ");";
+  DbResponse<int> res = _exec(query);
   return res;
 }
 #pragma endregion new_entries
@@ -509,6 +486,22 @@ EavResponse DbInterface::get_entity_values(int id) {
   return res;
 }
 #pragma endregion fetch_entries
+
+DbResponse<int> DbInterface::update_value(int id, std::string value) {
+  // check value exists
+  bool e_exists = _row_exists(VALUE, id);
+  if (!e_exists) {
+    DbResponse<int> res = DbResponse(0);
+    res.code = 1;
+    res.msg = "Value entry does not exist";
+    return res;
+  }
+  // build value
+  std::string query = "UPDATE eav_values SET value = \"" + 
+    value + "\" WHERE id = " + std::to_string(id) + ";";
+  DbResponse<int> res = _exec(query);
+  return res;
+}
 
 void DbInterface::disconnect() {
   int rcode = sqlite3_close(db);
