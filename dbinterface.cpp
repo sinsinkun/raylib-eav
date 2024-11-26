@@ -47,24 +47,34 @@ EavValueType _str_to_value_type(std::string str) {
 }
 
 // generic query execute with no return value
-int DbInterface::_exec(std::string query) {
+DbResponse<int> DbInterface::_exec(std::string query) {
+  DbResponse<int> res = DbResponse(0);
   char* errMsg;
   int rc = sqlite3_exec(db, query.c_str(), NULL, NULL, &errMsg);
   if (rc != SQLITE_OK) {
     std::string db_error_msg = sqlite3_errmsg(db);
-    std::cout << "SqliteError1 - " << db_error_msg << std::endl;
+    std::cout << "SqliteError - " << db_error_msg << std::endl;
+    res.msg = db_error_msg;
+  } else {
+    res.msg = "OK";
   }
-  return rc;
+  res.errCode = rc;
+  return res;
 }
 
 // query execute with EavItem parsing for return value
-int DbInterface::_exec_get_eav(std::string query, EavItemType type, std::vector<EavItem>* items) {
+DbResponse<std::vector<EavItem>> DbInterface::_exec_get_eav(std::string query, EavItemType type) {
+  std::vector<EavItem> items;
+  DbResponse<std::vector<EavItem>> res = DbResponse(items);
   sqlite3_stmt* stmt;
+  // send query to sqlite3
   int rc = sqlite3_prepare_v2(db, query.c_str(), query.length(), &stmt, NULL);
   if (rc != SQLITE_OK) {
     std::string db_error_msg = sqlite3_errmsg(db);
     std::cout << "SqliteError - " << db_error_msg << std::endl;
-    return 1;
+    res.errCode = rc;
+    res.msg = db_error_msg;
+    return res;
   }
   // convert sqlite data into eav item
   rc = sqlite3_step(stmt);
@@ -76,8 +86,6 @@ int DbInterface::_exec_get_eav(std::string query, EavItemType type, std::vector<
     for (int i=0; i < cc; i++) {
       const char* col = sqlite3_column_name(stmt, i);
       std::string colstr = col;
-      // const unsigned char* dv = sqlite3_column_text(stmt, i);
-      // std::cout << "column (" << i << "/" << cc << ") " << col << ": " << dv << std::endl;
       if (colstr == "id") {
         int id = sqlite3_column_int(stmt, i);
         switch (type) {
@@ -136,10 +144,20 @@ int DbInterface::_exec_get_eav(std::string query, EavItemType type, std::vector<
         }
       }
     }
-    items->push_back(item);
+    items.push_back(item);
     rc = sqlite3_step(stmt);
   }
-  return 0;
+  // clean up
+  res.data = items;
+  rc = sqlite3_finalize(stmt);
+  res.errCode = rc;
+  if (rc != SQLITE_OK) {
+    std::string db_error_msg = sqlite3_errmsg(db);
+    res.msg = db_error_msg;
+  } else {
+    res.msg = "OK";
+  }
+  return res;
 }
 
 // resets database tables. WARNING: ERASES ALL DATA - CANNOT BE UNDONE
@@ -197,143 +215,13 @@ void DbInterface::setup_tables() {
     // created_at time as milliseconds from epoch
     "created_at INTEGER, " \
     "entity_id INTEGER NOT NULL, " \
-    "attr_id INTEGER NOT NULL);";
+    "attr_id INTEGER NOT NULL, " \
+    "value BLOB);";
   _exec(v_create);
 
   std::cout << "Finished database setup" << std::endl;
 }
-#pragma endregion helpers
 
-#pragma region new_entries
-DbResponse<int> DbInterface::new_blueprint(std::string name) {
-  std::string query = "INSERT INTO eav_blueprints (blueprint, created_at) VALUES (\"";
-  std::string now = std::to_string(_now());
-  query += name + "\"," + now + ");";
-  int ec = _exec(query);
-  // build output
-  DbResponse<int> rs = DbResponse(0);
-  rs.errCode = ec;
-  if (ec == SQLITE_OK) {
-    std::cout << "Created new entity type" << std::endl;
-    rs.msg = "OK";
-  }
-  return rs;
-}
-
-DbResponse<int> DbInterface::new_entity(std::string name) {
-  std::string query = "INSERT INTO eav_entities (entity, created_at) VALUES (\"";
-  std::string now = std::to_string(_now());
-  query += name + "\"," + now + ");";
-  int ec = _exec(query);
-  // build output
-  DbResponse<int> rs = DbResponse(0);
-  rs.errCode = ec;
-  if (ec == SQLITE_OK) {
-    std::cout << "Created new entity without blueprint" << std::endl;
-    rs.msg = "OK";
-  }
-  return rs;
-}
-
-DbResponse<int> DbInterface::new_entity(std::string name, int blueprintId) {
-  // todo: check blueprint exists
-  std::string query = "INSERT INTO eav_entities (entity, blueprint_id, created_at) VALUES (\"";
-  std::string etid = std::to_string(blueprintId);
-  std::string now = std::to_string(_now());
-  query += name + "\"," + etid + "," + now + ");";
-  int ec = _exec(query);
-  // build output
-  DbResponse<int> rs = DbResponse(0);
-  rs.errCode = ec;
-  if (ec == SQLITE_OK) {
-    std::cout << "Created new entity" << std::endl;
-    rs.msg = "OK";
-  }
-  return rs;
-}
-
-DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, bool allowMultiple) {
-  std::string query = "INSERT INTO eav_attrs (attr, value_type, allow_multiple, created_at) VALUES (\"";
-  std::string vType = _value_type_to_str(valueType);
-  std::string am = std::to_string(allowMultiple);
-  std::string now = std::to_string(_now());
-  query += name + "\",\"" + vType + "\"," + am + "," + now + ");";
-  int ec = _exec(query);
-  // build output
-  DbResponse<int> rs = DbResponse(0);
-  rs.errCode = ec;
-  if (ec == SQLITE_OK) {
-    std::cout << "Created new attr" << std::endl;
-    rs.msg = "OK";
-  }
-  return rs;
-}
-
-DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit) {
-  if (valueType != EavValueType::INT && valueType != EavValueType::FLOAT) {
-    std::cout << "WARN: attr of this type cannot have a unit" << std::endl;
-    return SQLITE_ABORT;
-  }
-  std::string query = "INSERT INTO eav_attrs (attr, value_type, allow_multiple, unit, created_at) VALUES (\"";
-  std::string vType = _value_type_to_str(valueType);
-  std::string am = std::to_string(allowMultiple);
-  std::string now = std::to_string(_now());
-  query += name + "\",\"" + vType + "\"," + am + ",\"" + unit + "\"," + now + ");";
-  int ec = _exec(query);
-  // build output
-  DbResponse<int> rs = DbResponse(0);
-  rs.errCode = ec;
-  if (ec == SQLITE_OK) {
-    std::cout << "Created new attr" << std::endl;
-    rs.msg = "OK";
-  }
-  return rs;
-}
-
-DbResponse<int> DbInterface::new_ba_link(int blueprintId, int attrId) {
-  // todo: check blueprint + attr exist
-  std::string query = "INSERT INTO eav_ba_links (blueprint_id, attr_id, created_at) VALUES (";
-  std::string bid = std::to_string(blueprintId);
-  std::string aid = std::to_string(attrId);
-  std::string now = std::to_string(_now());
-  query += bid + "," + aid + "," + now + ");";
-  int ec = _exec(query);
-  // build output
-  DbResponse<int> rs = DbResponse(0);
-  rs.errCode = ec;
-  if (ec == SQLITE_OK) {
-    std::cout << "Created new attr" << std::endl;
-    rs.msg = "OK";
-  }
-  return rs;
-}
-
-DbResponse<int> DbInterface::new_value(int entityId, int attrId, std::string str_value) {
-  // build output
-  DbResponse<int> rs = DbResponse(0);
-  return rs;
-}
-
-DbResponse<int> DbInterface::new_value(int entityId, int attrId, int int_value) {
-  // build output
-  DbResponse<int> rs = DbResponse(0);
-  return rs;
-}
-
-DbResponse<int> DbInterface::new_value(int entityId, int attrId, float float_value) {
-  // build output
-  DbResponse<int> rs = DbResponse(0);
-  return rs;
-}
-
-DbResponse<int> DbInterface::new_value(int entityId, int attrId, bool bool_value) {
-  // build output
-  DbResponse<int> rs = DbResponse(0);
-  return rs;
-}
-#pragma endregion new_entries
-
-#pragma region fetch_entries
 void DbInterface::check_tables() {
   std::string query = "SELECT name FROM sqlite_master WHERE TYPE = 'table';";
   sqlite3_stmt* stmt;
@@ -341,10 +229,8 @@ void DbInterface::check_tables() {
   if (rc == SQLITE_OK) {
     rc = sqlite3_step(stmt);
     while (rc == SQLITE_ROW) {
-      // int cc = sqlite3_column_count(stmt);
-      // const char* c = sqlite3_column_name(stmt, 0);
-      const unsigned char* v = sqlite3_column_text(stmt, 0);
-      std::cout << "found row: " << v << std::endl;
+      std::string tableName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+      std::cout << "found row: " << tableName << std::endl;
       rc = sqlite3_step(stmt);
     }
   } else {
@@ -359,24 +245,165 @@ void DbInterface::check_tables() {
     std::cout << "Sqlite3 Error - " << db_error_msg << std::endl;
   }
 }
+#pragma endregion helpers
 
+#pragma region new_entries
+DbResponse<int> DbInterface::new_blueprint(std::string name) {
+  std::string query = "INSERT INTO eav_blueprints (blueprint, created_at) VALUES (\"";
+  std::string now = std::to_string(_now());
+  query += name + "\"," + now + ");";
+  DbResponse<int> res = _exec(query);
+  if (res.errCode == SQLITE_OK) {
+    std::cout << "Created new entity type" << std::endl;
+  }
+  return res;
+}
+
+DbResponse<int> DbInterface::new_entity(std::string name) {
+  std::string query = "INSERT INTO eav_entities (entity, created_at) VALUES (\"";
+  std::string now = std::to_string(_now());
+  query += name + "\"," + now + ");";
+  DbResponse<int> res = _exec(query);
+  if (res.errCode == SQLITE_OK) {
+    std::cout << "Created new entity without blueprint" << std::endl;
+  }
+  return res;
+}
+
+DbResponse<int> DbInterface::new_entity(std::string name, int blueprintId) {
+  // todo: check blueprint exists
+  std::string query = "INSERT INTO eav_entities (entity, blueprint_id, created_at) VALUES (\"";
+  std::string etid = std::to_string(blueprintId);
+  std::string now = std::to_string(_now());
+  query += name + "\"," + etid + "," + now + ");";
+  DbResponse<int> res = _exec(query);
+  if (res.errCode == SQLITE_OK) {
+    std::cout << "Created new entity" << std::endl;
+  }
+  return res;
+}
+
+DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, bool allowMultiple) {
+  std::string query = "INSERT INTO eav_attrs (attr, value_type, allow_multiple, created_at) VALUES (\"";
+  std::string vType = _value_type_to_str(valueType);
+  std::string am = std::to_string(allowMultiple);
+  std::string now = std::to_string(_now());
+  query += name + "\",\"" + vType + "\"," + am + "," + now + ");";
+  DbResponse<int> res = _exec(query);
+  if (res.errCode == SQLITE_OK) {
+    std::cout << "Created new attr" << std::endl;
+  }
+  return res;
+}
+
+DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit) {
+  if (valueType != EavValueType::INT && valueType != EavValueType::FLOAT) {
+    std::cout << "WARN: attr of this type cannot have a unit" << std::endl;
+    return SQLITE_ABORT;
+  }
+  std::string query = "INSERT INTO eav_attrs (attr, value_type, allow_multiple, value_unit, created_at) VALUES (\"";
+  std::string vType = _value_type_to_str(valueType);
+  std::string am = std::to_string(allowMultiple);
+  std::string now = std::to_string(_now());
+  query += name + "\",\"" + vType + "\"," + am + ",\"" + unit + "\"," + now + ");";
+  DbResponse<int> res = _exec(query);
+  if (res.errCode == SQLITE_OK) {
+    std::cout << "Created new attr" << std::endl;
+  }
+  return res;
+}
+
+DbResponse<int> DbInterface::new_ba_link(int blueprintId, int attrId) {
+  // todo: check blueprint + attr exist
+  std::string query = "INSERT INTO eav_ba_links (blueprint_id, attr_id, created_at) VALUES (";
+  std::string bid = std::to_string(blueprintId);
+  std::string aid = std::to_string(attrId);
+  std::string now = std::to_string(_now());
+  query += bid + "," + aid + "," + now + ");";
+  DbResponse<int> res = _exec(query);
+  if (res.errCode == SQLITE_OK) {
+    std::cout << "Created new ba link" << std::endl;
+  }
+  return res;
+}
+
+DbResponse<int> DbInterface::new_value(int entityId, int attrId, std::string str_value) {
+  std::string query = "INSERT INTO eav_values (entity_id, attr_id, value, created_at) VALUES (";
+  std::string eid = std::to_string(entityId);
+  std::string aid = std::to_string(attrId);
+  std::string now = std::to_string(_now());
+  query += eid + "," + aid + ",\"" + str_value + "\"," + now + ");";
+  DbResponse<int> res = _exec(query);
+  if (res.errCode == SQLITE_OK) {
+    std::cout << "Created new value" << std::endl;
+  }
+  return res;
+}
+
+DbResponse<int> DbInterface::new_value(int entityId, int attrId, int int_value) {
+  std::string query = "INSERT INTO eav_values (entity_id, attr_id, value, created_at) VALUES (";
+  std::string eid = std::to_string(entityId);
+  std::string aid = std::to_string(attrId);
+  std::string iv = std::to_string(int_value);
+  std::string now = std::to_string(_now());
+  query += eid + "," + aid + "," + iv + "," + now + ");";
+  DbResponse<int> res = _exec(query);
+  if (res.errCode == SQLITE_OK) {
+    std::cout << "Created new value" << std::endl;
+  }
+  return res;
+}
+
+DbResponse<int> DbInterface::new_value(int entityId, int attrId, float float_value) {
+  std::string query = "INSERT INTO eav_values (entity_id, attr_id, value, created_at) VALUES (";
+  std::string eid = std::to_string(entityId);
+  std::string aid = std::to_string(attrId);
+  std::string fv = std::to_string(float_value);
+  std::string now = std::to_string(_now());
+  query += eid + "," + aid + "," + fv + "," + now + ");";
+  DbResponse<int> res = _exec(query);
+  if (res.errCode == SQLITE_OK) {
+    std::cout << "Created new value" << std::endl;
+  }
+  return res;
+}
+
+DbResponse<int> DbInterface::new_value(int entityId, int attrId, bool bool_value) {
+  std::string query = "INSERT INTO eav_values (entity_id, attr_id, value, created_at) VALUES (";
+  std::string eid = std::to_string(entityId);
+  std::string aid = std::to_string(attrId);
+  std::string bv = bool_value ? "true" : "false";
+  std::string now = std::to_string(_now());
+  query += eid + "," + aid + "," + bv + "," + now + ");";
+  DbResponse<int> res = _exec(query);
+  if (res.errCode == SQLITE_OK) {
+    std::cout << "Created new value" << std::endl;
+  }
+  return res;
+}
+#pragma endregion new_entries
+
+#pragma region fetch_entries
 DbResponse<std::vector<EavItem>> DbInterface::get_blueprints() {
   std::string query = "SELECT * FROM eav_blueprints;";
-  std::vector<EavItem> items;
-  int rc = _exec_get_eav(query, EavItemType::BLUEPRINT, &items);
-  // build output
-  DbResponse<std::vector<EavItem>> rs = DbResponse(items);
-  return rs;
+  DbResponse<std::vector<EavItem>> res = _exec_get_eav(query, EavItemType::BLUEPRINT);
+  return res;
 }
 
 DbResponse<EavItem> DbInterface::get_blueprint(int id) {
   std::string query = "SELECT * FROM eav_blueprints WHERE id = ";
   query += std::to_string(id) + ";";
-  std::vector<EavItem> items;
-  int rc = _exec_get_eav(query, EavItemType::BLUEPRINT, &items);
+  DbResponse<std::vector<EavItem>> rs = _exec_get_eav(query, EavItemType::BLUEPRINT);
   // build output
-  DbResponse<EavItem> rs = DbResponse(items.at(0));
-  return rs;
+  EavItem item;
+  DbResponse<EavItem> res = DbResponse(item);
+  if (rs.errCode == SQLITE_OK && rs.data.size() > 0) {
+    res.data = rs.data.at(0);
+  } else {
+    res.errCode == SQLITE_ABORT;
+    res.msg = "No match found";
+  }
+  return res;
 }
 #pragma endregion fetch_entries
 

@@ -66,8 +66,7 @@ namespace DbI {
       DbResponse<EavItem> get_attr(int id);
     private:
       unsigned int _now();
-      int _exec(std::string query);
-      int _exec_stmt(std::string query, sqlite3_stmt* stmt);
-      int _exec_get_eav(std::string query, EavItemType type, std::vector<EavItem>* items);
+      DbResponse<int> _exec(std::string query);
+      DbResponse<std::vector<EavItem>> _exec_get_eav(std::string query, EavItemType type);
   };
 }
