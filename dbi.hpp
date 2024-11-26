@@ -52,6 +52,7 @@ namespace DbI {
       DbResponse<int> new_attr(std::string name, EavValueType valueType, bool allowMultiple);
       DbResponse<int> new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit);
       DbResponse<int> new_ba_link(int blueprintId, int attrId);
+      DbResponse<int> new_attr_for_blueprint(int blueprintId, std::string name, EavValueType valueType, bool allowMultiple, std::string unit);
       DbResponse<int> new_value(int entityId, int attrId, std::string value);
       // fetch entries
       EavResponse get_blueprints();
@@ -62,6 +63,7 @@ namespace DbI {
     private:
       unsigned int _now();
       bool _row_exists(EavItemType type, int id);
+      DbResponse<int> _last_inserted_id();
       DbResponse<int> _exec(std::string query);
       EavResponse _exec_get_eav(std::string query, EavItemType type);
   };

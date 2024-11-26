@@ -46,6 +46,34 @@ EavValueType _str_to_value_type(std::string str) {
   else return EavValueType::NONE;
 }
 
+DbResponse<int> DbInterface::_last_inserted_id() {
+  DbResponse<int> res = DbResponse(0);
+  sqlite3_stmt* stmt;
+  std::string query = "SELECT last_insert_rowid()";
+  // send query to sqlite3
+  int rc = sqlite3_prepare_v2(db, query.c_str(), query.length(), &stmt, NULL);
+  if (rc != SQLITE_OK) {
+    std::string db_error_msg = sqlite3_errmsg(db);
+    std::cout << "SqliteError - " << db_error_msg << std::endl;
+    res.code = rc;
+    res.msg = db_error_msg;
+    return res;
+  }
+  // convert sqlite data into eav item
+  rc = sqlite3_step(stmt);
+  if (rc == SQLITE_ROW) {
+    int v = sqlite3_column_int(stmt, 0);
+    res.data = v;
+    res.code = 0;
+    res.msg = "OK";
+  } else {
+    res.code = 999;
+    res.msg = "Could not find last inserted id";
+  }
+  sqlite3_finalize(stmt);
+  return res;
+}
+
 // generic query execute with no return value
 DbResponse<int> DbInterface::_exec(std::string query) {
   DbResponse<int> res = DbResponse(0);
@@ -342,6 +370,8 @@ DbResponse<int> DbInterface::new_blueprint(std::string name) {
   std::string now = std::to_string(_now());
   query += name + "\"," + now + ");";
   DbResponse<int> res = _exec(query);
+  if (res.code != SQLITE_OK) return res;
+  res = _last_inserted_id();
   return res;
 }
 
@@ -350,6 +380,8 @@ DbResponse<int> DbInterface::new_entity(std::string name) {
   std::string now = std::to_string(_now());
   query += name + "\"," + now + ");";
   DbResponse<int> res = _exec(query);
+  if (res.code != SQLITE_OK) return res;
+  res = _last_inserted_id();
   return res;
 }
 
@@ -368,6 +400,8 @@ DbResponse<int> DbInterface::new_entity(std::string name, int blueprintId) {
   std::string now = std::to_string(_now());
   query += name + "\"," + etid + "," + now + ");";
   DbResponse<int> res = _exec(query);
+  if (res.code != SQLITE_OK) return res;
+  res = _last_inserted_id();
   return res;
 }
 
@@ -378,6 +412,8 @@ DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, 
   std::string now = std::to_string(_now());
   query += name + "\",\"" + vType + "\"," + am + "," + now + ");";
   DbResponse<int> res = _exec(query);
+  if (res.code != SQLITE_OK) return res;
+  res = _last_inserted_id();
   return res;
 }
 
@@ -395,6 +431,8 @@ DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, 
   std::string now = std::to_string(_now());
   query += name + "\",\"" + vType + "\"," + am + ",\"" + unit + "\"," + now + ");";
   DbResponse<int> res = _exec(query);
+  if (res.code != SQLITE_OK) return res;
+  res = _last_inserted_id();
   return res;
 }
 
@@ -421,9 +459,32 @@ DbResponse<int> DbInterface::new_ba_link(int blueprintId, int attrId) {
   std::string now = std::to_string(_now());
   query += bid + "," + aid + "," + now + ");";
   res = _exec(query);
+  if (res.code != SQLITE_OK) return res;
+  res = _last_inserted_id();
   return res;
 }
 
+DbResponse<int> DbInterface::new_attr_for_blueprint(int blueprintId, std::string name, EavValueType valueType, bool allowMultiple, std::string unit) {
+  DbResponse<int> res = DbResponse(0);
+  // check if blueprint exists
+  bool bp_exists = _row_exists(BLUEPRINT, blueprintId);
+  if (!bp_exists) {
+    res.code = 1;
+    res.msg = "Blueprint does not exist";
+    return res;
+  }
+  // insert attr
+  if (unit == "") res = new_attr(name, valueType, allowMultiple);
+  else res = new_attr(name, valueType, allowMultiple, unit);
+  // insert bp_link
+  if (res.code == SQLITE_OK) {
+    DbResponse<int> lres = new_ba_link(blueprintId, res.data);
+    if (lres.code != SQLITE_OK) return lres;
+  }
+  return res;
+}
+
+// WARNING: NO TYPE CHECKING ON VALUE
 DbResponse<int> DbInterface::new_value(int entityId, int attrId, std::string value) {
   DbResponse<int> res = DbResponse(0);
   // check attribute exists
@@ -492,6 +553,8 @@ DbResponse<int> DbInterface::new_value(int entityId, int attrId, std::string val
   std::string now = std::to_string(_now());
   query += eid + "," + aid + ",\"" + value + "\"," + now + ");";
   res = _exec(query);
+  if (res.code != SQLITE_OK) return res;
+  res = _last_inserted_id();
   return res;
 }
 #pragma endregion new_entries
@@ -556,6 +619,7 @@ DbResponse<int> DbInterface::update_value(int id, std::string value) {
   std::string query = "UPDATE eav_values SET value = \"" + 
     value + "\" WHERE id = " + std::to_string(id) + ";";
   DbResponse<int> res = _exec(query);
+  if (res.code == SQLITE_OK) res.data = id;
   return res;
 }
 
