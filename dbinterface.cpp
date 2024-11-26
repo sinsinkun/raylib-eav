@@ -370,7 +370,10 @@ DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, 
 DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, bool allowMultiple, std::string unit) {
   if (valueType != EavValueType::INT && valueType != EavValueType::FLOAT) {
     std::cout << "WARN: attr of this type cannot have a unit" << std::endl;
-    return SQLITE_ABORT;
+    DbResponse<int> res = DbResponse(0);
+    res.code = SQLITE_ABORT;
+    res.msg = "attr with this type cannot have units";
+    return res;
   }
   std::string query = "INSERT INTO eav_attrs (attr, value_type, allow_multiple, value_unit, created_at) VALUES (\"";
   std::string vType = _value_type_to_str(valueType);
@@ -383,9 +386,9 @@ DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, 
 
 DbResponse<int> DbInterface::new_ba_link(int blueprintId, int attrId) {
   // check blueprint exists
+  DbResponse<int> res = DbResponse(0);
   bool bp_exists = _row_exists(BLUEPRINT, blueprintId);
   if (!bp_exists) {
-    DbResponse<int> res = DbResponse(0);
     res.code = 1;
     res.msg = "Blueprint does not exist";
     return res;
@@ -393,7 +396,6 @@ DbResponse<int> DbInterface::new_ba_link(int blueprintId, int attrId) {
   // check attribute exists
   bool attr_exists = _row_exists(ATTR, attrId);
   if (!attr_exists) {
-    DbResponse<int> res = DbResponse(0);
     res.code = 2;
     res.msg = "Attr does not exist";
     return res;
@@ -404,7 +406,7 @@ DbResponse<int> DbInterface::new_ba_link(int blueprintId, int attrId) {
   std::string aid = std::to_string(attrId);
   std::string now = std::to_string(_now());
   query += bid + "," + aid + "," + now + ");";
-  DbResponse<int> res = _exec(query);
+  res = _exec(query);
   return res;
 }
 
