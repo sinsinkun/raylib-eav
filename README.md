@@ -2,6 +2,9 @@
 
 EAV db system setup with sqlite3, and raylib for GUI.
 
+The advantage of sqlite is that it's designed to be embedded into applications,
+removing the need for running a separate MySQL instance in the background.
+
 ## Installation (with MSYS2)
 - Go through setup process to get mingw compiler working with VSCode (https://code.visualstudio.com/docs/languages/cpp)
 - Search for raylib package in mingw repository `pacman -Ss raylib`
