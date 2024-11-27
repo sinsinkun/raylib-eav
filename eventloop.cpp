@@ -30,6 +30,9 @@ void _setupDbTest(DbI::DbInterface* dbi) {
 
 void EventLoop::init() {
   // initialize assets
+  font = LoadFont("assets/Helvetica.ttf");
+  SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+  // load db
   dbInterface.init();
   int err = dbInterface.check_tables();
   if (err != 0) {
@@ -41,10 +44,11 @@ void EventLoop::init() {
   EavResponse bpRes = dbInterface.get_blueprints();
   if (bpRes.code == 0) {
     eavCategories = bpRes.data;
+    // instantiate buttons based on categories
     for (int i=0; i<eavCategories.size(); i++) {
       EavItem item = eavCategories[i];
       int id = item.blueprint_id * -1;
-      UIButton btn = UIButton(id, -40 + 80 * i, -250, 70, 30, item.blueprint);
+      UIButton btn = UIButton(id, -40 + 80 * i, -250, 70, 30, item.blueprint, &font);
       btns.push_back(btn);
     }
   } else {
@@ -89,5 +93,6 @@ void EventLoop::_drawFps() {
   std::string fpst = std::to_string(fps);
   std::string fpstxt = "FPS: ";
   fpstxt.append(fpst);
-  DrawText(fpstxt.c_str(), 10.0, 10.0, 20, GREEN);
+  Vector2 pos = { 10.0, 10.0 };
+  DrawTextEx(font, fpstxt.c_str(), pos, 18.0, 0.0, GREEN);
 }

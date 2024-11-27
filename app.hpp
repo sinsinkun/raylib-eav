@@ -21,6 +21,15 @@ namespace App {
         height = h;
         text = txt;
       }
+      UIButton(int id, int px, int py, int w, int h, std::string txt, Font* fontPtr) {
+        bid = id;
+        posX = px;
+        posY = py;
+        width = w;
+        height = h;
+        text = txt;
+        fontRef = fontPtr;
+      }
       bool relativeToCenter = true;
       int bid = 0;
       int posX = 0;
@@ -28,11 +37,11 @@ namespace App {
       int width = 100;
       int height = 40;
       int fontSize = 18;
-      int txtOffset = 5;
       Color btnColor = LIGHTGRAY;
       Color btnHoverColor = GRAY;
       Color txtColor = BLACK;
       std::string text = "";
+      Font* fontRef = NULL;
       bool isHovered = false;
       void update(Vector2 mousePos);
       void render();
@@ -51,6 +60,7 @@ namespace App {
       DbI::DbInterface dbInterface;
       std::vector<DbI::EavItem> eavCategories;
       // ui objects
+      Font font;
       std::vector<UIButton> btns;
       // methods
       void init();
