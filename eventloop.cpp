@@ -4,6 +4,7 @@
 #include "app.hpp"
 
 using namespace App;
+using namespace DbI;
 
 // temp function for resetting db setup for testing
 void _setupDbTest(DbI::DbInterface* dbi) {
@@ -37,8 +38,18 @@ void EventLoop::init() {
     return;
   }
   // _setupDbTest(&dbInterface);
-  auto res = dbInterface.get_blueprints();
-  std::cout << "done" << std::endl;
+  EavResponse bpRes = dbInterface.get_blueprints();
+  if (bpRes.code == 0) {
+    eavCategories = bpRes.data;
+    for (int i=0; i<eavCategories.size(); i++) {
+      EavItem item = eavCategories[i];
+      int id = item.blueprint_id * -1;
+      UIButton btn = UIButton(id, -40 + 80 * i, -250, 70, 30, item.blueprint);
+      btns.push_back(btn);
+    }
+  } else {
+    std::cout << "ERR: could not find categories" << std::endl;
+  }
 }
 
 void EventLoop::update() {
@@ -52,6 +63,10 @@ void EventLoop::render() {
     ClearBackground(BLACK);
     // draw to screen
     // ...
+    for (UIButton btn : btns) {
+      btn.render(screenCenter);
+    }
+    
     // draw FPS overlay
     _drawFps();
   EndDrawing();

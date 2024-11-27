@@ -4,7 +4,41 @@
 #include "dbi.hpp"
 
 namespace App {
-  
+  class UIButton {
+    public:
+      UIButton(int id, int px, int py, int w, int h) {
+        bid = id;
+        posX = px;
+        posY = py;
+        width = w;
+        height = h;
+      }
+      UIButton(int id, int px, int py, int w, int h, std::string txt) {
+        bid = id;
+        posX = px;
+        posY = py;
+        width = w;
+        height = h;
+        text = txt;
+      }
+      bool relativeToCenter = true;
+      int bid = 0;
+      int posX = 0;
+      int posY = 0;
+      int width = 100;
+      int height = 40;
+      int fontSize = 18;
+      int txtOffset = 5;
+      Color btnColor = LIGHTGRAY;
+      Color btnHoverColor = GRAY;
+      Color txtColor = BLACK;
+      std::string text = "";
+      bool isHovered = false;
+      void update(Vector2 mousePos);
+      void render();
+      void render(Vector2 center);
+    private:
+  };
   class EventLoop {
     public:
       // global states
@@ -13,7 +47,11 @@ namespace App {
       Vector2 screenCenter = { 0.0, 0.0 };
       int fps = 0;
       double elapsed = 0.0;
+      // data objects
       DbI::DbInterface dbInterface;
+      std::vector<DbI::EavItem> eavCategories;
+      // ui objects
+      std::vector<UIButton> btns;
       // methods
       void init();
       void update();

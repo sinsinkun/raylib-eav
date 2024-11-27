@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
   // --- INITIALIZATION ---
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   SetConfigFlags(FLAG_MSAA_4X_HINT);
-  InitWindow(800, 600, "Raylib App");
+  InitWindow(800, 600, "Raylib Eav");
   // InitAudioDevice();
   SetWindowMinSize(400, 300);
   SetTargetFPS(120);
