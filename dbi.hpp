@@ -12,7 +12,7 @@ namespace DbI {
     int attr_id = 0;
     int ba_id = 0;
     int value_id = 0;
-    int created_at = 0;
+    unsigned int created_at = 0;
     std::string blueprint = "";
     std::string entity = "";
     std::string attr = "";
@@ -55,11 +55,18 @@ namespace DbI {
       DbResponse<int> new_attr_for_blueprint(int blueprintId, std::string name, EavValueType valueType, bool allowMultiple, std::string unit);
       DbResponse<int> new_value(int entityId, int attrId, std::string value);
       // fetch entries
+      DbResponse<EavItem> get_one(EavItemType type, int id);
       EavResponse get_blueprints();
       EavResponse get_blueprint_entities(int id);
       EavResponse get_entity_values(int id);
       // update entries
+      DbResponse<int> update_blueprint(int id, std::string name);
+      DbResponse<int> update_entity(int id, int blueprintId, std::string name);
+      DbResponse<int> update_attr(int id, std::string name, EavValueType valueType, bool allowMultiple);
+      DbResponse<int> update_attr(int id, std::string name, EavValueType valueType, bool allowMultiple, std::string unit);
       DbResponse<int> update_value(int id, std::string value);
+      // delete entries
+      DbResponse<int> delete_any(EavItemType type, int id);
     private:
       unsigned int _now();
       bool _row_exists(EavItemType type, int id);

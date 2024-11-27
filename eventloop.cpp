@@ -37,7 +37,7 @@ void EventLoop::init() {
     return;
   }
   // _setupDbTest(&dbInterface);
-  DbI::EavResponse res = dbInterface.get_entity_values(1);
+  auto res = dbInterface.get_blueprints();
   std::cout << "done" << std::endl;
 }
 

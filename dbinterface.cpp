@@ -145,7 +145,7 @@ EavResponse DbInterface::_exec_get_eav(std::string query, EavItemType type) {
       } else if (colstr == "value_id") {
         item.value_id = sqlite3_column_int(stmt, i);
       } else if (colstr == "created_at") {
-        int ca = sqlite3_column_int(stmt, i);
+        unsigned int ca = sqlite3_column_int(stmt, i);
         item.created_at = ca;
       } else if (colstr == "blueprint") {
         item.blueprint = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
@@ -560,6 +560,52 @@ DbResponse<int> DbInterface::new_value(int entityId, int attrId, std::string val
 #pragma endregion new_entries
 
 #pragma region fetch_entries
+DbResponse<EavItem> DbInterface::get_one(EavItemType type, int id) {
+  EavItem item;
+  DbResponse<EavItem> res = DbResponse(item);
+  std::string table = "";
+  switch (type) {
+    case BLUEPRINT:
+      table = "eav_blueprints";
+      break;
+    case ENTITY:
+      table = "eav_entities";
+      break;
+    case ATTR:
+      table = "eav_attrs";
+      break;
+    case BA_LINK:
+      table = "eav_ba_links";
+      break;
+    case VALUE:
+      table = "eav_values";
+      break;
+    default:
+      break;
+  }
+  if (table == "") {
+    std::cout << "ERR: Could not find table from type" << type << std::endl;
+    res.code = 1;
+    res.msg = "Invalid table for deletion";
+    return res;
+  }
+  std::string query = "SELECT * FROM " + table + " WHERE id = " + std::to_string(id);
+  EavResponse rs = _exec_get_eav(query, type);
+  if (rs.code != SQLITE_OK) {
+    res.code = rs.code;
+    res.msg = rs.msg;
+    return res;
+  }
+  if (rs.data.size() == 0) {
+    res.code = 1;
+    res.msg = "No item found";
+    return res;
+  }
+  res.msg = "OK";
+  res.data = rs.data.at(0);
+  return res;
+}
+
 EavResponse DbInterface::get_blueprints() {
   std::string query = "SELECT * FROM eav_blueprints;";
   EavResponse res = _exec_get_eav(query, EavItemType::BLUEPRINT);
@@ -594,7 +640,7 @@ EavResponse DbInterface::get_entity_values(int id) {
   }
   std::string query = "SELECT eb.id as blueprint_id, eb.blueprint, ee.id as entity_id, ee.entity, " \
     "ea.id as attr_id, ea.attr, ea.value_type, ea.value_unit, ea.allow_multiple, " \
-    "ev.id as value_id, ev.value "
+    "ebl.id as ba_id, ev.id as value_id, ev.value " \
     "FROM eav_blueprints eb " \
     "LEFT JOIN eav_entities ee ON ee.blueprint_id = eb.id " \
     "LEFT JOIN eav_ba_links ebl ON ebl.blueprint_id = eb.id " \
@@ -606,20 +652,127 @@ EavResponse DbInterface::get_entity_values(int id) {
 }
 #pragma endregion fetch_entries
 
+#pragma region update_entries
+DbResponse<int> DbInterface::update_blueprint(int id, std::string name) {
+  // check blueprint exists
+  bool b_exists = _row_exists(BLUEPRINT, id);
+  if (!b_exists) {
+    DbResponse<int> res = DbResponse(0);
+    res.code = 1;
+    res.msg = "Blueprint entry does not exist";
+    return res;
+  }
+  // build blueprint
+  std::string query = "UPDATE eav_blueprints SET blueprint = \"" + name + "\" WHERE id = " + std::to_string(id);
+  DbResponse<int> res = _exec(query);
+  if (res.code == SQLITE_OK) res.data = id;
+  return res;
+}
+
+DbResponse<int> DbInterface::update_entity(int id, int blueprintId, std::string name) {
+  // check entity exists
+  bool e_exists = _row_exists(ENTITY, id);
+  if (!e_exists) {
+    DbResponse<int> res = DbResponse(0);
+    res.code = 1;
+    res.msg = "Entity entry does not exist";
+    return res;
+  }
+  // build entity
+  std::string query = "UPDATE eav_entities SET entity = \"" + name + 
+    "\", blueprint_id = " + std::to_string(blueprintId) + " WHERE id = " + std::to_string(id);
+  DbResponse<int> res = _exec(query);
+  if (res.code == SQLITE_OK) res.data = id;
+  return res;
+}
+
+DbResponse<int> DbInterface::update_attr(int id, std::string name, EavValueType valueType, bool allowMultiple) {
+  // check attr exists
+  bool a_exists = _row_exists(ATTR, id);
+  if (!a_exists) {
+    DbResponse<int> res = DbResponse(0);
+    res.code = 1;
+    res.msg = "Entity entry does not exist";
+    return res;
+  }
+  // build attr
+  std::string vtypeStr = _value_type_to_str(valueType);
+  std::string am = std::to_string(allowMultiple);
+  std::string query = "UPDATE eav_attrs SET attr = \"" +
+    name + "\", value_type = \"" + vtypeStr + "\", allow_multiple = " + am +
+    " WHERE id = " + std::to_string(id);
+  DbResponse<int> res = _exec(query);
+  if (res.code == SQLITE_OK) res.data = id;
+  return res;
+}
+
+DbResponse<int> DbInterface::update_attr(int id, std::string name, EavValueType valueType, bool allowMultiple, std::string unit) {
+  // check attr exists
+  bool a_exists = _row_exists(ATTR, id);
+  if (!a_exists) {
+    DbResponse<int> res = DbResponse(0);
+    res.code = 1;
+    res.msg = "Entity entry does not exist";
+    return res;
+  }
+  // build attr
+  std::string vtypeStr = _value_type_to_str(valueType);
+  std::string am = std::to_string(allowMultiple);
+  std::string query = "UPDATE eav_attrs SET attr = \"" +
+    name + "\", value_type = \"" + vtypeStr + "\", allow_multiple = " + am + ", value_unit = " + unit +
+    " WHERE id = " + std::to_string(id);
+  DbResponse<int> res = _exec(query);
+  if (res.code == SQLITE_OK) res.data = id;
+  return res;
+}
+
 DbResponse<int> DbInterface::update_value(int id, std::string value) {
   // check value exists
-  bool e_exists = _row_exists(VALUE, id);
-  if (!e_exists) {
+  bool v_exists = _row_exists(VALUE, id);
+  if (!v_exists) {
     DbResponse<int> res = DbResponse(0);
     res.code = 1;
     res.msg = "Value entry does not exist";
     return res;
   }
   // build value
-  std::string query = "UPDATE eav_values SET value = \"" + 
-    value + "\" WHERE id = " + std::to_string(id) + ";";
+  std::string query = "UPDATE eav_values SET value = \"" + value + "\" WHERE id = " + std::to_string(id);
   DbResponse<int> res = _exec(query);
   if (res.code == SQLITE_OK) res.data = id;
+  return res;
+}
+#pragma endregion update_entries
+
+DbResponse<int> DbInterface::delete_any(EavItemType type, int id) {
+  DbResponse<int> res = DbResponse(0);
+  std::string table = "";
+  switch (type) {
+    case BLUEPRINT:
+      table = "eav_blueprints";
+      break;
+    case ENTITY:
+      table = "eav_entities";
+      break;
+    case ATTR:
+      table = "eav_attrs";
+      break;
+    case BA_LINK:
+      table = "eav_ba_links";
+      break;
+    case VALUE:
+      table = "eav_values";
+      break;
+    default:
+      break;
+  }
+  if (table == "") {
+    std::cout << "ERR: Could not find table from type" << type << std::endl;
+    res.code = 1;
+    res.msg = "Invalid table for deletion";
+    return res;
+  }
+  std::string query = "DELETE FROM " + table + " WHERE id = " + std::to_string(id);
+  res = _exec(query);
   return res;
 }
 
