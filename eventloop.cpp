@@ -43,13 +43,13 @@ void EventLoop::init() {
   // _setupDbTest(&dbInterface);
   EavResponse bpRes = dbInterface.get_blueprints();
   if (bpRes.code == 0) {
-    eavCategories = bpRes.data;
+    std::vector<EavItem> bps = bpRes.data;
     // instantiate buttons based on categories
-    for (int i=0; i<eavCategories.size(); i++) {
-      EavItem item = eavCategories[i];
-      int id = item.blueprint_id * -1;
-      UIButton btn = UIButton(id, -40 + 80 * i, -250, 70, 30, item.blueprint, &font);
-      btns.push_back(btn);
+    for (int i=0; i<bps.size(); i++) {
+      Rectangle posSize = { 50.0f + (float)i * 90.0f, 50.0f, 80.0f, 40.0f };
+      EavBlueprint bp = EavBlueprint(bps[i], posSize, font);
+      bp.relativeToCenter = false;
+      categories.push_back(bp);
     }
   } else {
     std::cout << "ERR: could not find categories" << std::endl;
@@ -67,10 +67,21 @@ void EventLoop::render() {
     ClearBackground(BLACK);
     // draw to screen
     // ...
-    for (UIButton btn : btns) {
-      btn.render(screenCenter);
+    UIEvent e = NO_EVENT;
+    // draw category buttons
+    for (EavBlueprint bp : categories) {
+      UIEvent evt = bp.render(screenCenter, mousePos);
+      if (evt > e) e = evt;
+      if (evt == BTN_CLICK) {
+        std::cout << "Clicked btn " << bp.id << std::endl;
+      }
     }
-    
+    // change cursor based on ui event
+    if (e == BTN_HOVER || e == BTN_CLICK) {
+      SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+    } else {
+      SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+    }
     // draw FPS overlay
     _drawFps();
   EndDrawing();
@@ -86,6 +97,7 @@ void EventLoop::_updateSystem() {
   screenW = GetScreenWidth();
   screenH = GetScreenHeight();
   elapsed = GetTime();
+  mousePos = GetMousePosition();
   screenCenter = { (float)screenW/2, (float)screenH/2 };
 }
 

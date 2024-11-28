@@ -4,5 +4,8 @@ build/
 *.pdb
 *.db
 
+# external imports
+raygui.h
+
 # ignore temp items
 temp*

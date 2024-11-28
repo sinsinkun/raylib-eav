@@ -4,64 +4,41 @@
 #include "dbi.hpp"
 
 namespace App {
-  class UIButton {
+  enum UIEvent { NO_EVENT, BTN_HOVER, BTN_HOLD, BTN_CLICK };
+  class EavBlueprint {
     public:
-      UIButton(int id, int px, int py, int w, int h) {
-        bid = id;
-        posX = px;
-        posY = py;
-        width = w;
-        height = h;
+      EavBlueprint(DbI::EavItem item, Rectangle posSizeIn, Font fontIn) {
+        id = item.blueprint_id;
+        name = item.blueprint;
+        posSize = posSizeIn;
+        font = fontIn;
       }
-      UIButton(int id, int px, int py, int w, int h, std::string txt) {
-        bid = id;
-        posX = px;
-        posY = py;
-        width = w;
-        height = h;
-        text = txt;
-      }
-      UIButton(int id, int px, int py, int w, int h, std::string txt, Font* fontPtr) {
-        bid = id;
-        posX = px;
-        posY = py;
-        width = w;
-        height = h;
-        text = txt;
-        fontRef = fontPtr;
-      }
+      int id = 0;
+      std::string name = "";
       bool relativeToCenter = true;
-      int bid = 0;
-      int posX = 0;
-      int posY = 0;
-      int width = 100;
-      int height = 40;
-      int fontSize = 18;
+      Rectangle posSize = { 0.0f, 0.0f, 100.0f, 50.0f };
+      Font font = GetFontDefault();
       Color btnColor = LIGHTGRAY;
       Color btnHoverColor = GRAY;
+      Color btnDownColor = Color { 100, 100, 100, 255 };
       Color txtColor = BLACK;
-      std::string text = "";
-      Font* fontRef = NULL;
-      bool isHovered = false;
-      void update(Vector2 mousePos);
-      void render();
-      void render(Vector2 center);
-    private:
+      float fontSize = 18.0f;
+      UIEvent render();
+      UIEvent render(Vector2 screenCenter, Vector2 mousePos);
   };
   class EventLoop {
     public:
       // global states
       int screenW = 0;
       int screenH = 0;
-      Vector2 screenCenter = { 0.0, 0.0 };
+      Vector2 screenCenter = { 0.0f, 0.0f };
+      Vector2 mousePos = { 0.0f, 0.0f };
       int fps = 0;
       double elapsed = 0.0;
+      Font font;
       // data objects
       DbI::DbInterface dbInterface;
-      std::vector<DbI::EavItem> eavCategories;
-      // ui objects
-      Font font;
-      std::vector<UIButton> btns;
+      std::vector<EavBlueprint> categories;
       // methods
       void init();
       void update();
