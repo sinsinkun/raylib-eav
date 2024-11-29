@@ -37,10 +37,6 @@ namespace App {
         if (txtDim.x > posSize.width) posSize.width = txtDim.x + 10.0f;
         if (txtDim.y > posSize.height) posSize.height = txtDim.y + 10.0f;
       }
-    private:
-      Rectangle _absPos { 0.0f, 0.0f, 100.0f, 50.0f };
-      Vector2 _txtPos { 0.0f, 0.0f };
-      Color _activeColor = LIGHTGRAY;
   };
   class EavEntity: public UIButtonBase {
     public:
