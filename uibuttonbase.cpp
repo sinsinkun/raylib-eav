@@ -48,6 +48,7 @@ UIEvent UIButtonBase::update(Vector2 ctr, Vector2 mPos) {
     originalMouseLock = { 0.0f, 0.0f };
     holding = false;
   }
+  _activeColor = clr;
 
   Vector2 txtDim = MeasureTextEx(font, displayTxt.c_str(), fontSize, 0.0);
   _txtPos = {ctr.x + posSize.x - txtDim.x / 2, ctr.y + posSize.y - txtDim.y / 2};

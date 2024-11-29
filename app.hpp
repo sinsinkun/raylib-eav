@@ -10,7 +10,7 @@ namespace App {
       int id = 0;
       std::string displayTxt = "";
       bool relativeToCenter = true;
-      Rectangle posSize = { 0.0f, 0.0f, 100.0f, 50.0f };
+      Rectangle posSize = { 0.0f, 0.0f, 100.0f, 30.0f };
       Font font = GetFontDefault();
       float fontSize = 18.0f;
       Color btnColor = LIGHTGRAY;
@@ -22,7 +22,7 @@ namespace App {
       UIEvent update(Vector2 screenCenter, Vector2 mousePos);
       void render();
     private:
-      Rectangle _absPos { 0.0f, 0.0f, 100.0f, 50.0f };
+      Rectangle _absPos { 0.0f, 0.0f, 100.0f, 30.0f };
       Vector2 _txtPos { 0.0f, 0.0f };
       Color _activeColor = LIGHTGRAY;
   };

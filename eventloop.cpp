@@ -46,7 +46,7 @@ void EventLoop::init() {
     std::vector<EavItem> bps = bpRes.data;
     // instantiate buttons based on categories
     for (int i=0; i<bps.size(); i++) {
-      Rectangle posSize = { 50.0f + (float)i * 90.0f, 50.0f, 80.0f, 40.0f };
+      Rectangle posSize = { 50.0f + (float)i * 90.0f, 50.0f, 80.0f, 30.0f };
       EavBlueprint bp = EavBlueprint(bps[i], posSize, font);
       bp.relativeToCenter = false;
       categories.push_back(bp);
@@ -60,9 +60,17 @@ void EventLoop::update() {
   _updateSystem();
   // update global state
   UIEvent e = NO_EVENT;
-  int activeClick = 0;
-  // update categories
-  for (int i=0; i < categories.size(); i++) {
+  // update all components backwards -> first click event is the last component rendered
+  // update entities
+  for (int i=entities.size()-1; i >= 0; i--) {
+    UIEvent evt = entities[i].update(screenCenter, mousePos);
+    if (evt > e) e = evt;
+    if (evt == BTN_CLICK) {
+      std::cout << "Clicked entity " << entities[i].id << std::endl;
+    }
+  }
+  // update categorie
+  for (int i=categories.size()-1; i >= 0; i--) {
     UIEvent evt = categories[i].update(screenCenter, mousePos);
     if (evt > e) e = evt;
     // generate entities for category
@@ -73,20 +81,12 @@ void EventLoop::update() {
         std::vector<EavItem> es = eres.data;
         // instantiate buttons based on categories
         for (int i=0; i<es.size(); i++) {
-          Rectangle posSize = { 50.0f + (float)i * 90.0f, 100.0f, 80.0f, 40.0f };
+          Rectangle posSize = { 50.0f + (float)i * 90.0f, 100.0f, 80.0f, 30.0f };
           EavEntity e = EavEntity(es[i], posSize, font);
           e.relativeToCenter = false;
           entities.push_back(e);
         }
       }
-    }
-  }
-  // update entities
-  for (int i=0; i < entities.size(); i++) {
-    UIEvent evt = entities[i].update(screenCenter, mousePos);
-    if (evt > e) e = evt;
-    if (evt == BTN_CLICK) {
-      std::cout << "Clicked entity " << entities[i].id << std::endl;
     }
   }
   // change cursor based on ui event
