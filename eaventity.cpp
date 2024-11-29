@@ -45,7 +45,6 @@ UIEvent EavEntity::render(Vector2 ctr, Vector2 mPos) {
     posSize.x += mdx;
     posSize.y += mdy;
     originalMouseLock = { 0.0f, 0.0f };
-    std::cout << "Lock in new pos " << mdx << "," << mdy << std::endl;
     holding = false;
   }
   // draw background
