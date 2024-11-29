@@ -6,7 +6,7 @@
 
 using namespace App;
 
-UIEvent EavEntity::render(Vector2 ctr, Vector2 mPos) {
+UIEvent UIButtonBase::update(Vector2 ctr, Vector2 mPos) {
   if (!relativeToCenter) ctr = { 0.0f, 0.0f };
   float mdx = mPos.x - originalMouseLock.x;
   float mdy = mPos.y - originalMouseLock.y;
@@ -18,6 +18,7 @@ UIEvent EavEntity::render(Vector2 ctr, Vector2 mPos) {
   // calculate absolute position based on center
   int absX = ctr.x + posSize.x - posSize.width / 2;
   int absY = ctr.y + posSize.y - posSize.height / 2;
+  _absPos = { (float)absX, (float)absY, posSize.width, posSize.height };
 
   // calculate if btn is being hovered
   UIEvent event = NO_EVENT;
@@ -47,13 +48,18 @@ UIEvent EavEntity::render(Vector2 ctr, Vector2 mPos) {
     originalMouseLock = { 0.0f, 0.0f };
     holding = false;
   }
-  // draw background
-  DrawRectangle(absX, absY, (int)posSize.width, (int)posSize.height, clr);
-  // draw text
-  if (name != "") {
-    Vector2 txtDim = MeasureTextEx(font, name.c_str(), fontSize, 0.0);
-    Vector2 pos = {ctr.x + posSize.x - txtDim.x / 2, ctr.y + posSize.y - txtDim.y / 2};
-    DrawTextEx(font, name.c_str(), pos, fontSize, 0.0, txtColor);
-  }
+
+  Vector2 txtDim = MeasureTextEx(font, displayTxt.c_str(), fontSize, 0.0);
+  _txtPos = {ctr.x + posSize.x - txtDim.x / 2, ctr.y + posSize.y - txtDim.y / 2};
+  
   return event;
+}
+
+void UIButtonBase::render() {
+  // draw background
+  DrawRectangle(_absPos.x, _absPos.y, _absPos.width, _absPos.height, _activeColor);
+  // draw text
+  if (displayTxt != "") {
+    DrawTextEx(font, displayTxt.c_str(), _txtPos, fontSize, 0.0, txtColor);
+  }
 }

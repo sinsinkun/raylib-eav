@@ -59,46 +59,54 @@ void EventLoop::init() {
 void EventLoop::update() {
   _updateSystem();
   // update global state
-  // ...
+  UIEvent e = NO_EVENT;
+  int activeClick = 0;
+  // update categories
+  for (int i=0; i < categories.size(); i++) {
+    UIEvent evt = categories[i].update(screenCenter, mousePos);
+    if (evt > e) e = evt;
+    // generate entities for category
+    if (evt == BTN_CLICK) {
+      entities.clear();
+      EavResponse eres = dbInterface.get_blueprint_entities(categories[i].id);
+      if (eres.code == 0) {
+        std::vector<EavItem> es = eres.data;
+        // instantiate buttons based on categories
+        for (int i=0; i<es.size(); i++) {
+          Rectangle posSize = { 50.0f + (float)i * 90.0f, 100.0f, 80.0f, 40.0f };
+          EavEntity e = EavEntity(es[i], posSize, font);
+          e.relativeToCenter = false;
+          entities.push_back(e);
+        }
+      }
+    }
+  }
+  // update entities
+  for (int i=0; i < entities.size(); i++) {
+    UIEvent evt = entities[i].update(screenCenter, mousePos);
+    if (evt > e) e = evt;
+    if (evt == BTN_CLICK) {
+      std::cout << "Clicked entity " << entities[i].id << std::endl;
+    }
+  }
+  // change cursor based on ui event
+  if (e == BTN_HOVER || e == BTN_CLICK || e == BTN_HOLD) {
+    SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+  } else {
+    SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+  }
 }
 
 void EventLoop::render() {
   BeginDrawing();
     ClearBackground(BLACK);
-    // draw to screen
-    UIEvent e = NO_EVENT;
     // draw category buttons
     for (int i=0; i < categories.size(); i++) {
-      UIEvent evt = categories[i].render(screenCenter, mousePos);
-      if (evt > e) e = evt;
-      if (evt == BTN_CLICK) {
-        entities.clear();
-        EavResponse eres = dbInterface.get_blueprint_entities(categories[i].id);
-        if (eres.code == 0) {
-          std::vector<EavItem> es = eres.data;
-          // instantiate buttons based on categories
-          for (int i=0; i<es.size(); i++) {
-            Rectangle posSize = { 50.0f + (float)i * 90.0f, 100.0f, 80.0f, 40.0f };
-            EavEntity e = EavEntity(es[i], posSize, font);
-            e.relativeToCenter = false;
-            entities.push_back(e);
-          }
-        }
-      }
+      categories[i].render();
     }
     // draw entities
     for (int i=0; i < entities.size(); i++) {
-      UIEvent evt = entities[i].render(screenCenter, mousePos);
-      if (evt > e) e = evt;
-      if (evt == BTN_CLICK) {
-        std::cout << "Clicked entity " << entities[i].id << std::endl;
-      }
-    }
-    // change cursor based on ui event
-    if (e == BTN_HOVER || e == BTN_CLICK || e == BTN_HOLD) {
-      SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-    } else {
-      SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+      entities[i].render();
     }
     // draw FPS overlay
     _drawFps();
