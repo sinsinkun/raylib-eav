@@ -66,18 +66,36 @@ void EventLoop::render() {
   BeginDrawing();
     ClearBackground(BLACK);
     // draw to screen
-    // ...
     UIEvent e = NO_EVENT;
     // draw category buttons
-    for (EavBlueprint bp : categories) {
-      UIEvent evt = bp.render(screenCenter, mousePos);
+    for (int i=0; i < categories.size(); i++) {
+      UIEvent evt = categories[i].render(screenCenter, mousePos);
       if (evt > e) e = evt;
       if (evt == BTN_CLICK) {
-        std::cout << "Clicked btn " << bp.id << std::endl;
+        entities.clear();
+        EavResponse eres = dbInterface.get_blueprint_entities(categories[i].id);
+        if (eres.code == 0) {
+          std::vector<EavItem> es = eres.data;
+          // instantiate buttons based on categories
+          for (int i=0; i<es.size(); i++) {
+            Rectangle posSize = { 50.0f + (float)i * 90.0f, 100.0f, 80.0f, 40.0f };
+            EavEntity e = EavEntity(es[i], posSize, font);
+            e.relativeToCenter = false;
+            entities.push_back(e);
+          }
+        }
+      }
+    }
+    // draw entities
+    for (int i=0; i < entities.size(); i++) {
+      UIEvent evt = entities[i].render(screenCenter, mousePos);
+      if (evt > e) e = evt;
+      if (evt == BTN_CLICK) {
+        std::cout << "Clicked entity " << entities[i].id << std::endl;
       }
     }
     // change cursor based on ui event
-    if (e == BTN_HOVER || e == BTN_CLICK) {
+    if (e == BTN_HOVER || e == BTN_CLICK || e == BTN_HOLD) {
       SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
     } else {
       SetMouseCursor(MOUSE_CURSOR_DEFAULT);

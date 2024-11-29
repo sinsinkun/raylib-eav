@@ -1,3 +1,4 @@
+#include <iostream>
 #include <vector>
 #include <string>
 #include <raylib.h>
@@ -5,14 +6,15 @@
 
 using namespace App;
 
-UIEvent EavBlueprint::render() {
-  Vector2 ctr = { 0.0f, 0.0f };
-  Vector2 mp = { 0.0f, 0.0f };
-  return render(ctr, mp);
-}
-
-UIEvent EavBlueprint::render(Vector2 ctr, Vector2 mPos) {
+UIEvent EavEntity::render(Vector2 ctr, Vector2 mPos) {
   if (!relativeToCenter) ctr = { 0.0f, 0.0f };
+  float mdx = mPos.x - originalMouseLock.x;
+  float mdy = mPos.y - originalMouseLock.y;
+  // offset center when held by mouse
+  if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && holding) {
+    ctr.x += mdx;
+    ctr.y += mdy;
+  }
   // calculate absolute position based on center
   int absX = ctr.x + posSize.x - posSize.width / 2;
   int absY = ctr.y + posSize.y - posSize.height / 2;
@@ -26,13 +28,25 @@ UIEvent EavBlueprint::render(Vector2 ctr, Vector2 mPos) {
     event = BTN_HOVER;
     clr = btnHoverColor;
   }
-  if (event == BTN_HOVER && IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+  if (event == BTN_HOVER && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+    event = BTN_HOLD;
+    clr = btnDownColor;
+    originalMouseLock.x = mPos.x;
+    originalMouseLock.y = mPos.y;
+    holding = true;
+  }
+  if (holding && IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
     event = BTN_HOLD;
     clr = btnDownColor;
   }
-  if (event == BTN_HOVER && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+  if (holding && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
     event = BTN_CLICK;
     clr = btnDownColor;
+    posSize.x += mdx;
+    posSize.y += mdy;
+    originalMouseLock = { 0.0f, 0.0f };
+    std::cout << "Lock in new pos " << mdx << "," << mdy << std::endl;
+    holding = false;
   }
   // draw background
   DrawRectangle(absX, absY, (int)posSize.width, (int)posSize.height, clr);
