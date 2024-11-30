@@ -6,28 +6,6 @@
 using namespace App;
 using namespace DbI;
 
-// temp function for resetting db setup for testing
-void _setupDbTest(DbI::DbInterface* dbi) {
-  dbi->setup_tables();
-  dbi->new_blueprint("movies");
-  dbi->new_blueprint("books");
-  dbi->new_entity("Titanic", 1);
-  dbi->new_entity("1984", 2);
-  dbi->new_attr("genre", DbI::STR, true);
-  dbi->new_attr("length", DbI::FLOAT, false, "hrs");
-  dbi->new_attr("finished", DbI::BOOL, false);
-  dbi->new_ba_link(1, 1);
-  dbi->new_ba_link(1, 2);
-  dbi->new_ba_link(1, 3);
-  dbi->new_ba_link(2, 1);
-  dbi->new_ba_link(2, 3);
-  dbi->new_value(1, 1, "drama");
-  dbi->new_value(2, 1, "alt history");
-  dbi->new_value(1, 1, "romance");
-  dbi->new_value(1, 2, "1.25");
-  dbi->new_value(1, 3, "true");
-}
-
 void EventLoop::init() {
   // initialize assets
   font = LoadFont("assets/Helvetica.ttf");
@@ -58,30 +36,40 @@ void EventLoop::init() {
 void EventLoop::update() {
   _updateSystem();
   // update global state
-  // update all components backwards -> first click event is the last component rendered
+  UIEvent eState = NO_EVENT;
   MouseState mState = MOUSE_NONE;
   if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) mState = MOUSE_DOWN;
   if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) mState = MOUSE_HOLD;
   if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) mState = MOUSE_UP;
+  // update all components backwards -> first click event is the last component rendered
   bool clickActionAvailable = true;
   // update entities
+  int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
     if (CheckCollisionPointRec(mousePos, entities[i].posSize)) {
       if (mState == MOUSE_NONE) mState = MOUSE_OVER;
       UIEvent evt = entities[i].update(mState);
+      eState = evt;
       if (evt == BTN_CLICK && clickActionAvailable) {
         clickActionAvailable = false;
-        std::cout << "Clicked entity " << entities[i].id << std::endl;
+        sortIndex = i;
       }
     } else {
       entities[i].update(MOUSE_NONE);
     }
+  }
+  // re-sort entities so clicked is on top
+  if (sortIndex != -1) {
+    EavEntity e = entities[sortIndex];
+    entities.erase(entities.begin() + sortIndex);
+    entities.push_back(e);
   }
   // update categories
   for (int i=categories.size()-1; i >= 0; i--) {
     if (CheckCollisionPointRec(mousePos, categories[i].posSize)) {
       if (mState == MOUSE_NONE) mState = MOUSE_OVER;
       UIEvent evt = categories[i].update(mState);
+      eState = evt;
       if (evt == BTN_CLICK && clickActionAvailable) {
         clickActionAvailable = false;
         entities.clear();
@@ -104,14 +92,13 @@ void EventLoop::update() {
     }
   }
   // update mouse state
-  switch (mState) {
-    case MOUSE_OVER:
-    case MOUSE_DOWN:
-    case MOUSE_HOLD:
-    case MOUSE_UP:
+  switch (eState) {
+    case BTN_HOVER:
+    case BTN_HOLD:
+    case BTN_CLICK:
       SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
       break;
-    case MOUSE_NONE:
+    case NO_EVENT:
     default:
       SetMouseCursor(MOUSE_CURSOR_DEFAULT);
       break;

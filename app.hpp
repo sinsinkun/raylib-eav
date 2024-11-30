@@ -52,7 +52,7 @@ namespace App {
         DbI::EavResponse vRes = dbi->get_entity_values(item.entity_id);
         int r = GetRandomValue(150, 220);
         int g = GetRandomValue(150, 220);
-        int b = GetRandomValue(150, 220);
+        int b = GetRandomValue(120, 200);
         btnColor = Color { (unsigned char)r, (unsigned char)g, (unsigned char)b, 255 };
         if (vRes.code == 0) values = vRes.data;
       }
