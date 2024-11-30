@@ -6,13 +6,13 @@
 
 using namespace App;
 
-UIEvent UIBox::update(MouseState mState, UIEvent prevEvent) {
+UIEvent UIBox::update(MouseState mState) {
   // calculate if box is being hovered
   UIEvent event = UI_NONE;
   switch (mState) {
     case MOUSE_OVER:
       event = UI_HOVER_INVIS;
-      if (prevEvent == UI_NONE) _activeColor = boxHoverColor;
+      _activeColor = boxHoverColor;
       break;
     case MOUSE_DOWN:
     case MOUSE_HOLD:

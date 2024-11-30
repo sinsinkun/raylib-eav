@@ -14,8 +14,8 @@ namespace App {
       Font font = GetFontDefault();
       float fontSize = 18.0f;
       Color btnColor = LIGHTGRAY;
-      Color btnHoverColor = GRAY;
-      Color btnDownColor = Color { 100, 100, 100, 255 };
+      Color btnHoverColor = Color { 200, 200, 200, 255 };
+      Color btnDownColor = Color { 220, 220, 240, 255 };
       Color txtColor = BLACK;
       UIEvent update(MouseState mouseState);
       void render();
@@ -33,12 +33,12 @@ namespace App {
       float bodyFontSize = 16.0f;
       bool renderShadow = true;
       bool renderBorder = true;
-      Color boxColor = GRAY;
-      Color boxHoverColor = Color { 160, 160, 160, 255 };
+      Color boxColor = LIGHTGRAY;
+      Color boxHoverColor = Color { 220, 220, 220, 255 };
       Color shadowColor = Color { 0, 0, 0, 50 };
       Color borderColor = BLACK;
       Color txtColor = BLACK;
-      UIEvent update(MouseState mouseState, UIEvent prevUIEvent);
+      UIEvent update(MouseState mouseState);
       void render();
     private:
       Color _activeColor = LIGHTGRAY;
@@ -97,8 +97,8 @@ namespace App {
               str += v.str_value == "" ? "-" : v.str_value;
               break;
           }
-          Vector2 pos = { posSize.x + 5.0f, posSize.y + 30 + i*bodyFontSize };
-          DrawTextEx(font, str.c_str(), pos, bodyFontSize - 2.0f, 0.0f, txtColor);
+          Vector2 pos = { posSize.x + 5.0f, posSize.y + 30 + i*(bodyFontSize + 2.0f) };
+          DrawTextEx(font, str.c_str(), pos, bodyFontSize, 0.0f, txtColor);
         }
       };
   };

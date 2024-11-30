@@ -18,13 +18,12 @@ void EventLoop::init() {
     CloseWindow();
     return;
   }
-  // _setupDbTest(&dbInterface);
   EavResponse bpRes = dbInterface.get_blueprints();
   if (bpRes.code == 0) {
     std::vector<EavItem> bps = bpRes.data;
     // instantiate buttons based on categories
     for (int i=0; i<bps.size(); i++) {
-      Rectangle posSize = { 50.0f + (float)i * 90.0f, 50.0f, 80.0f, 30.0f };
+      Rectangle posSize = { 10.0f + (float)i * 90.0f, 30.0f, 80.0f, 30.0f };
       EavBlueprint bp = EavBlueprint(bps[i], posSize, font);
       categories.push_back(bp);
     }
@@ -48,14 +47,14 @@ void EventLoop::update() {
   for (int i=entities.size()-1; i >= 0; i--) {
     if (CheckCollisionPointRec(mousePos, entities[i].posSize) && uiState == UI_NONE) {
       if (mState == MOUSE_NONE) mState = MOUSE_OVER;
-      UIEvent evt = entities[i].update(mState, uiState);
+      UIEvent evt = entities[i].update(mState);
       uiState = evt;
       if (evt == UI_CLICK && clickActionAvailable) {
         clickActionAvailable = false;
         sortIndex = i;
       }
     } else {
-      entities[i].update(MOUSE_NONE, uiState);
+      entities[i].update(MOUSE_NONE);
     }
   }
   // re-sort entities so clicked is on top
@@ -79,8 +78,8 @@ void EventLoop::update() {
           // instantiate buttons based on categories
           for (int i=0; i<es.size(); i++) {
             // random position near center
-            int x = GetRandomValue(screenCenter.x - 280, screenCenter.x + 200);
-            int y = GetRandomValue(screenCenter.y - 200, screenCenter.y + 50);
+            int x = GetRandomValue(20, screenW - 200);
+            int y = GetRandomValue(50, screenH - 250);
             Rectangle posSize = { (float)x, (float)y, 160.0f, 200.0f };
             EavEntity e = EavEntity(es[i], posSize, font, &dbInterface);
             entities.push_back(e);
