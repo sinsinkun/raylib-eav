@@ -46,7 +46,7 @@ void EventLoop::update() {
   // update entities
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
-    if (CheckCollisionPointRec(mousePos, entities[i].posSize)) {
+    if (CheckCollisionPointRec(mousePos, entities[i].posSize) && eState == NO_EVENT) {
       if (mState == MOUSE_NONE) mState = MOUSE_OVER;
       UIEvent evt = entities[i].update(mState);
       eState = evt;
@@ -66,7 +66,7 @@ void EventLoop::update() {
   }
   // update categories
   for (int i=categories.size()-1; i >= 0; i--) {
-    if (CheckCollisionPointRec(mousePos, categories[i].posSize)) {
+    if (CheckCollisionPointRec(mousePos, categories[i].posSize) && eState == NO_EVENT) {
       if (mState == MOUSE_NONE) mState = MOUSE_OVER;
       UIEvent evt = categories[i].update(mState);
       eState = evt;
@@ -78,9 +78,9 @@ void EventLoop::update() {
           std::vector<EavItem> es = eres.data;
           // instantiate buttons based on categories
           for (int i=0; i<es.size(); i++) {
-            // random position near center +- 100px
-            int x = GetRandomValue(screenCenter.x - 280, screenCenter.x + 120);
-            int y = GetRandomValue(screenCenter.y - 230, screenCenter.y + 170);
+            // random position near center
+            int x = GetRandomValue(screenCenter.x - 280, screenCenter.x + 200);
+            int y = GetRandomValue(screenCenter.y - 200, screenCenter.y + 50);
             Rectangle posSize = { (float)x, (float)y, 80.0f, 30.0f };
             EavEntity e = EavEntity(es[i], posSize, font, &dbInterface);
             entities.push_back(e);
