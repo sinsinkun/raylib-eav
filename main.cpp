@@ -1,6 +1,6 @@
 #include <iostream>
 #include <raylib.h>
-#include "app.hpp"
+#include "src/app.hpp"
 
 #define GLSL_VERSION 330
 
