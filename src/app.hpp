@@ -40,6 +40,7 @@ namespace App {
       Color borderColor = Color { 0, 0, 0, 140 };
       Color txtColor = BLACK;
       UIEvent update(MouseState mouseState);
+      UIEvent update(MouseState mouseState, Vector2 deltaPos);
       void render();
     private:
       Color _activeColor = LIGHTGRAY;
@@ -69,11 +70,16 @@ namespace App {
         // fetch values
         if (dbi == NULL) return;
         DbI::EavResponse vRes = dbi->get_entity_values(item.entity_id);
-        int r = GetRandomValue(150, 220);
-        int g = GetRandomValue(150, 220);
-        int b = GetRandomValue(120, 200);
+        int r = GetRandomValue(160, 250);
+        int g = GetRandomValue(160, 220);
+        int b = GetRandomValue(120, 160);
         boxColor = Color { (unsigned char)r, (unsigned char)g, (unsigned char)b, 255 };
-        boxHoverColor = Color { (unsigned char)(r + 20), (unsigned char)(g + 20), (unsigned char)b, 255 };
+        boxHoverColor = Color { 
+          (unsigned char)(std::min(r + 20, 255)),
+          (unsigned char)(std::min(g + 20, 255)),
+          (unsigned char)b,
+          255
+        };
         if (vRes.code == 0) {
           values = vRes.data;
           fillBody();
@@ -112,10 +118,11 @@ namespace App {
       int screenH = 0;
       Vector2 screenCenter = { 0.0f, 0.0f };
       Vector2 mousePos = { 0.0f, 0.0f };
+      void* grabbedObject = NULL;
       int fps = 0;
       double elapsed = 0.0;
       Font font;
-      Color bgColor = Color { 25, 20, 30, 255 };
+      Color bgColor = Color { 35, 30, 40, 255 };
       // data objects
       DbI::DbInterface dbInterface;
       std::vector<EavBlueprint> categories;

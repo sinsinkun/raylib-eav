@@ -7,19 +7,24 @@
 using namespace App;
 
 UIEvent UIBox::update(MouseState mState) {
+  Vector2 d = {0.0f, 0.0f};
+  return update(mState, d);
+}
+
+UIEvent UIBox::update(MouseState mState, Vector2 dPos) {
   // calculate if box is being hovered
   UIEvent event = UI_NONE;
   switch (mState) {
+    case MOUSE_UP:
     case MOUSE_OVER:
       event = UI_HOVER_INVIS;
       _activeColor = boxHoverColor;
       break;
-    case MOUSE_DOWN:
     case MOUSE_HOLD:
       event = UI_HOLD;
       _activeColor = boxHoverColor;
       break;
-    case MOUSE_UP:
+    case MOUSE_DOWN:
       event = UI_CLICK;
       _activeColor = boxHoverColor;
       break;
@@ -28,13 +33,14 @@ UIEvent UIBox::update(MouseState mState) {
       _activeColor = boxColor;
       break;
   }
-
+  posSize.x += dPos.x;
+  posSize.y += dPos.y;
   return event;
 }
 
 void UIBox::render() {
   if (renderShadow) {
-    DrawRectangle(posSize.x - 5, posSize.y - 5, posSize.width + 10, posSize.height + 10, shadowColor);
+    DrawRectangle(posSize.x - 2, posSize.y - 2, posSize.width + 5, posSize.height + 8, shadowColor);
   }
   DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, _activeColor);
   // draw text
