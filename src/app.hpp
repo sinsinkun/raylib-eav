@@ -4,7 +4,7 @@
 #include "dbi.hpp"
 
 namespace App {
-  enum UIEvent { NO_EVENT, BTN_HOVER, BTN_HOLD, BTN_CLICK };
+  enum UIEvent { UI_NONE, UI_HOVER_INVIS, UI_HOVER, UI_HOLD, UI_CLICK };
   enum MouseState { MOUSE_NONE, MOUSE_OVER, MOUSE_DOWN, MOUSE_HOLD, MOUSE_UP };
   class UIButtonBase {
     public:
@@ -17,12 +17,30 @@ namespace App {
       Color btnHoverColor = GRAY;
       Color btnDownColor = Color { 100, 100, 100, 255 };
       Color txtColor = BLACK;
-      bool holding = false;
-      Vector2 originalMouseLock = { 0.0f, 0.0f };
       UIEvent update(MouseState mouseState);
       void render();
     private:
       Vector2 _txtPos { 0.0f, 0.0f };
+      Color _activeColor = LIGHTGRAY;
+  };
+  class UIBox {
+    public:
+      int id = 0;
+      std::string title = "";
+      Rectangle posSize = { 0.0f, 0.0f, 100.0f, 30.0f };
+      Font font = GetFontDefault();
+      float titleFontSize = 18.0f;
+      float bodyFontSize = 16.0f;
+      bool renderShadow = true;
+      bool renderBorder = true;
+      Color boxColor = GRAY;
+      Color boxHoverColor = Color { 160, 160, 160, 255 };
+      Color shadowColor = Color { 0, 0, 0, 50 };
+      Color borderColor = BLACK;
+      Color txtColor = BLACK;
+      UIEvent update(MouseState mouseState, UIEvent prevUIEvent);
+      void render();
+    private:
       Color _activeColor = LIGHTGRAY;
   };
   class EavBlueprint: public UIButtonBase {
@@ -37,14 +55,14 @@ namespace App {
         if (txtDim.y > posSize.height) posSize.height = txtDim.y + 10.0f;
       }
   };
-  class EavEntity: public UIButtonBase {
+  class EavEntity: public UIBox {
     public:
       EavEntity(DbI::EavItem item, Rectangle posSizeIn, Font fontIn, DbI::DbInterface* dbi) {
         id = item.entity_id;
-        displayTxt = item.entity;
+        title = item.entity;
         posSize = posSizeIn;
         font = fontIn;
-        Vector2 txtDim = MeasureTextEx(font, displayTxt.c_str(), fontSize, 0.0);
+        Vector2 txtDim = MeasureTextEx(font, title.c_str(), titleFontSize, 0.0);
         if (txtDim.x > posSize.width) posSize.width = txtDim.x + 10.0f;
         if (txtDim.y > posSize.height) posSize.height = txtDim.y + 10.0f;
         // fetch values
@@ -53,14 +71,13 @@ namespace App {
         int r = GetRandomValue(150, 220);
         int g = GetRandomValue(150, 220);
         int b = GetRandomValue(120, 200);
-        btnColor = Color { (unsigned char)r, (unsigned char)g, (unsigned char)b, 255 };
+        boxColor = Color { (unsigned char)r, (unsigned char)g, (unsigned char)b, 255 };
+        boxHoverColor = Color { (unsigned char)(r + 20), (unsigned char)(g + 20), (unsigned char)b, 255 };
         if (vRes.code == 0) values = vRes.data;
       }
       std::vector<DbI::EavItem> values;
       void render() {
-        Color shadow = Color { 0, 0, 0, 50 };
-        DrawRectangle(posSize.x - 5, posSize.y - 5, 170, 210, shadow);
-        DrawRectangle(posSize.x, posSize.y, 160, 200, btnColor);
+        UIBox::render();
         for (int i=0; i<values.size(); i++) {
           DbI::EavItem v = values[i];
           std::string str = v.attr + ": ";
@@ -80,11 +97,9 @@ namespace App {
               str += v.str_value == "" ? "-" : v.str_value;
               break;
           }
-          Vector2 pos = { posSize.x + 5.0f, posSize.y + 30 + i*fontSize };
-          DrawTextEx(font, str.c_str(), pos, fontSize - 2.0f, 0.0f, txtColor);
+          Vector2 pos = { posSize.x + 5.0f, posSize.y + 30 + i*bodyFontSize };
+          DrawTextEx(font, str.c_str(), pos, bodyFontSize - 2.0f, 0.0f, txtColor);
         }
-        UIButtonBase::render();
-        DrawRectangleLines(posSize.x, posSize.y, 160, 200, BLACK);
       };
   };
   class EventLoop {

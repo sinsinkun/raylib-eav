@@ -8,20 +8,19 @@ using namespace App;
 
 UIEvent UIButtonBase::update(MouseState mState) {
   // calculate if btn is being hovered
-  UIEvent event = NO_EVENT;
-
+  UIEvent event = UI_NONE;
   switch (mState) {
     case MOUSE_OVER:
-      event = BTN_HOVER;
+      event = UI_HOVER;
       _activeColor = btnHoverColor;
       break;
     case MOUSE_DOWN:
     case MOUSE_HOLD:
-      event = BTN_HOLD;
+      event = UI_HOLD;
       _activeColor = btnDownColor;
       break;
     case MOUSE_UP:
-      event = BTN_CLICK;
+      event = UI_CLICK;
       _activeColor = btnDownColor;
       break;
     case MOUSE_NONE:

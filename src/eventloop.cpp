@@ -36,7 +36,7 @@ void EventLoop::init() {
 void EventLoop::update() {
   _updateSystem();
   // update global state
-  UIEvent eState = NO_EVENT;
+  UIEvent uiState = UI_NONE;
   MouseState mState = MOUSE_NONE;
   if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) mState = MOUSE_DOWN;
   if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) mState = MOUSE_HOLD;
@@ -46,16 +46,16 @@ void EventLoop::update() {
   // update entities
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
-    if (CheckCollisionPointRec(mousePos, entities[i].posSize) && eState == NO_EVENT) {
+    if (CheckCollisionPointRec(mousePos, entities[i].posSize) && uiState == UI_NONE) {
       if (mState == MOUSE_NONE) mState = MOUSE_OVER;
-      UIEvent evt = entities[i].update(mState);
-      eState = evt;
-      if (evt == BTN_CLICK && clickActionAvailable) {
+      UIEvent evt = entities[i].update(mState, uiState);
+      uiState = evt;
+      if (evt == UI_CLICK && clickActionAvailable) {
         clickActionAvailable = false;
         sortIndex = i;
       }
     } else {
-      entities[i].update(MOUSE_NONE);
+      entities[i].update(MOUSE_NONE, uiState);
     }
   }
   // re-sort entities so clicked is on top
@@ -66,11 +66,11 @@ void EventLoop::update() {
   }
   // update categories
   for (int i=categories.size()-1; i >= 0; i--) {
-    if (CheckCollisionPointRec(mousePos, categories[i].posSize) && eState == NO_EVENT) {
+    if (CheckCollisionPointRec(mousePos, categories[i].posSize) && uiState == UI_NONE) {
       if (mState == MOUSE_NONE) mState = MOUSE_OVER;
       UIEvent evt = categories[i].update(mState);
-      eState = evt;
-      if (evt == BTN_CLICK && clickActionAvailable) {
+      uiState = evt;
+      if (evt == UI_CLICK && clickActionAvailable) {
         clickActionAvailable = false;
         entities.clear();
         EavResponse eres = dbInterface.get_blueprint_entities(categories[i].id);
@@ -81,7 +81,7 @@ void EventLoop::update() {
             // random position near center
             int x = GetRandomValue(screenCenter.x - 280, screenCenter.x + 200);
             int y = GetRandomValue(screenCenter.y - 200, screenCenter.y + 50);
-            Rectangle posSize = { (float)x, (float)y, 80.0f, 30.0f };
+            Rectangle posSize = { (float)x, (float)y, 160.0f, 200.0f };
             EavEntity e = EavEntity(es[i], posSize, font, &dbInterface);
             entities.push_back(e);
           }
@@ -92,13 +92,12 @@ void EventLoop::update() {
     }
   }
   // update mouse state
-  switch (eState) {
-    case BTN_HOVER:
-    case BTN_HOLD:
-    case BTN_CLICK:
+  switch (uiState) {
+    case UI_HOVER:
+    case UI_HOLD:
+    case UI_CLICK:
       SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
       break;
-    case NO_EVENT:
     default:
       SetMouseCursor(MOUSE_CURSOR_DEFAULT);
       break;
