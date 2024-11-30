@@ -14,8 +14,8 @@ namespace App {
       Font font = GetFontDefault();
       float fontSize = 18.0f;
       Color btnColor = LIGHTGRAY;
-      Color btnHoverColor = Color { 200, 200, 200, 255 };
-      Color btnDownColor = Color { 220, 220, 240, 255 };
+      Color btnHoverColor = Color { 220, 220, 220, 255 };
+      Color btnDownColor = Color { 230, 230, 240, 255 };
       Color txtColor = BLACK;
       UIEvent update(MouseState mouseState);
       void render();
@@ -27,6 +27,7 @@ namespace App {
     public:
       int id = 0;
       std::string title = "";
+      std::vector<std::string> body;
       Rectangle posSize = { 0.0f, 0.0f, 100.0f, 30.0f };
       Font font = GetFontDefault();
       float titleFontSize = 18.0f;
@@ -36,7 +37,7 @@ namespace App {
       Color boxColor = LIGHTGRAY;
       Color boxHoverColor = Color { 220, 220, 220, 255 };
       Color shadowColor = Color { 0, 0, 0, 50 };
-      Color borderColor = BLACK;
+      Color borderColor = Color { 0, 0, 0, 140 };
       Color txtColor = BLACK;
       UIEvent update(MouseState mouseState);
       void render();
@@ -73,11 +74,14 @@ namespace App {
         int b = GetRandomValue(120, 200);
         boxColor = Color { (unsigned char)r, (unsigned char)g, (unsigned char)b, 255 };
         boxHoverColor = Color { (unsigned char)(r + 20), (unsigned char)(g + 20), (unsigned char)b, 255 };
-        if (vRes.code == 0) values = vRes.data;
+        if (vRes.code == 0) {
+          values = vRes.data;
+          fillBody();
+        }
       }
       std::vector<DbI::EavItem> values;
-      void render() {
-        UIBox::render();
+      void fillBody() {
+        body.clear();
         for (int i=0; i<values.size(); i++) {
           DbI::EavItem v = values[i];
           std::string str = v.attr + ": ";
@@ -97,10 +101,9 @@ namespace App {
               str += v.str_value == "" ? "-" : v.str_value;
               break;
           }
-          Vector2 pos = { posSize.x + 5.0f, posSize.y + 30 + i*(bodyFontSize + 2.0f) };
-          DrawTextEx(font, str.c_str(), pos, bodyFontSize, 0.0f, txtColor);
+          body.push_back(str);
         }
-      };
+      }
   };
   class EventLoop {
     public:

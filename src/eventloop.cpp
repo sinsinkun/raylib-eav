@@ -79,7 +79,7 @@ void EventLoop::update() {
           for (int i=0; i<es.size(); i++) {
             // random position near center
             int x = GetRandomValue(20, screenW - 200);
-            int y = GetRandomValue(50, screenH - 250);
+            int y = GetRandomValue(70, screenH - 250);
             Rectangle posSize = { (float)x, (float)y, 160.0f, 200.0f };
             EavEntity e = EavEntity(es[i], posSize, font, &dbInterface);
             entities.push_back(e);
