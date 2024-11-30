@@ -39,7 +39,7 @@ namespace App {
   };
   class EavEntity: public UIButtonBase {
     public:
-      EavEntity(DbI::EavItem item, Rectangle posSizeIn, Font fontIn) {
+      EavEntity(DbI::EavItem item, Rectangle posSizeIn, Font fontIn, DbI::DbInterface* dbi) {
         id = item.entity_id;
         displayTxt = item.entity;
         posSize = posSizeIn;
@@ -47,7 +47,45 @@ namespace App {
         Vector2 txtDim = MeasureTextEx(font, displayTxt.c_str(), fontSize, 0.0);
         if (txtDim.x > posSize.width) posSize.width = txtDim.x + 10.0f;
         if (txtDim.y > posSize.height) posSize.height = txtDim.y + 10.0f;
+        // fetch values
+        if (dbi == NULL) return;
+        DbI::EavResponse vRes = dbi->get_entity_values(item.entity_id);
+        int r = GetRandomValue(150, 220);
+        int g = GetRandomValue(150, 220);
+        int b = GetRandomValue(150, 220);
+        btnColor = Color { (unsigned char)r, (unsigned char)g, (unsigned char)b, 255 };
+        if (vRes.code == 0) values = vRes.data;
       }
+      std::vector<DbI::EavItem> values;
+      void render() {
+        Color shadow = Color { 0, 0, 0, 50 };
+        DrawRectangle(posSize.x - 5, posSize.y - 5, 170, 210, shadow);
+        DrawRectangle(posSize.x, posSize.y, 160, 200, btnColor);
+        for (int i=0; i<values.size(); i++) {
+          DbI::EavItem v = values[i];
+          std::string str = v.attr + ": ";
+          switch (v.value_type) {
+            case DbI::INT:
+              str += std::to_string(v.int_value);
+              if (v.value_unit != "") str += " " + v.value_unit; 
+              break;
+            case DbI::FLOAT:
+              str += std::to_string(v.float_value);
+              if (v.value_unit != "") str += " " + v.value_unit; 
+              break;
+            case DbI::BOOL:
+              str += v.bool_value ? "Yes" : "No";
+              break;
+            default:
+              str += v.str_value == "" ? "-" : v.str_value;
+              break;
+          }
+          Vector2 pos = { posSize.x + 5.0f, posSize.y + 30 + i*fontSize };
+          DrawTextEx(font, str.c_str(), pos, fontSize - 2.0f, 0.0f, txtColor);
+        }
+        UIButtonBase::render();
+        DrawRectangleLines(posSize.x, posSize.y, 160, 200, BLACK);
+      };
   };
   class EventLoop {
     public:
@@ -59,6 +97,7 @@ namespace App {
       int fps = 0;
       double elapsed = 0.0;
       Font font;
+      Color bgColor = Color { 25, 20, 30, 255 };
       // data objects
       DbI::DbInterface dbInterface;
       std::vector<EavBlueprint> categories;

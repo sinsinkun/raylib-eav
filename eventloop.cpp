@@ -66,8 +66,8 @@ void EventLoop::update() {
   bool clickActionAvailable = true;
   // update entities
   for (int i=entities.size()-1; i >= 0; i--) {
-    if (mState == MOUSE_NONE && CheckCollisionPointRec(mousePos, entities[i].posSize)) {
-      mState = MOUSE_OVER;
+    if (CheckCollisionPointRec(mousePos, entities[i].posSize)) {
+      if (mState == MOUSE_NONE) mState = MOUSE_OVER;
       UIEvent evt = entities[i].update(mState);
       if (evt == BTN_CLICK && clickActionAvailable) {
         clickActionAvailable = false;
@@ -90,8 +90,11 @@ void EventLoop::update() {
           std::vector<EavItem> es = eres.data;
           // instantiate buttons based on categories
           for (int i=0; i<es.size(); i++) {
-            Rectangle posSize = { 50.0f, 120.0f + (float)i * 40.0f, 80.0f, 30.0f };
-            EavEntity e = EavEntity(es[i], posSize, font);
+            // random position near center +- 100px
+            int x = GetRandomValue(screenCenter.x - 280, screenCenter.x + 120);
+            int y = GetRandomValue(screenCenter.y - 230, screenCenter.y + 170);
+            Rectangle posSize = { (float)x, (float)y, 80.0f, 30.0f };
+            EavEntity e = EavEntity(es[i], posSize, font, &dbInterface);
             entities.push_back(e);
           }
         }
@@ -117,7 +120,7 @@ void EventLoop::update() {
 
 void EventLoop::render() {
   BeginDrawing();
-    ClearBackground(BLACK);
+    ClearBackground(bgColor);
     // draw category buttons
     for (int i=0; i < categories.size(); i++) {
       categories[i].render();
