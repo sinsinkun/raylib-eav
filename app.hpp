@@ -5,11 +5,11 @@
 
 namespace App {
   enum UIEvent { NO_EVENT, BTN_HOVER, BTN_HOLD, BTN_CLICK };
+  enum MouseState { MOUSE_NONE, MOUSE_OVER, MOUSE_DOWN, MOUSE_HOLD, MOUSE_UP };
   class UIButtonBase {
     public:
       int id = 0;
       std::string displayTxt = "";
-      bool relativeToCenter = true;
       Rectangle posSize = { 0.0f, 0.0f, 100.0f, 30.0f };
       Font font = GetFontDefault();
       float fontSize = 18.0f;
@@ -19,10 +19,9 @@ namespace App {
       Color txtColor = BLACK;
       bool holding = false;
       Vector2 originalMouseLock = { 0.0f, 0.0f };
-      UIEvent update(Vector2 screenCenter, Vector2 mousePos);
+      UIEvent update(MouseState mouseState);
       void render();
     private:
-      Rectangle _absPos { 0.0f, 0.0f, 100.0f, 30.0f };
       Vector2 _txtPos { 0.0f, 0.0f };
       Color _activeColor = LIGHTGRAY;
   };

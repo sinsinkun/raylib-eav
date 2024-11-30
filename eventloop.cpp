@@ -48,7 +48,6 @@ void EventLoop::init() {
     for (int i=0; i<bps.size(); i++) {
       Rectangle posSize = { 50.0f + (float)i * 90.0f, 50.0f, 80.0f, 30.0f };
       EavBlueprint bp = EavBlueprint(bps[i], posSize, font);
-      bp.relativeToCenter = false;
       categories.push_back(bp);
     }
   } else {
@@ -59,41 +58,60 @@ void EventLoop::init() {
 void EventLoop::update() {
   _updateSystem();
   // update global state
-  UIEvent e = NO_EVENT;
   // update all components backwards -> first click event is the last component rendered
+  MouseState mState = MOUSE_NONE;
+  if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) mState = MOUSE_DOWN;
+  if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) mState = MOUSE_HOLD;
+  if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) mState = MOUSE_UP;
+  bool clickActionAvailable = true;
   // update entities
   for (int i=entities.size()-1; i >= 0; i--) {
-    UIEvent evt = entities[i].update(screenCenter, mousePos);
-    if (evt > e) e = evt;
-    if (evt == BTN_CLICK) {
-      std::cout << "Clicked entity " << entities[i].id << std::endl;
+    if (mState == MOUSE_NONE && CheckCollisionPointRec(mousePos, entities[i].posSize)) {
+      mState = MOUSE_OVER;
+      UIEvent evt = entities[i].update(mState);
+      if (evt == BTN_CLICK && clickActionAvailable) {
+        clickActionAvailable = false;
+        std::cout << "Clicked entity " << entities[i].id << std::endl;
+      }
+    } else {
+      entities[i].update(MOUSE_NONE);
     }
   }
-  // update categorie
+  // update categories
   for (int i=categories.size()-1; i >= 0; i--) {
-    UIEvent evt = categories[i].update(screenCenter, mousePos);
-    if (evt > e) e = evt;
-    // generate entities for category
-    if (evt == BTN_CLICK) {
-      entities.clear();
-      EavResponse eres = dbInterface.get_blueprint_entities(categories[i].id);
-      if (eres.code == 0) {
-        std::vector<EavItem> es = eres.data;
-        // instantiate buttons based on categories
-        for (int i=0; i<es.size(); i++) {
-          Rectangle posSize = { 50.0f + (float)i * 90.0f, 100.0f, 80.0f, 30.0f };
-          EavEntity e = EavEntity(es[i], posSize, font);
-          e.relativeToCenter = false;
-          entities.push_back(e);
+    if (CheckCollisionPointRec(mousePos, categories[i].posSize)) {
+      if (mState == MOUSE_NONE) mState = MOUSE_OVER;
+      UIEvent evt = categories[i].update(mState);
+      if (evt == BTN_CLICK && clickActionAvailable) {
+        clickActionAvailable = false;
+        entities.clear();
+        EavResponse eres = dbInterface.get_blueprint_entities(categories[i].id);
+        if (eres.code == 0) {
+          std::vector<EavItem> es = eres.data;
+          // instantiate buttons based on categories
+          for (int i=0; i<es.size(); i++) {
+            Rectangle posSize = { 50.0f, 120.0f + (float)i * 40.0f, 80.0f, 30.0f };
+            EavEntity e = EavEntity(es[i], posSize, font);
+            entities.push_back(e);
+          }
         }
       }
+    } else {
+      categories[i].update(MOUSE_NONE);
     }
   }
-  // change cursor based on ui event
-  if (e == BTN_HOVER || e == BTN_CLICK || e == BTN_HOLD) {
-    SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-  } else {
-    SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+  // update mouse state
+  switch (mState) {
+    case MOUSE_OVER:
+    case MOUSE_DOWN:
+    case MOUSE_HOLD:
+    case MOUSE_UP:
+      SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+      break;
+    case MOUSE_NONE:
+    default:
+      SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+      break;
   }
 }
 

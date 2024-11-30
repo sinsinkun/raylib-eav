@@ -6,59 +6,41 @@
 
 using namespace App;
 
-UIEvent UIButtonBase::update(Vector2 ctr, Vector2 mPos) {
-  if (!relativeToCenter) ctr = { 0.0f, 0.0f };
-  float mdx = mPos.x - originalMouseLock.x;
-  float mdy = mPos.y - originalMouseLock.y;
-  // offset center when held by mouse
-  if (IsMouseButtonDown(MOUSE_LEFT_BUTTON) && holding) {
-    ctr.x += mdx;
-    ctr.y += mdy;
-  }
-  // calculate absolute position based on center
-  int absX = ctr.x + posSize.x - posSize.width / 2;
-  int absY = ctr.y + posSize.y - posSize.height / 2;
-  _absPos = { (float)absX, (float)absY, posSize.width, posSize.height };
-
+UIEvent UIButtonBase::update(MouseState mState) {
   // calculate if btn is being hovered
   UIEvent event = NO_EVENT;
-  Rectangle bounds = { (float)absX, (float)absY, posSize.width, posSize.height };
-  Color clr = btnColor;
 
-  if (CheckCollisionPointRec(mPos, bounds)) {
-    event = BTN_HOVER;
-    clr = btnHoverColor;
+  switch (mState) {
+    case MOUSE_OVER:
+      event = BTN_HOVER;
+      _activeColor = btnHoverColor;
+      break;
+    case MOUSE_DOWN:
+    case MOUSE_HOLD:
+      event = BTN_HOLD;
+      _activeColor = btnDownColor;
+      break;
+    case MOUSE_UP:
+      event = BTN_CLICK;
+      _activeColor = btnDownColor;
+      break;
+    case MOUSE_NONE:
+    default:
+      _activeColor = btnColor;
+      break;
   }
-  if (event == BTN_HOVER && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-    event = BTN_HOLD;
-    clr = btnDownColor;
-    originalMouseLock.x = mPos.x;
-    originalMouseLock.y = mPos.y;
-    holding = true;
-  }
-  if (holding && IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
-    event = BTN_HOLD;
-    clr = btnDownColor;
-  }
-  if (holding && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
-    event = BTN_CLICK;
-    clr = btnDownColor;
-    posSize.x += mdx;
-    posSize.y += mdy;
-    originalMouseLock = { 0.0f, 0.0f };
-    holding = false;
-  }
-  _activeColor = clr;
 
   Vector2 txtDim = MeasureTextEx(font, displayTxt.c_str(), fontSize, 0.0);
-  _txtPos = {ctr.x + posSize.x - txtDim.x / 2, ctr.y + posSize.y - txtDim.y / 2};
+  float txtX = posSize.x + (posSize.width - txtDim.x) / 2.0f;
+  float txtY = posSize.y + (posSize.height - txtDim.y) / 2.0f;
+  _txtPos = {txtX, txtY};
   
   return event;
 }
 
 void UIButtonBase::render() {
   // draw background
-  DrawRectangle(_absPos.x, _absPos.y, _absPos.width, _absPos.height, _activeColor);
+  DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, _activeColor);
   // draw text
   if (displayTxt != "") {
     DrawTextEx(font, displayTxt.c_str(), _txtPos, fontSize, 0.0, txtColor);
