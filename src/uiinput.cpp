@@ -6,6 +6,19 @@
 
 using namespace App;
 
+UIInput::UIInput() {
+  _mask = LoadRenderTexture(posSize.width, posSize.height);
+  SetTextureFilter(_mask.texture, TEXTURE_FILTER_BILINEAR);
+  _txtPos = Vector2 { posSize.x + 5.0f, posSize.y + 5.0f };
+}
+
+UIInput::UIInput(Rectangle bounds) {
+  posSize = bounds;
+  _mask = LoadRenderTexture(posSize.width, posSize.height);
+  SetTextureFilter(_mask.texture, TEXTURE_FILTER_BILINEAR);
+  _txtPos = Vector2 { posSize.x + 5.0f, posSize.y + 5.0f };
+}
+
 UIEvent UIInput::update(MouseState mState) {
   return update(mState, false);
 }
@@ -36,38 +49,76 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
       break;
   }
 
-  // capture key inputs
   if (isActive) {
+    // capture key inputs
+    float dt = GetFrameTime();
     int key = GetCharPressed();
-    if (key >= 32 && key <= 125) {
+    if (key >= 32 && key <= 125 && input.size() < maxInputSize) {
       input += (char)key;
+      _updateTxtPos = true;
     }
     if (IsKeyPressed(KEY_ENTER)) isActive = false;
     if (IsKeyDown(KEY_BACKSPACE) && input.size() > 0) {
       // check cooldown
-      if (bkspCooldown > 0.0f) {
-        bkspCooldown -= GetFrameTime();
+      if (_bkspCooldown > 0.0f) {
+        _bkspCooldown -= dt;
       }
-      if (bkspCooldown <= 0.0f) {
+      if (_bkspCooldown <= 0.0f) {
         input.pop_back();
-        bkspCooldown = 0.06f;
+        _updateTxtPos = true;
+        _bkspCooldown = 0.06f;
       }
     }
+    
+    if (_blinkState == 1) {
+      std::cout << "blink" << std::endl;
+    }
+    // update blinker
+    _blinkTimer += dt;
+    if (_blinkTimer > 0.5f) {
+      _blinkState = 1 ? 0 : 1;
+      _blinkTimer = 0.0f;
+    }
+  } else if (_blinkTimer != 0.0f) {
+    // reset blinker
+    _blinkState = 0;
+    _blinkTimer = 0.0f;
   }
+
+  _txtPos = { 5.0f, 5.0f };
+  Vector2 txtBounds = MeasureTextEx(font, input.c_str(), fontSize, 0.0f);
+  float dw = txtBounds.x - posSize.width + 10.0f;
+  if (dw > 0.0f) _txtPos.x -= dw;
+  _updateTxtPos = false;
+
+  // update
   if (noHover) return UI_NONE;
   return event;
 }
 
 void UIInput::render() {
-  DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, _activeColor);
-  DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, shadowColor);
-  DrawRectangle(posSize.x, posSize.y, (posSize.width - 4.0f), (posSize.height - 4.0f), _activeColor);
-  // draw text
-  Vector2 textPos = {posSize.x + 5.0f, posSize.y + 5.0f };
-  if (input != "") {
-    DrawTextEx(font, input.c_str(), textPos, fontSize, 0.0, txtColor);
-  } else if (placeholder != "") {
-    DrawTextEx(font, placeholder.c_str(), textPos, fontSize, 0.0, placeholderColor);
-  }
-  DrawRectangleLinesEx(posSize, 1.0f, borderColor);
+  BeginTextureMode(_mask);
+    // draw input bg
+    DrawRectangle(0, 0, posSize.width, posSize.height, _activeColor);
+    DrawRectangle(0, 0, posSize.width, posSize.height, shadowColor);
+    DrawRectangle(0, 0, (posSize.width - 4.0f), (posSize.height - 4.0f), _activeColor);
+    // draw text
+    if (input != "") {
+      DrawTextEx(font, input.c_str(), _txtPos, fontSize, 0.0, txtColor);
+    } else if (!isActive && placeholder != "") {
+      DrawTextEx(font, placeholder.c_str(), _txtPos, fontSize, 0.0, placeholderColor);
+    }
+  EndTextureMode();
+  DrawTextureRec(
+    _mask.texture,
+    Rectangle { 0, 0, posSize.width, -1 * posSize.height },
+    Vector2{ posSize.x, posSize.y},
+    WHITE
+  );
+  // draw border
+    DrawRectangleLinesEx(posSize, 1.0f, borderColor);
+}
+
+void UIInput::cleanup() {
+  UnloadRenderTexture(_mask);
 }

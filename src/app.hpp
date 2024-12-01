@@ -10,16 +10,19 @@ namespace App {
   // generic UI classes
   class UIInput {
     public:
+      UIInput();
+      UIInput(Rectangle bounds);
       int id = 0;
       Rectangle posSize = { 0.0f, 0.0f, 200.0f, 30.0f };
       std::string placeholder = "Type Input Here";
       std::string input = "";
+      int maxInputSize = 255;
       Font font = GetFontDefault();
       float fontSize = 18.0f;
       bool isActive = false;
-      Color boxColor = Color { 120, 120, 120, 255 };
-      Color boxHoverColor = Color { 140, 140, 140, 255 };
-      Color boxActiveColor = Color { 220, 220, 220, 255 };
+      Color boxColor = Color { 140, 140, 140, 255 };
+      Color boxHoverColor = Color { 160, 160, 160, 255 };
+      Color boxActiveColor = Color { 210, 200, 240, 255 };
       Color shadowColor = Color { 0, 0, 0, 100 };
       Color borderColor = Color { 0, 0, 0, 180 };
       Color txtColor = BLACK;
@@ -27,9 +30,15 @@ namespace App {
       UIEvent update(MouseState mouseState);
       UIEvent update(MouseState mouseState, bool isNotHovering);
       void render();
+      void cleanup();
     private:
+      RenderTexture2D _mask;
       Color _activeColor = boxColor;
-      float bkspCooldown = 0.0f;
+      Vector2 _txtPos { 0.0f, 0.0f };
+      bool _updateTxtPos = true;
+      float _bkspCooldown = 0.0f;
+      int _blinkState = 0;
+      float _blinkTimer = 0.0f;
   };
   class UIButtonBase {
     public:

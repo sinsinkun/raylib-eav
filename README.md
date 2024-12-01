@@ -2,6 +2,9 @@
 
 EAV db system setup with sqlite3, and raylib for GUI.
 
+Also running a custom UI library I'm implementing for raylib,
+though its not quite modular enough (yet) to fully separate from the project.
+
 The advantage of sqlite is that it's designed to be embedded into applications,
 removing the need for running a separate MySQL instance in the background.
 
