@@ -25,6 +25,7 @@ DialogBox::DialogBox(Rectangle bounds, std::string titleIn, Font ft) {
   btn.font = ft;
   btn.btnColor = Color { 130, 130, 130, 255 };
   btn.btnHoverColor = Color { 150, 150, 150, 255 };
+  btn.btnDownColor = Color { 160, 160, 160, 255 };
 }
 
 UIEvent DialogBox::update(Vector2 mPos, MouseState mState) {
@@ -46,7 +47,7 @@ UIEvent DialogBox::update(Vector2 mousePos, MouseState mState, Vector2 mDelta, v
     if (mState == MOUSE_NONE) mState = MOUSE_OVER;
     uiState = btn.update(mState);
     if (uiState == UI_CLICK) {
-      std::cout << "Clicked dialog btn" << std::endl;
+      std::cout << "Dialog value: " << input.input << std::endl;
     }
   } else {
     btn.update(MOUSE_NONE);

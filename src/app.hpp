@@ -28,7 +28,7 @@ namespace App {
       UIEvent update(MouseState mouseState, bool isNotHovering);
       void render();
     private:
-      Color _activeColor = LIGHTGRAY;
+      Color _activeColor = boxColor;
       float bkspCooldown = 0.0f;
   };
   class UIButtonBase {
@@ -46,7 +46,7 @@ namespace App {
       void render();
     private:
       Vector2 _txtPos { 0.0f, 0.0f };
-      Color _activeColor = LIGHTGRAY;
+      Color _activeColor = btnColor;
   };
   class UIBox {
     public:
@@ -68,7 +68,7 @@ namespace App {
       UIEvent update(MouseState mouseState, Vector2 deltaPos);
       void render();
     private:
-      Color _activeColor = LIGHTGRAY;
+      Color _activeColor = boxColor;
   };
   // specific use
   class DialogBox {
