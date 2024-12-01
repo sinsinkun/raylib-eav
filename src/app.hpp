@@ -78,6 +78,7 @@ namespace App {
         box.boxHoverColor = LIGHTGRAY;
       };
       DialogBox(Rectangle bounds, std::string titleIn, Font ft);
+      bool isVisible = true;
       UIBox box;
       UIInput input;
       UIButtonBase btn;

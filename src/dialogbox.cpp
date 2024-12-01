@@ -29,11 +29,13 @@ DialogBox::DialogBox(Rectangle bounds, std::string titleIn, Font ft) {
 }
 
 UIEvent DialogBox::update(Vector2 mPos, MouseState mState) {
+  if (!isVisible) return UI_NONE;
   Vector2 md = Vector2{0.0f, 0.0f};
   return update(mPos, mState, md, NULL);
 }
 
 UIEvent DialogBox::update(Vector2 mousePos, MouseState mState, Vector2 mDelta, void** gObjPtr) {
+  if (!isVisible) return UI_NONE;
   UIEvent uiState = UI_NONE;
   // update input
   if (CheckCollisionPointRec(mousePos, input.posSize)) {
@@ -73,6 +75,7 @@ UIEvent DialogBox::update(Vector2 mousePos, MouseState mState, Vector2 mDelta, v
 };
 
 void DialogBox::render() {
+  if (!isVisible) return;
   box.render();
   input.render();
   btn.render();

@@ -7,6 +7,10 @@
 using namespace App;
 
 UIEvent UIInput::update(MouseState mState) {
+  return update(mState, false);
+}
+
+UIEvent UIInput::update(MouseState mState, bool noHover) {
   UIEvent event = UI_NONE;
   switch (mState) {
     case MOUSE_UP:
@@ -17,12 +21,13 @@ UIEvent UIInput::update(MouseState mState) {
       break;
     case MOUSE_HOLD:
       event = UI_HOLD;
-      _activeColor = boxActiveColor;
+      if (!noHover) _activeColor = boxActiveColor;
       break;
     case MOUSE_DOWN:
       event = UI_CLICK;
-      _activeColor = boxActiveColor;
-      isActive = !isActive;
+      isActive = !noHover;
+      if (!noHover && isActive) _activeColor = boxActiveColor;
+      else _activeColor = boxColor;
       break;
     case MOUSE_NONE:
     default:
@@ -49,15 +54,8 @@ UIEvent UIInput::update(MouseState mState) {
       }
     }
   }
+  if (noHover) return UI_NONE;
   return event;
-}
-
-UIEvent UIInput::update(MouseState mState, bool noHover) {
-  if (noHover && mState == MOUSE_DOWN) {
-    isActive = false;
-    _activeColor = boxColor;
-  }
-  return UI_NONE;
 }
 
 void UIInput::render() {
