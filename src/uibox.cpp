@@ -40,7 +40,7 @@ UIEvent UIBox::update(MouseState mState, Vector2 dPos) {
 
 void UIBox::render() {
   if (renderShadow) {
-    DrawRectangle(posSize.x - 2, posSize.y - 2, posSize.width + 5, posSize.height + 8, shadowColor);
+    DrawRectangle(posSize.x - 2, posSize.y - 2, posSize.width + 6, posSize.height + 7, shadowColor);
   }
   DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, _activeColor);
   // draw text

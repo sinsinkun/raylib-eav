@@ -18,11 +18,11 @@ int main(int argc, char* argv[]) {
   SetTargetFPS(120);
   // SetMasterVolume(0.2);
 
-  std::cout << "Starting..." << std::endl;
   App::EventLoop e;
   e.init();
 
   // --- EVENT LOOP ---
+  std::cout << "Starting..." << std::endl;
   while (!WindowShouldClose()) {
     e.update();
     e.render();

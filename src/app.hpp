@@ -122,7 +122,7 @@ namespace App {
       int fps = 0;
       double elapsed = 0.0;
       Font font;
-      Color bgColor = Color { 35, 30, 40, 255 };
+      Color bgColor = Color { 35, 35, 40, 255 };
       // data objects
       DbI::DbInterface dbInterface;
       std::vector<EavBlueprint> categories;
