@@ -45,11 +45,8 @@ void EventLoop::update() {
   if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) mState = MOUSE_UP;
   // update all components backwards -> first click event is the last component rendered
   bool clickActionAvailable = true;
-  // update input field
-  if (CheckCollisionPointRec(mousePos, dialog.posSize)) {
-    if (mState == MOUSE_NONE) mState = MOUSE_OVER;
-  }
-  uiState = dialog.update(mousePos, mState);
+  // update dialog box
+  uiState = dialog.update(mousePos, mState, mDelta, &grabbedObject);
   // update entities
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {

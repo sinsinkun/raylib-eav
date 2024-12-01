@@ -52,6 +52,14 @@ UIEvent UIInput::update(MouseState mState) {
   return event;
 }
 
+UIEvent UIInput::update(MouseState mState, bool noHover) {
+  if (noHover && mState == MOUSE_DOWN) {
+    isActive = false;
+    _activeColor = boxColor;
+  }
+  return UI_NONE;
+}
+
 void UIInput::render() {
   DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, _activeColor);
   DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, shadowColor);
