@@ -30,6 +30,8 @@ void EventLoop::init() {
   } else {
     std::cout << "ERR: could not find categories" << std::endl;
   }
+  // setup test input
+  dialog = DialogBox(Rectangle { 200.0f, 30.0f, 0.0f, 0.0f }, "Test Dialog", font);
 }
 
 void EventLoop::update() {
@@ -43,6 +45,11 @@ void EventLoop::update() {
   if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) mState = MOUSE_UP;
   // update all components backwards -> first click event is the last component rendered
   bool clickActionAvailable = true;
+  // update input field
+  if (CheckCollisionPointRec(mousePos, dialog.posSize)) {
+    if (mState == MOUSE_NONE) mState = MOUSE_OVER;
+  }
+  uiState = dialog.update(mousePos, mState);
   // update entities
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
@@ -117,6 +124,7 @@ void EventLoop::render() {
     for (int i=0; i < entities.size(); i++) {
       entities[i].render();
     }
+    dialog.render();
     // draw FPS overlay
     _drawFps();
   EndDrawing();

@@ -4,8 +4,32 @@
 #include "dbi.hpp"
 
 namespace App {
+  // generic UI utils
   enum UIEvent { UI_NONE, UI_HOVER_INVIS, UI_HOVER, UI_HOLD, UI_CLICK };
   enum MouseState { MOUSE_NONE, MOUSE_OVER, MOUSE_DOWN, MOUSE_HOLD, MOUSE_UP };
+  // generic UI classes
+  class UIInput {
+    public:
+      int id = 0;
+      Rectangle posSize = { 0.0f, 0.0f, 200.0f, 30.0f };
+      std::string placeholder = "Type Input Here";
+      std::string input = "";
+      Font font = GetFontDefault();
+      float fontSize = 18.0f;
+      bool isActive = false;
+      Color boxColor = Color { 120, 120, 120, 255 };
+      Color boxHoverColor = Color { 140, 140, 140, 255 };
+      Color boxActiveColor = Color { 220, 220, 220, 255 };
+      Color shadowColor = Color { 0, 0, 0, 100 };
+      Color borderColor = Color { 0, 0, 0, 180 };
+      Color txtColor = BLACK;
+      Color placeholderColor = DARKGRAY;
+      UIEvent update(MouseState mouseState);
+      void render();
+    private:
+      Color _activeColor = LIGHTGRAY;
+      float bkspCooldown = 0.0f;
+  };
   class UIButtonBase {
     public:
       int id = 0;
@@ -44,6 +68,48 @@ namespace App {
       void render();
     private:
       Color _activeColor = LIGHTGRAY;
+  };
+  // specific use
+  class DialogBox: public UIBox {
+    public:
+      DialogBox() {}
+      DialogBox(Rectangle bounds, std::string titleIn, Font ft) {
+        posSize = bounds;
+        if (posSize.width < 210.0f) posSize.width = 210.0f;
+        if (posSize.height < 100.0f) posSize.height = 100.0f;
+        title = titleIn;
+        font = ft;
+        input.posSize.x = bounds.x + 5.0f;
+        input.posSize.y = bounds.y + 35.0f;
+        input.font = ft;
+        btn.posSize.x = bounds.x + 5.0f;
+        btn.posSize.y = bounds.y + 50.0f;
+        btn.font = ft;
+      }
+      UIInput input;
+      UIButtonBase btn;
+      UIEvent update(Vector2 mousePos, MouseState mouseState) {
+        UIEvent uiState = UI_NONE;
+        if (CheckCollisionPointRec(mousePos, input.posSize)) {
+          if (mouseState == MOUSE_NONE) mouseState = MOUSE_OVER;
+        }
+        uiState = input.update(mouseState);
+        if (CheckCollisionPointRec(mousePos, btn.posSize) && uiState == UI_NONE) {
+          if (mouseState == MOUSE_NONE) mouseState = MOUSE_OVER;
+          uiState = btn.update(mouseState);
+          if (uiState == UI_CLICK) {
+            std::cout << "Clicked dialog btn" << std::endl;
+          }
+        }
+        uiState = UIBox::update(mouseState);
+        return uiState;
+      };
+      void render() {
+        UIBox::render();
+        input.render();
+        btn.render();
+      };
+    private:
   };
   class EavBlueprint: public UIButtonBase {
     public:
@@ -127,6 +193,7 @@ namespace App {
       DbI::DbInterface dbInterface;
       std::vector<EavBlueprint> categories;
       std::vector<EavEntity> entities;
+      DialogBox dialog;
       // methods
       void init();
       void update();
