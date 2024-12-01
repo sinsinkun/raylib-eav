@@ -50,9 +50,10 @@ void EventLoop::update() {
   // update entities
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
-    if (CheckCollisionPointRec(mousePos, entities[i].posSize) && uiState == UI_NONE) {
+    if (grabbedObject == &entities[i]) {
+      uiState = entities[i].update(mState, mDelta);
+    } else if (CheckCollisionPointRec(mousePos, entities[i].posSize) && uiState == UI_NONE) {
       if (mState == MOUSE_NONE) mState = MOUSE_OVER;
-      if (grabbedObject == &entities[i]) uiState = entities[i].update(mState, mDelta);
       uiState = entities[i].update(mState);
       if (uiState == UI_CLICK && clickActionAvailable) {
         clickActionAvailable = false;

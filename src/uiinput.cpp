@@ -17,7 +17,7 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
     case MOUSE_OVER:
       event = UI_HOVER;
       if (isActive) _activeColor = boxActiveColor;
-      else _activeColor = boxHoverColor;
+      else if (!noHover) _activeColor = boxHoverColor;
       break;
     case MOUSE_HOLD:
       event = UI_HOLD;

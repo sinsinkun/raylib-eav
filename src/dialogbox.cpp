@@ -37,6 +37,14 @@ UIEvent DialogBox::update(Vector2 mPos, MouseState mState) {
 UIEvent DialogBox::update(Vector2 mousePos, MouseState mState, Vector2 mDelta, void** gObjPtr) {
   if (!isVisible) return UI_NONE;
   UIEvent uiState = UI_NONE;
+  if (gObjPtr != NULL && *gObjPtr == &box) {
+    box.posSize.x += mDelta.x;
+    box.posSize.y += mDelta.y;
+    input.posSize.x += mDelta.x;
+    input.posSize.y += mDelta.y;
+    btn.posSize.x += mDelta.x;
+    btn.posSize.y += mDelta.y;
+  }
   // update input
   if (CheckCollisionPointRec(mousePos, input.posSize)) {
     if (mState == MOUSE_NONE) mState = MOUSE_OVER;
@@ -57,13 +65,6 @@ UIEvent DialogBox::update(Vector2 mousePos, MouseState mState, Vector2 mDelta, v
   // update box
   if (CheckCollisionPointRec(mousePos, box.posSize) && uiState == UI_NONE) {
     if (mState == MOUSE_NONE) mState = MOUSE_OVER;
-    if (gObjPtr != NULL && *gObjPtr == &box) {
-      uiState = box.update(mState, mDelta);
-      input.posSize.x += mDelta.x;
-      input.posSize.y += mDelta.y;
-      btn.posSize.x += mDelta.x;
-      btn.posSize.y += mDelta.y;
-    }
     uiState = box.update(mState);
     if (uiState == UI_CLICK && gObjPtr != NULL && *gObjPtr == NULL) {
       *gObjPtr = &box;
