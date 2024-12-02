@@ -61,6 +61,7 @@ void EventLoop::update() {
     EavEntity e = entities[sortIndex];
     entities.erase(entities.begin() + sortIndex);
     entities.push_back(e);
+    // this needs to be done AFTER reordering
     if (grabbedObject == NULL) grabbedObject = &entities.back().box;
   }
   // update categories
