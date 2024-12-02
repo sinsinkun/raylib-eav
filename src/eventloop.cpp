@@ -50,7 +50,7 @@ void EventLoop::update() {
   // update entities
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
-    uiState = entities[i].update(mousePos, mState, mDelta, &grabbedObject);
+    uiState = entities[i].update(mousePos, mState, mDelta, uiState, &grabbedObject);
     if (uiState == UI_CLICK && clickActionAvailable) {
       clickActionAvailable = false;
       sortIndex = i;

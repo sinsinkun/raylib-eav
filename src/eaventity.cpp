@@ -62,13 +62,13 @@ void EavEntity::fillBody() {
   }
 }
 
-UIEvent EavEntity::update(Vector2 mPos, MouseState mState) {
+UIEvent EavEntity::update(Vector2 mPos, MouseState mState, UIEvent prevState) {
   Vector2 md = Vector2{0.0f, 0.0f};
-  return update(mPos, mState, md, NULL);
+  return update(mPos, mState, md, prevState, NULL);
 }
 
-UIEvent EavEntity::update(Vector2 mousePos, MouseState mState, Vector2 mDelta, void** gObjPtr) {
-  UIEvent uiState = UI_NONE;
+UIEvent EavEntity::update(Vector2 mousePos, MouseState mState, Vector2 mDelta, UIEvent prevState, void** gObjPtr) {
+  UIEvent uiState = prevState;
   // drag move all ui components
   if (gObjPtr != NULL && *gObjPtr == &box) {
     box.posSize.x += mDelta.x;

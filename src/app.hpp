@@ -115,8 +115,8 @@ namespace App {
       std::vector<DbI::EavItem> values;
       UIBox box;
       void fillBody();
-      UIEvent update(Vector2 mPos, MouseState mState);
-      UIEvent update(Vector2 mousePos, MouseState mouseState, Vector2 mDelta, void** gObjPtr);
+      UIEvent update(Vector2 mPos, MouseState mState, UIEvent prevUIState);
+      UIEvent update(Vector2 mousePos, MouseState mouseState, Vector2 mDelta, UIEvent prevUIState, void** gObjPtr);
       void render();
   };
   class EventLoop {
