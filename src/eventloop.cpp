@@ -31,7 +31,7 @@ void EventLoop::init() {
     std::cout << "ERR: could not find categories" << std::endl;
   }
   // setup test input
-  dialog = DialogBox(Rectangle { 200.0f, 30.0f, 0.0f, 0.0f }, "Test Dialog", font);
+  dialog = DialogBox(Rectangle { 295.0f, 5.0f, 210.0f, 110.0f }, "Test Dialog", font);
 }
 
 void EventLoop::update() {
@@ -50,17 +50,10 @@ void EventLoop::update() {
   // update entities
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
-    if (grabbedObject == &entities[i]) {
-      uiState = entities[i].update(mState, mDelta);
-    } else if (CheckCollisionPointRec(mousePos, entities[i].posSize) && uiState == UI_NONE) {
-      if (mState == MOUSE_NONE) mState = MOUSE_OVER;
-      uiState = entities[i].update(mState);
-      if (uiState == UI_CLICK && clickActionAvailable) {
-        clickActionAvailable = false;
-        sortIndex = i;
-      }
-    } else {
-      entities[i].update(MOUSE_NONE);
+    uiState = entities[i].update(mousePos, mState, mDelta, &grabbedObject);
+    if (uiState == UI_CLICK && clickActionAvailable) {
+      clickActionAvailable = false;
+      sortIndex = i;
     }
   }
   // re-sort entities so clicked is on top
@@ -68,7 +61,7 @@ void EventLoop::update() {
     EavEntity e = entities[sortIndex];
     entities.erase(entities.begin() + sortIndex);
     entities.push_back(e);
-    if (grabbedObject == NULL) grabbedObject = &entities.back();
+    if (grabbedObject == NULL) grabbedObject = &entities.back().box;
   }
   // update categories
   for (int i=categories.size()-1; i >= 0; i--) {
