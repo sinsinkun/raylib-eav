@@ -8,15 +8,11 @@ using namespace App;
 
 UIInput::UIInput() {
   _mask = LoadRenderTexture(posSize.width, posSize.height);
-  SetTextureFilter(_mask.texture, TEXTURE_FILTER_BILINEAR);
-  _txtPos = Vector2 { posSize.x + 5.0f, posSize.y + 5.0f };
 }
 
 UIInput::UIInput(Rectangle bounds) {
   posSize = bounds;
   _mask = LoadRenderTexture(posSize.width, posSize.height);
-  SetTextureFilter(_mask.texture, TEXTURE_FILTER_BILINEAR);
-  _txtPos = Vector2 { posSize.x + 5.0f, posSize.y + 5.0f };
 }
 
 UIEvent UIInput::update(MouseState mState) {
@@ -55,7 +51,7 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
     int key = GetCharPressed();
     if (key >= 32 && key <= 125 && input.size() < maxInputSize) {
       input += (char)key;
-      _updateTxtPos = true;
+      _updateTextPos();
     }
     if (IsKeyPressed(KEY_ENTER)) isActive = false;
     if (IsKeyDown(KEY_BACKSPACE) && input.size() > 0) {
@@ -65,7 +61,7 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
       }
       if (_bkspCooldown <= 0.0f) {
         input.pop_back();
-        _updateTxtPos = true;
+        _updateTextPos();
         _bkspCooldown = 0.06f;
       }
     }
@@ -85,12 +81,6 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
     _blinkTimer = 0.0f;
   }
 
-  _txtPos = { 5.0f, 5.0f };
-  Vector2 txtBounds = MeasureTextEx(font, input.c_str(), fontSize, 0.0f);
-  float dw = txtBounds.x - posSize.width + 10.0f;
-  if (dw > 0.0f) _txtPos.x -= dw;
-  _updateTxtPos = false;
-
   // update
   if (noHover) return UI_NONE;
   return event;
@@ -99,7 +89,7 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
 void UIInput::render() {
   BeginTextureMode(_mask);
     // draw input bg
-    DrawRectangle(0, 0, posSize.width, posSize.height, _activeColor);
+    ClearBackground(_activeColor);
     DrawRectangle(0, 0, posSize.width, posSize.height, shadowColor);
     DrawRectangle(0, 0, (posSize.width - 4.0f), (posSize.height - 4.0f), _activeColor);
     // draw text
@@ -121,4 +111,11 @@ void UIInput::render() {
 
 void UIInput::cleanup() {
   UnloadRenderTexture(_mask);
+}
+
+void UIInput::_updateTextPos() {
+  Vector2 txtBounds = MeasureTextEx(font, input.c_str(), fontSize, 0.0f);
+  float dw = txtBounds.x - posSize.width + 12.0f;
+  if (dw > 0.0f) _txtPos.x = 5.0f - dw;
+  else _txtPos.x = 5.0f;
 }

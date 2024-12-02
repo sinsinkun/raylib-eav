@@ -34,11 +34,11 @@ namespace App {
     private:
       RenderTexture2D _mask;
       Color _activeColor = boxColor;
-      Vector2 _txtPos { 0.0f, 0.0f };
-      bool _updateTxtPos = true;
+      Vector2 _txtPos { 5.0f, 5.0f };
       float _bkspCooldown = 0.0f;
       int _blinkState = 0;
       float _blinkTimer = 0.0f;
+      void _updateTextPos();
   };
   class UIButtonBase {
     public:
