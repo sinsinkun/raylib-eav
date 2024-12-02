@@ -35,7 +35,7 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
     case MOUSE_DOWN:
       event = UI_CLICK;
       isActive = !noHover;
-      if (!noHover && isActive) _activeColor = boxActiveColor;
+      if (!noHover) _activeColor = boxActiveColor;
       else _activeColor = boxColor;
       break;
     case MOUSE_NONE:
@@ -65,20 +65,17 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
         _bkspCooldown = 0.06f;
       }
     }
-    
-    if (_blinkState == 1) {
-      std::cout << "blink" << std::endl;
-    }
+
     // update blinker
     _blinkTimer += dt;
-    if (_blinkTimer > 0.5f) {
-      _blinkState = 1 ? 0 : 1;
+    if (_blinkTimer > 0.7f) {
+      _blinkState = _blinkState == 1 ? 0 : 1;
       _blinkTimer = 0.0f;
     }
-  } else if (_blinkTimer != 0.0f) {
+  } else if (_blinkTimer != 0.5f) {
     // reset blinker
     _blinkState = 0;
-    _blinkTimer = 0.0f;
+    _blinkTimer = 0.5f;
   }
 
   // update
@@ -105,6 +102,15 @@ void UIInput::render() {
     Vector2{ posSize.x, posSize.y},
     WHITE
   );
+  // draw blinker
+  if (_blinkState) {
+    DrawLineEx(
+      Vector2{posSize.x + posSize.width - 4.0f, posSize.y + 2.0f },
+      Vector2{posSize.x + posSize.width - 4.0f, posSize.y + posSize.height - 4.0f},
+      2.0f,
+      Color { 40, 20, 20, 255 }
+    );
+  }
   // draw border
     DrawRectangleLinesEx(posSize, 1.0f, borderColor);
 }
