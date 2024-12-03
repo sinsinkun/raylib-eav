@@ -8,8 +8,8 @@ using namespace DbI;
 
 void EventLoop::init() {
   // initialize assets
-  font = LoadFont("assets/Helvetica.ttf");
-  SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+  uiGlobal.font = LoadFont("assets/Helvetica.ttf");
+  SetTextureFilter(uiGlobal.font.texture, TEXTURE_FILTER_BILINEAR);
   // load db
   dbInterface.init();
   int err = dbInterface.check_tables();
@@ -24,35 +24,27 @@ void EventLoop::init() {
     // instantiate buttons based on categories
     for (int i=0; i<bps.size(); i++) {
       Rectangle posSize = { 10.0f + (float)i * 90.0f, 30.0f, 80.0f, 30.0f };
-      EavBlueprint bp = EavBlueprint(bps[i], posSize, font);
+      EavBlueprint bp = EavBlueprint(&uiGlobal, bps[i], posSize);
       categories.push_back(bp);
     }
   } else {
     std::cout << "ERR: could not find categories" << std::endl;
   }
   // setup test input
-  dialog = DialogBox(Rectangle { 295.0f, 5.0f, 210.0f, 110.0f }, "Test Dialog", font);
+  dialog = DialogBox(&uiGlobal, Rectangle { 295.0f, 5.0f, 210.0f, 110.0f }, "Test Dialog");
 }
 
 void EventLoop::update() {
   _updateSystem();
   // update global state
-  UIEvent uiState = UI_NONE;
-  MouseState mState = MOUSE_NONE;
-  Vector2 mDelta = GetMouseDelta();
-  if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) mState = MOUSE_HOLD;
-  if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) mState = MOUSE_DOWN;
-  if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) mState = MOUSE_UP;
+  uiGlobal.update();
   // update all components backwards -> first click event is the last component rendered
-  bool clickActionAvailable = true;
   // update dialog box
-  uiState = dialog.update(mousePos, mState, mDelta, &grabbedObject);
+  dialog.update();
   // update entities
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
-    uiState = entities[i].update(mousePos, mState, mDelta, uiState, &grabbedObject);
-    if (uiState == UI_CLICK && clickActionAvailable) {
-      clickActionAvailable = false;
+    if (entities[i].update()) {
       sortIndex = i;
     }
   }
@@ -66,32 +58,26 @@ void EventLoop::update() {
   }
   // update categories
   for (int i=categories.size()-1; i >= 0; i--) {
-    if (CheckCollisionPointRec(mousePos, categories[i].posSize) && uiState == UI_NONE) {
-      if (mState == MOUSE_NONE) mState = MOUSE_OVER;
-      uiState = categories[i].update(mState);
-      if (uiState == UI_CLICK && clickActionAvailable) {
-        clickActionAvailable = false;
-        entities.clear();
-        EavResponse eres = dbInterface.get_blueprint_entities(categories[i].id);
-        if (eres.code == 0) {
-          std::vector<EavItem> es = eres.data;
-          // instantiate buttons based on categories
-          for (int i=0; i<es.size(); i++) {
-            // random position near center
-            int x = GetRandomValue(20, screenW - 200);
-            int y = GetRandomValue(70, screenH - 250);
-            Rectangle posSize = { (float)x, (float)y, 200.0f, 250.0f };
-            EavEntity e = EavEntity(es[i], posSize, font, &dbInterface);
-            entities.push_back(e);
-          }
+    if (categories[i].update()) {
+      uiGlobal.clickActionAvailable = false;
+      entities.clear();
+      EavResponse eres = dbInterface.get_blueprint_entities(categories[i].id);
+      if (eres.code == 0) {
+        std::vector<EavItem> es = eres.data;
+        // instantiate buttons based on categories
+        for (int i=0; i<es.size(); i++) {
+          // random position near center
+          int x = GetRandomValue(20, screenW - 200);
+          int y = GetRandomValue(70, screenH - 250);
+          Rectangle posSize = { (float)x, (float)y, 200.0f, 250.0f };
+          EavEntity e = EavEntity(&uiGlobal, es[i], posSize, &dbInterface);
+          entities.push_back(e);
         }
       }
-    } else {
-      categories[i].update(MOUSE_NONE);
     }
   }
   // update mouse state
-  switch (uiState) {
+  switch (uiGlobal.uiEvent) {
     case UI_HOVER:
     case UI_HOLD:
     case UI_CLICK:
@@ -101,8 +87,6 @@ void EventLoop::update() {
       SetMouseCursor(MOUSE_CURSOR_DEFAULT);
       break;
   }
-  // reset hold
-  if (mState == MOUSE_UP && grabbedObject != NULL) grabbedObject = NULL;
 }
 
 void EventLoop::render() {
@@ -141,5 +125,5 @@ void EventLoop::_drawFps() {
   std::string fpstxt = "FPS: ";
   fpstxt.append(fpst);
   Vector2 pos = { 10.0, 10.0 };
-  DrawTextEx(font, fpstxt.c_str(), pos, 18.0, 0.0, GREEN);
+  DrawTextEx(uiGlobal.font, fpstxt.c_str(), pos, 18.0, 0.0, GREEN);
 }

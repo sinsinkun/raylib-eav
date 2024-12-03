@@ -6,36 +6,33 @@
 
 using namespace App;
 
-UIInput::UIInput() {
-  _mask = LoadRenderTexture(posSize.width, posSize.height);
-}
-
-UIInput::UIInput(Rectangle bounds) {
-  posSize = bounds;
-  _mask = LoadRenderTexture(posSize.width, posSize.height);
-}
-
-UIEvent UIInput::update(MouseState mState) {
-  return update(mState, false);
-}
-
-UIEvent UIInput::update(MouseState mState, bool noHover) {
+bool UIInput::update() {
+  if (state == NULL) return false;
+  MouseState mState = MOUSE_NONE;
   UIEvent event = UI_NONE;
+  bool isHovering = false;
+  // calculate if input is being hovered
+  if (CheckCollisionPointRec(state->mousePos, posSize) && state->uiEvent == UI_NONE) {
+    if (state->mouseState == MOUSE_NONE) mState = MOUSE_OVER;
+    else mState = state->mouseState;
+    isHovering = true;
+  }
+
   switch (mState) {
     case MOUSE_UP:
     case MOUSE_OVER:
       event = UI_HOVER;
       if (isActive) _activeColor = boxActiveColor;
-      else if (!noHover) _activeColor = boxHoverColor;
+      else if (isHovering) _activeColor = boxHoverColor;
       break;
     case MOUSE_HOLD:
       event = UI_HOLD;
-      if (!noHover) _activeColor = boxActiveColor;
+      if (isHovering) _activeColor = boxActiveColor;
       break;
     case MOUSE_DOWN:
       event = UI_CLICK;
-      isActive = !noHover;
-      if (!noHover) _activeColor = boxActiveColor;
+      isActive = isHovering;
+      if (isHovering) _activeColor = boxActiveColor;
       else _activeColor = boxColor;
       break;
     case MOUSE_NONE:
@@ -45,6 +42,7 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
       break;
   }
 
+  // handle keyboard input
   if (isActive) {
     // capture key inputs
     float dt = GetFrameTime();
@@ -66,6 +64,10 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
       }
     }
 
+    if (state->mouseState == MOUSE_DOWN && !isHovering) {
+      isActive = false;
+    }
+
     // update blinker
     _blinkTimer += dt;
     if (_blinkTimer > 0.7f) {
@@ -78,30 +80,54 @@ UIEvent UIInput::update(MouseState mState, bool noHover) {
     _blinkTimer = 0.5f;
   }
 
-  // update
-  if (noHover) return UI_NONE;
-  return event;
+  // handle drag event
+  if (dragId != 0 && event == UI_CLICK && state->activeDragId == -1) {
+    state->activeDragId = dragId;
+  } else if (dragId != 0 && state->mouseState == MOUSE_HOLD && dragId == state->activeDragId) {
+    posSize.x += state->mouseDelta.x;
+    posSize.y += state->mouseDelta.y;
+  }
+  // state updates
+  if (event > state->uiEvent) state->uiEvent = event;
+  bool isClicking = event == UI_CLICK && state->clickActionAvailable;
+  if (isClicking) {
+    if (isActive && !isHovering) isActive = false;
+    state->clickActionAvailable = false;
+  }
+  return isClicking;
 }
 
 void UIInput::render() {
-  BeginTextureMode(_mask);
-    // draw input bg
-    ClearBackground(_activeColor);
-    DrawRectangle(0, 0, posSize.width, posSize.height, shadowColor);
-    DrawRectangle(0, 0, (posSize.width - 4.0f), (posSize.height - 4.0f), _activeColor);
-    // draw text
-    if (input != "") {
-      DrawTextEx(font, input.c_str(), _txtPos, fontSize, 0.0, txtColor);
-    } else if (!isActive && placeholder != "") {
-      DrawTextEx(font, placeholder.c_str(), _txtPos, fontSize, 0.0, placeholderColor);
-    }
-  EndTextureMode();
-  DrawTextureRec(
-    _mask.texture,
-    Rectangle { 0, 0, posSize.width, -1 * posSize.height },
-    Vector2{ posSize.x, posSize.y},
-    WHITE
-  );
+  if (state == NULL) return;
+  // draw masked texture
+  // BeginTextureMode(_mask);
+  //   // draw input bg
+  //   ClearBackground(_activeColor);
+  //   DrawRectangle(0, 0, posSize.width, posSize.height, shadowColor);
+  //   DrawRectangle(0, 0, (posSize.width - 4.0f), (posSize.height - 4.0f), _activeColor);
+  //   // draw text
+  //   if (input != "") {
+  //     DrawTextEx(state->font, input.c_str(), _txtPos, fontSize, 0.0, txtColor);
+  //   } else if (!isActive && placeholder != "") {
+  //     DrawTextEx(state->font, placeholder.c_str(), _txtPos, fontSize, 0.0, placeholderColor);
+  //   }
+  // EndTextureMode();
+  // DrawTextureRec(
+  //   _mask.texture,
+  //   Rectangle { 0, 0, posSize.width, -1 * posSize.height },
+  //   Vector2{ posSize.x, posSize.y },
+  //   WHITE
+  // );
+  DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, _activeColor);
+  DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, shadowColor);
+  DrawRectangle(posSize.x, posSize.y, (posSize.width - 4.0f), (posSize.height - 4.0f), _activeColor);
+  // draw text
+  Vector2 txtPos = { posSize.x + 5.0f, posSize.y + 5.0f };
+  if (input != "") {
+    DrawTextEx(state->font, input.c_str(), txtPos, fontSize, 0.0, txtColor);
+  } else if (!isActive && placeholder != "") {
+    DrawTextEx(state->font, placeholder.c_str(), txtPos, fontSize, 0.0, placeholderColor);
+  }
   // draw blinker
   if (_blinkState) {
     DrawLineEx(
@@ -112,7 +138,7 @@ void UIInput::render() {
     );
   }
   // draw border
-    DrawRectangleLinesEx(posSize, 1.0f, borderColor);
+  DrawRectangleLinesEx(posSize, 1.0f, borderColor);
 }
 
 void UIInput::cleanup() {
@@ -120,7 +146,7 @@ void UIInput::cleanup() {
 }
 
 void UIInput::_updateTextPos() {
-  Vector2 txtBounds = MeasureTextEx(font, input.c_str(), fontSize, 0.0f);
+  Vector2 txtBounds = MeasureTextEx(state->font, input.c_str(), fontSize, 0.0f);
   float dw = txtBounds.x - posSize.width + 12.0f;
   if (dw > 0.0f) _txtPos.x = 5.0f - dw;
   else _txtPos.x = 5.0f;

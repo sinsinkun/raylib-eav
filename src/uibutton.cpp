@@ -6,36 +6,41 @@
 
 using namespace App;
 
-bool UIBox::update() {
+bool UIButton::update() {
   if (state == NULL) return false;
   MouseState mState = MOUSE_NONE;
   UIEvent event = UI_NONE;
-  // calculate if box is being hovered
+  // calculate if btn is being hovered
   if (CheckCollisionPointRec(state->mousePos, posSize) && state->uiEvent == UI_NONE) {
     if (state->mouseState == MOUSE_NONE) mState = MOUSE_OVER;
     else mState = state->mouseState;
   }
-
+  
   switch (mState) {
-    case MOUSE_UP:
     case MOUSE_OVER:
-      event = UI_HOVER_INVIS;
-      _activeColor = boxHoverColor;
-      break;
-    case MOUSE_HOLD:
-      event = UI_HOLD;
-      _activeColor = boxHoverColor;
+      event = UI_HOVER;
+      _activeColor = btnHoverColor;
       break;
     case MOUSE_DOWN:
+    case MOUSE_HOLD:
+      event = UI_HOLD;
+      _activeColor = btnDownColor;
+      break;
+    case MOUSE_UP:
       event = UI_CLICK;
-      _activeColor = boxHoverColor;
+      _activeColor = btnDownColor;
       break;
     case MOUSE_NONE:
     default:
-      _activeColor = boxColor;
+      _activeColor = btnColor;
       break;
   }
 
+  // text position updates
+  Vector2 txtDim = MeasureTextEx(state->font, text.c_str(), fontSize, 0.0);
+  float txtX = posSize.x + (posSize.width - txtDim.x) / 2.0f;
+  float txtY = posSize.y + (posSize.height - txtDim.y) / 2.0f;
+  _txtPos = {txtX, txtY};
   // handle drag event
   if (dragId != 0 && event == UI_CLICK && state->activeDragId == -1) {
     state->activeDragId = dragId;
@@ -50,24 +55,12 @@ bool UIBox::update() {
   return isClicking;
 }
 
-void UIBox::render() {
+void UIButton::render() {
   if (state == NULL) return;
-  if (renderShadow) {
-    DrawRectangle(posSize.x - 2, posSize.y - 2, posSize.width + 6, posSize.height + 7, shadowColor);
-  }
+  // draw background
   DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, _activeColor);
   // draw text
-  if (title != "") {
-    Vector2 titlePos = { posSize.x + 5.0f, posSize.y + 5.0f };
-    DrawTextEx(state->font, title.c_str(), titlePos, titleFontSize, 0.0, txtColor);
-  }
-  if (body.size() > 0) {
-    for (int i=0; i < body.size(); i++) {
-      Vector2 pos = { posSize.x + 5.0f, posSize.y + 30 + i*(bodyFontSize + 2.0f) };
-      DrawTextEx(state->font, body[i].c_str(), pos, bodyFontSize, 0.0f, txtColor);
-    }
-  }
-  if (renderBorder) {
-    DrawRectangleLinesEx(posSize, 1.0f, borderColor);
+  if (text != "") {
+    DrawTextEx(state->font, text.c_str(), _txtPos, fontSize, 0.0, txtColor);
   }
 }
