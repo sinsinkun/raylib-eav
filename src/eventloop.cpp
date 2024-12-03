@@ -30,8 +30,9 @@ void EventLoop::init() {
   } else {
     std::cout << "ERR: could not find categories" << std::endl;
   }
-  // setup test input
-  dialog = DialogBox(&uiGlobal, Rectangle { 295.0f, 5.0f, 210.0f, 110.0f }, "Test Dialog");
+  // setup universal dialog box
+  dialog = DialogBox(&uiGlobal, Rectangle { 295.0f, 5.0f, 210.0f, 110.0f }, "-");
+  dialog.changeDialog(NEW_BLUEPRINT, 0, 0, 0, 0);
 }
 
 void EventLoop::update() {
@@ -40,13 +41,14 @@ void EventLoop::update() {
   uiGlobal.update();
   // update all components backwards -> first click event is the last component rendered
   // update dialog box
-  dialog.update();
+  if (dialog.update()) {
+    DialogOption dAction = dialog.activeDialog;
+    // todo: handle new/update events
+  }
   // update entities
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
-    if (entities[i].update()) {
-      sortIndex = i;
-    }
+    if (entities[i].update()) sortIndex = i;
   }
   // re-sort entities so clicked is on top
   if (sortIndex != -1) {
@@ -64,6 +66,7 @@ void EventLoop::update() {
       EavResponse eres = dbInterface.get_blueprint_entities(categories[i].id);
       if (eres.code == 0) {
         std::vector<EavItem> es = eres.data;
+        int bpId = 0;
         // instantiate buttons based on categories
         for (int i=0; i<es.size(); i++) {
           // random position near center
@@ -72,7 +75,9 @@ void EventLoop::update() {
           Rectangle posSize = { (float)x, (float)y, 200.0f, 250.0f };
           EavEntity e = EavEntity(&uiGlobal, es[i], posSize, &dbInterface);
           entities.push_back(e);
+          bpId = es[i].entity_id;
         }
+        dialog.changeDialog(NEW_ENTITY, bpId, 0, 0, 0);
       }
     }
   }

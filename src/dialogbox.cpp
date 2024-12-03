@@ -29,17 +29,45 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   btn.btnDownColor = Color { 160, 160, 160, 255 };
 }
 
-void DialogBox::update() {
-  if (!isVisible) return;
+void DialogBox::changeDialog(DialogOption action, int bId, int eId, int aId, int vId) {
+  activeDialog = action;
+  blueprintId = bId;
+  entityId = eId;
+  attrId = aId;
+  valueId = vId;
+  // change title
+  switch (action) {
+    case NEW_BLUEPRINT:
+      box.title = "New Category";
+      break;
+    case NEW_ENTITY:
+      box.title = "New Entity";
+      break;
+    case NEW_ATTR:
+      box.title = "New Attribute";
+      break;
+    case NEW_VALUE:
+      box.title = "New Value";
+      break;
+    default:
+      box.title = "Dialog Box";
+      break;
+  }
+}
+
+bool DialogBox::update() {
+  if (!isVisible) return false;
   // update input
   input.update();
   // update btn
+  bool actioned = false;
   if (btn.update()) {
     std::cout << "Dialog value: " << input.input << std::endl;
+    actioned = true;
   }
   // update box
   box.update();
-  return;
+  return actioned;
 };
 
 void DialogBox::render() {

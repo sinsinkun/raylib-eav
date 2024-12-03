@@ -119,18 +119,22 @@ namespace App {
       Color _activeColor = boxColor;
   };
   // specific use
+  enum DialogOption { NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_VALUE };
   class DialogBox {
     public:
-      DialogBox() {
-        box.boxColor = LIGHTGRAY;
-        box.boxHoverColor = LIGHTGRAY;
-      };
-      DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn);
+      DialogBox() {};
+      DialogBox(UIState* gState, Rectangle bounds, std::string titleIn);
+      DialogOption activeDialog = NO_ACTION;
+      int entityId = 0;
+      int blueprintId = 0;
+      int attrId = 0;
+      int valueId = 0;
       bool isVisible = true;
       UIBox box = UIBox(NULL);
       UIInput input = UIInput(NULL);
       UIButton btn = UIButton(NULL);
-      void update();
+      void changeDialog(DialogOption action, int blueprintId, int entityId, int attrId, int valueId);
+      bool update();
       void render();
       void cleanup();
   };
