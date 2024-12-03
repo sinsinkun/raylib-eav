@@ -70,7 +70,7 @@ bool UIInput::update() {
 
     // update blinker
     _blinkTimer += dt;
-    if (_blinkTimer > 0.7f) {
+    if (_blinkTimer > 0.8f) {
       _blinkState = _blinkState == 1 ? 0 : 1;
       _blinkTimer = 0.0f;
     }
@@ -100,34 +100,24 @@ bool UIInput::update() {
 void UIInput::render() {
   if (state == NULL) return;
   // draw masked texture
-  // BeginTextureMode(_mask);
-  //   // draw input bg
-  //   ClearBackground(_activeColor);
-  //   DrawRectangle(0, 0, posSize.width, posSize.height, shadowColor);
-  //   DrawRectangle(0, 0, (posSize.width - 4.0f), (posSize.height - 4.0f), _activeColor);
-  //   // draw text
-  //   if (input != "") {
-  //     DrawTextEx(state->font, input.c_str(), _txtPos, fontSize, 0.0, txtColor);
-  //   } else if (!isActive && placeholder != "") {
-  //     DrawTextEx(state->font, placeholder.c_str(), _txtPos, fontSize, 0.0, placeholderColor);
-  //   }
-  // EndTextureMode();
-  // DrawTextureRec(
-  //   _mask.texture,
-  //   Rectangle { 0, 0, posSize.width, -1 * posSize.height },
-  //   Vector2{ posSize.x, posSize.y },
-  //   WHITE
-  // );
-  DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, _activeColor);
-  DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, shadowColor);
-  DrawRectangle(posSize.x, posSize.y, (posSize.width - 4.0f), (posSize.height - 4.0f), _activeColor);
-  // draw text
-  Vector2 txtPos = { posSize.x + 5.0f, posSize.y + 5.0f };
-  if (input != "") {
-    DrawTextEx(state->font, input.c_str(), txtPos, fontSize, 0.0, txtColor);
-  } else if (!isActive && placeholder != "") {
-    DrawTextEx(state->font, placeholder.c_str(), txtPos, fontSize, 0.0, placeholderColor);
-  }
+  BeginTextureMode(_mask);
+    // draw input bg
+    ClearBackground(_activeColor);
+    DrawRectangle(0, 0, posSize.width, posSize.height, shadowColor);
+    DrawRectangle(0, 0, (posSize.width - 4.0f), (posSize.height - 4.0f), _activeColor);
+    // draw text
+    if (input != "") {
+      DrawTextEx(state->font, input.c_str(), _txtPos, fontSize, 0.0, txtColor);
+    } else if (!isActive && placeholder != "") {
+      DrawTextEx(state->font, placeholder.c_str(), _txtPos, fontSize, 0.0, placeholderColor);
+    }
+  EndTextureMode();
+  DrawTextureRec(
+    _mask.texture,
+    Rectangle { 0, 0, posSize.width, -1 * posSize.height },
+    Vector2{ posSize.x, posSize.y },
+    WHITE
+  );
   // draw blinker
   if (_blinkState) {
     DrawLineEx(

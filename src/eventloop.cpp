@@ -108,6 +108,7 @@ void EventLoop::render() {
 
 void EventLoop::cleanup() {
   // destroy instantiated resources
+  dialog.cleanup();
   dbInterface.disconnect();
 }
 

@@ -17,9 +17,8 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   box.boxColor = LIGHTGRAY;
   box.boxHoverColor = LIGHTGRAY;
 
-  input = UIInput(globalState, dragId);
-  input.posSize.x = bounds.x + 5.0f;
-  input.posSize.y = bounds.y + 35.0f;
+  Rectangle inputBounds = { bounds.x + 5.0f, bounds.y + 35.0f, 200.0f, 30.0f };
+  input = UIInput(globalState, dragId, inputBounds);
 
   btn = UIButton(globalState, dragId);
   btn.posSize.x = bounds.x + 5.0f;
@@ -49,3 +48,7 @@ void DialogBox::render() {
   input.render();
   btn.render();
 };
+
+void DialogBox::cleanup() {
+  input.cleanup();
+}

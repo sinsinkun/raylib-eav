@@ -28,10 +28,13 @@ namespace App {
     public:
       UIInput(UIState* globalState) {
         state = globalState;
+        _mask = LoadRenderTexture(posSize.width, posSize.height);
       }
-      UIInput(UIState* globalState, int sharedDragId) {
+      UIInput(UIState* globalState, int sharedDragId, Rectangle bounds) {
         state = globalState;
         if (sharedDragId > 0) dragId = sharedDragId;
+        posSize = bounds;
+        _mask = LoadRenderTexture(posSize.width, posSize.height);
       }
       UIState* state = NULL;
       int id = 0;
@@ -129,6 +132,7 @@ namespace App {
       UIButton btn = UIButton(NULL);
       void update();
       void render();
+      void cleanup();
   };
   class EavBlueprint: public UIButton {
     public:
