@@ -29,7 +29,7 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   btn.btnDownColor = Color { 160, 160, 160, 255 };
 }
 
-void DialogBox::changeDialog(DialogOption action, int bId, int eId, int aId, int vId) {
+void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId, int eId, int aId, int vId) {
   activeDialog = action;
   blueprintId = bId;
   entityId = eId;
@@ -52,6 +52,10 @@ void DialogBox::changeDialog(DialogOption action, int bId, int eId, int aId, int
     default:
       box.title = "Dialog Box";
       break;
+  }
+  // append meta text
+  if (metaText.size() > 0) {
+    box.title += " (" + metaText + ")";
   }
 }
 

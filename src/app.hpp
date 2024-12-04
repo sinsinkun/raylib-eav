@@ -133,7 +133,7 @@ namespace App {
       UIBox box = UIBox(NULL);
       UIInput input = UIInput(NULL);
       UIButton btn = UIButton(NULL);
-      void changeDialog(DialogOption action, int blueprintId, int entityId, int attrId, int valueId);
+      void changeDialog(DialogOption action, std::string metaText, int blueprintId, int entityId, int attrId, int valueId);
       bool update();
       void render();
       void cleanup();
@@ -188,5 +188,7 @@ namespace App {
     private:
       void _updateSystem();
       void _drawFps();
+      void _fetchAllCategories();
+      void _fetchCategory(int blueprintId);
   };
 }

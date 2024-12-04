@@ -18,21 +18,10 @@ void EventLoop::init() {
     CloseWindow();
     return;
   }
-  EavResponse bpRes = dbInterface.get_blueprints();
-  if (bpRes.code == 0) {
-    std::vector<EavItem> bps = bpRes.data;
-    // instantiate buttons based on categories
-    for (int i=0; i<bps.size(); i++) {
-      Rectangle posSize = { 10.0f + (float)i * 90.0f, 30.0f, 80.0f, 30.0f };
-      EavBlueprint bp = EavBlueprint(&uiGlobal, bps[i], posSize);
-      categories.push_back(bp);
-    }
-  } else {
-    std::cout << "ERR: could not find categories" << std::endl;
-  }
+  _fetchAllCategories();
   // setup universal dialog box
   dialog = DialogBox(&uiGlobal, Rectangle { 295.0f, 5.0f, 210.0f, 110.0f }, "-");
-  dialog.changeDialog(NEW_BLUEPRINT, 0, 0, 0, 0);
+  dialog.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
 }
 
 void EventLoop::update() {
@@ -62,23 +51,8 @@ void EventLoop::update() {
   for (int i=categories.size()-1; i >= 0; i--) {
     if (categories[i].update()) {
       uiGlobal.clickActionAvailable = false;
-      entities.clear();
-      EavResponse eres = dbInterface.get_blueprint_entities(categories[i].id);
-      if (eres.code == 0) {
-        std::vector<EavItem> es = eres.data;
-        int bpId = 0;
-        // instantiate buttons based on categories
-        for (int i=0; i<es.size(); i++) {
-          // random position near center
-          int x = GetRandomValue(20, screenW - 200);
-          int y = GetRandomValue(70, screenH - 250);
-          Rectangle posSize = { (float)x, (float)y, 200.0f, 250.0f };
-          EavEntity e = EavEntity(&uiGlobal, es[i], posSize, &dbInterface);
-          entities.push_back(e);
-          bpId = es[i].entity_id;
-        }
-        dialog.changeDialog(NEW_ENTITY, bpId, 0, 0, 0);
-      }
+      _fetchCategory(categories[i].id);
+      dialog.changeDialog(NEW_ENTITY, categories[i].text, categories[i].id, 0, 0, 0);
     }
   }
   // update mouse state
@@ -132,4 +106,38 @@ void EventLoop::_drawFps() {
   fpstxt.append(fpst);
   Vector2 pos = { 10.0, 10.0 };
   DrawTextEx(uiGlobal.font, fpstxt.c_str(), pos, 18.0, 0.0, GREEN);
+}
+
+void EventLoop::_fetchAllCategories() {
+  EavResponse bpRes = dbInterface.get_blueprints();
+  if (bpRes.code == 0) {
+    std::vector<EavItem> bps = bpRes.data;
+    // instantiate buttons based on categories
+    for (int i=0; i<bps.size(); i++) {
+      Rectangle posSize = { 10.0f + (float)i * 90.0f, 30.0f, 80.0f, 30.0f };
+      EavBlueprint bp = EavBlueprint(&uiGlobal, bps[i], posSize);
+      categories.push_back(bp);
+    }
+  } else {
+    std::cout << "ERR: could not find categories" << std::endl;
+  }
+}
+
+void EventLoop::_fetchCategory(int blueprintId) {
+  entities.clear();
+  EavResponse eres = dbInterface.get_blueprint_entities(blueprintId);
+  if (eres.code == 0) {
+    std::vector<EavItem> es = eres.data;
+    // instantiate buttons based on categories
+    for (int i=0; i<es.size(); i++) {
+      // random position near center
+      int x = GetRandomValue(20, screenW - 200);
+      int y = GetRandomValue(70, screenH - 250);
+      Rectangle posSize = { (float)x, (float)y, 200.0f, 250.0f };
+      EavEntity e = EavEntity(&uiGlobal, es[i], posSize, &dbInterface);
+      entities.push_back(e);
+    }
+  } else {
+    std::cout << "ERR: could not find category" << std::endl;
+  }
 }
