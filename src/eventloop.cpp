@@ -65,6 +65,16 @@ void EventLoop::update() {
         std::cout << res.msg << std::endl;
       }
     }
+    if (dAction == NEW_VALUE) {
+      // todo: match up attr string to attr id
+      // todo: validate value type
+      // todo: submit to db
+    }
+    if (dAction == DEL_VALUE) {
+      // todo: match up attr string to attr id
+      // todo: validate value type
+      // todo: submit to db
+    }
   }
   // update entities
   int sortIndex = -1;

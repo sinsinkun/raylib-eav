@@ -14,7 +14,6 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   if (box.posSize.width < 210.0f) box.posSize.width = 210.0f;
   if (box.posSize.height < 110.0f) box.posSize.height = 110.0f;
   box.title = titleIn;
-  box.titleFontSize = 16.0f;
   box.boxColor = LIGHTGRAY;
   box.boxHoverColor = LIGHTGRAY;
 
@@ -85,15 +84,15 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
       input.placeholder = "New Category Name";
       break;
     case NEW_ENTITY:
-      box.title = "New Entity";
+      box.title = "Add ";
       input.placeholder = "New Entity Name";
       break;
     case NEW_ATTR:
-      box.title = "New Attribute";
+      box.title = "Add ";
       input.placeholder = "New Attribute Name";
       break;
     case NEW_VALUE:
-      box.title = "New Value";
+      box.title = "";
       input.placeholder = "Attribute Name";
       input2.placeholder = "New Value";
       break;
@@ -103,8 +102,8 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
   }
   // append meta text
   if (metaText.size() > 0) {
-    if (metaText.size() > 14) metaText = metaText.substr(0, 11) + "...";
-    box.title += " (" + metaText + ")";
+    if (metaText.size() > 23) metaText = metaText.substr(0, 20) + "...";
+    box.title += metaText;
   }
 }
 
