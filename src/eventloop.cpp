@@ -20,8 +20,8 @@ void EventLoop::init() {
   }
   _fetchAllCategories();
   // setup universal dialog box
-  dialog = DialogBox(&uiGlobal, Rectangle { 295.0f, 5.0f, 210.0f, 110.0f }, "-");
-  dialog.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
+  dialog = DialogBox(&uiGlobal, Rectangle { 580.0f, 10.0f, 210.0f, 110.0f }, "-");
+  dialog.changeDialog(NO_ACTION, "", 0, 0, 0, 0);
 }
 
 void EventLoop::update() {
@@ -32,7 +32,24 @@ void EventLoop::update() {
   // update dialog box
   if (dialog.update()) {
     DialogOption dAction = dialog.activeDialog;
-    // todo: handle new/update events
+    if (dAction == NEW_BLUEPRINT) {
+      DbI::DbResponse res = dbInterface.new_blueprint(dialog.input.input);
+      if (res.code == 0) {
+        dialog.input.input = "";
+        _fetchAllCategories();
+      } else {
+        std::cout << res.msg << std::endl;
+      }
+    }
+    if (dAction == NEW_ENTITY) {
+      DbI::DbResponse res = dbInterface.new_entity(dialog.input.input, dialog.blueprintId);
+      if (res.code == 0) {
+        dialog.input.input = "";
+        _fetchCategory(dialog.blueprintId);
+      } else {
+        std::cout << res.msg << std::endl;
+      }
+    }
   }
   // update entities
   int sortIndex = -1;
@@ -108,6 +125,7 @@ void EventLoop::_drawFps() {
   DrawTextEx(uiGlobal.font, fpstxt.c_str(), pos, 18.0, 0.0, GREEN);
 }
 
+#pragma region db actions
 void EventLoop::_fetchAllCategories() {
   EavResponse bpRes = dbInterface.get_blueprints();
   if (bpRes.code == 0) {
@@ -129,10 +147,15 @@ void EventLoop::_fetchCategory(int blueprintId) {
   if (eres.code == 0) {
     std::vector<EavItem> es = eres.data;
     // instantiate buttons based on categories
+    // calculate number of positions left to right
+    int xcount = screenW / 100 + 1;
+    int yOffset = (screenH - 100) / (es.size() / xcount + 1);
+    if (yOffset > 200) yOffset = 200;
+    if (yOffset < 50) yOffset = 50;
     for (int i=0; i<es.size(); i++) {
       // random position near center
-      int x = GetRandomValue(20, screenW - 200);
-      int y = GetRandomValue(70, screenH - 250);
+      int x = 20 + 100 * (i % xcount) + GetRandomValue(-10, 10);
+      int y = 70 + yOffset * (int)(i / xcount) + GetRandomValue(0, 20);
       Rectangle posSize = { (float)x, (float)y, 200.0f, 250.0f };
       EavEntity e = EavEntity(&uiGlobal, es[i], posSize, &dbInterface);
       entities.push_back(e);
@@ -141,3 +164,4 @@ void EventLoop::_fetchCategory(int blueprintId) {
     std::cout << "ERR: could not find category" << std::endl;
   }
 }
+#pragma endregion db actions

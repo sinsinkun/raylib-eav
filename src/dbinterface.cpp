@@ -113,7 +113,11 @@ EavResponse DbInterface::_exec_get_eav(std::string query, EavItemType type) {
     for (int i=0; i < cc; i++) {
       const char* col = sqlite3_column_name(stmt, i);
       std::string colstr = col;
-      if (colstr == "id") {
+      const unsigned char* vPtr = sqlite3_column_text(stmt, i);
+      if (vPtr == NULL) {
+        // skip NULL values
+        continue;
+      } else if (colstr == "id") {
         int id = sqlite3_column_int(stmt, i);
         switch (type) {
           case BLUEPRINT:
@@ -148,26 +152,24 @@ EavResponse DbInterface::_exec_get_eav(std::string query, EavItemType type) {
         unsigned int ca = sqlite3_column_int(stmt, i);
         item.created_at = ca;
       } else if (colstr == "blueprint") {
-        item.blueprint = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
+        item.blueprint = reinterpret_cast<const char*>(vPtr);
       } else if (colstr == "entity") {
-        item.entity = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
+        item.entity = reinterpret_cast<const char*>(vPtr);
       } else if (colstr == "attr") {
-        item.attr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
+        item.attr = reinterpret_cast<const char*>(vPtr);
       } else if (colstr == "value_unit") {
-        const unsigned char* vu = sqlite3_column_text(stmt, i);
-        if (vu != NULL) item.value_unit = reinterpret_cast<const char*>(vu);
+        item.value_unit = reinterpret_cast<const char*>(vPtr);
       } else if (colstr == "allow_multiple") {
         bool am = sqlite3_column_int(stmt, i);
         item.allow_multiple = am;
       } else if (colstr == "value_type") {
-        std::string vt = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
+        std::string vt = reinterpret_cast<const char*>(vPtr);
         item.value_type = _str_to_value_type(vt);
       } else if (colstr == "value") {
         // note: value_type MUST be interpreted before value
         bool conversion_failed = false;
-        const unsigned char* v = sqlite3_column_text(stmt, i);
-        if (v != NULL) {
-          std::string strv = reinterpret_cast<const char*>(v);
+        if (vPtr != NULL) {
+          std::string strv = reinterpret_cast<const char*>(vPtr);
           switch (item.value_type) {
             case INT:
               try {
@@ -623,7 +625,7 @@ EavResponse DbInterface::get_blueprint_entities(int id) {
   }
   std::string query = "SELECT b.id as blueprint_id, e.id as entity_id, b.blueprint, e.entity " \
     "FROM eav_blueprints b " \
-    "LEFT JOIN eav_entities e ON e.blueprint_id = b.id " \
+    "INNER JOIN eav_entities e ON e.blueprint_id = b.id " \
     "WHERE b.id = " + std::to_string(id) + ";";
   EavResponse res = _exec_get_eav(query, EavItemType::VIEW);
   return res;
