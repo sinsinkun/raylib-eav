@@ -32,50 +32,7 @@ void EventLoop::update() {
   // update all components backwards -> first click event is the last component rendered
   // update dialog box
   if (dialog.update()) {
-    DialogOption dAction = dialog.activeDialog;
-    if (dAction == NEW_BLUEPRINT) {
-      DbI::DbResponse res = dbInterface.new_blueprint(dialog.input.input);
-      if (res.code == 0) {
-        dialog.input.input = "";
-        _fetchAllCategories();
-      } else {
-        std::cout << res.msg << std::endl;
-      }
-    }
-    if (dAction == NEW_ENTITY) {
-      DbI::DbResponse res = dbInterface.new_entity(dialog.input.input, dialog.blueprintId);
-      if (res.code == 0) {
-        dialog.input.input = "";
-        _fetchCategory(dialog.blueprintId);
-      } else {
-        std::cout << res.msg << std::endl;
-      }
-    }
-    if (dAction == DEL_ENTITY) {
-      DbI::DbResponse res = dbInterface.delete_all_entity_values(dialog.entityId);
-      if (res.code == 0) {
-        res = dbInterface.delete_any(DbI::EavItemType::ENTITY, dialog.entityId);
-        if (res.code == 0) {
-          dialog.input.input = "";
-          _fetchCategory(dialog.blueprintId);
-          dialog.isVisible = false;
-        } else {
-          std::cout << res.msg << std::endl;
-        }
-      } else {
-        std::cout << res.msg << std::endl;
-      }
-    }
-    if (dAction == NEW_VALUE) {
-      // todo: match up attr string to attr id
-      // todo: validate value type
-      // todo: submit to db
-    }
-    if (dAction == DEL_VALUE) {
-      // todo: match up attr string to attr id
-      // todo: validate value type
-      // todo: submit to db
-    }
+    _handleDialogEvent(&dialog);
   }
   // update entities
   int sortIndex = -1;
@@ -164,6 +121,74 @@ void EventLoop::_drawFps() {
   fpstxt.append(fpst);
   Vector2 pos = { 10.0, 10.0 };
   DrawTextEx(uiGlobal.font, fpstxt.c_str(), pos, 18.0, 0.0, GREEN);
+}
+
+void EventLoop::_handleDialogEvent(DialogBox* d) {
+  DialogOption dAction = dialog.activeDialog;
+  if (dAction == NEW_BLUEPRINT) {
+    DbI::DbResponse res = dbInterface.new_blueprint(dialog.input.input);
+    if (res.code == 0) {
+      dialog.input.input = "";
+      _fetchAllCategories();
+    } else {
+      std::cout << res.msg << std::endl;
+    }
+  } else if (dAction == NEW_ENTITY) {
+    DbI::DbResponse res = dbInterface.new_entity(dialog.input.input, dialog.blueprintId);
+    if (res.code == 0) {
+      dialog.input.input = "";
+      _fetchCategory(dialog.blueprintId);
+    } else {
+      std::cout << res.msg << std::endl;
+    }
+  } else if (dAction == DEL_ENTITY) {
+    DbI::DbResponse res = dbInterface.delete_all_entity_values(dialog.entityId);
+    if (res.code == 0) {
+      res = dbInterface.delete_any(DbI::EavItemType::ENTITY, dialog.entityId);
+      if (res.code == 0) {
+        dialog.input.input = "";
+        _fetchCategory(dialog.blueprintId);
+        dialog.isVisible = false;
+      } else {
+        std::cout << res.msg << std::endl;
+      }
+    } else {
+      std::cout << res.msg << std::endl;
+    }
+  } else if (dAction == NEW_VALUE) {
+    // match up attr string to attr id
+    std::string attrInput = dialog.input.input;
+    std::string valueInput = dialog.input2.input;
+    EavEntity* ent = NULL;
+    for (int i=0; i<entities.size(); i++) {
+      if (entities[i].id == dialog.entityId) {
+        ent = &entities[i];
+        break;
+      }
+    }
+    if (ent == NULL) {
+      std::cout << "ERR: Entity not found" << std::endl;
+      return;
+    }
+    EavItem* attr = NULL;
+    for (int i=0; i<ent->values.size(); i++) {
+      if (ent->values[i].attr == attrInput) {
+        attr = &ent->values[i];
+        break;
+      }
+    }
+    if (attr == NULL) {
+      std::cout << "ERR: Attribute not found" << std::endl;
+      return;
+    }
+    // validate value type
+    std::cout << "New value: " << attrInput << " (" << attr->attr_id << ") = " << valueInput << std::endl;
+    // todo: submit to db
+  } else if (dAction == DEL_VALUE) {
+    // todo: match up attr string to attr id
+    // todo: validate value type
+    // todo: submit to db
+  }
 }
 
 #pragma region db actions

@@ -196,5 +196,6 @@ namespace App {
       void _drawFps();
       void _fetchAllCategories();
       void _fetchCategory(int blueprintId);
+      void _handleDialogEvent(DialogBox* dialog);
   };
 }
