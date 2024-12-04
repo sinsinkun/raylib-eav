@@ -21,7 +21,7 @@ void EventLoop::init() {
   _fetchAllCategories();
   // setup universal dialog box
   dialog = DialogBox(&uiGlobal, Rectangle { 580.0f, 10.0f, 210.0f, 110.0f }, "-");
-  dialog.changeDialog(NO_ACTION, "", 0, 0, 0, 0);
+  dialog.isVisible = false;
 }
 
 void EventLoop::update() {
@@ -50,11 +50,35 @@ void EventLoop::update() {
         std::cout << res.msg << std::endl;
       }
     }
+    if (dAction == DEL_ENTITY) {
+      DbI::DbResponse res = dbInterface.delete_all_entity_values(dialog.entityId);
+      if (res.code == 0) {
+        res = dbInterface.delete_any(DbI::EavItemType::ENTITY, dialog.entityId);
+        if (res.code == 0) {
+          dialog.input.input = "";
+          _fetchCategory(dialog.blueprintId);
+          dialog.isVisible = false;
+        } else {
+          std::cout << res.msg << std::endl;
+        }
+      } else {
+        std::cout << res.msg << std::endl;
+      }
+    }
   }
   // update entities
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
-    if (entities[i].update()) sortIndex = i;
+    if (entities[i].update()) {
+      if (!dialog.isDoubleInput) {
+        dialog.cleanup();
+        Rectangle oldPos = dialog.box.posSize;
+        dialog = DialogBox(&uiGlobal, Rectangle { oldPos.x, oldPos.y, 210.0f, 110.0f }, "-", true);
+      }
+      dialog.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
+      dialog.isVisible = true;
+      sortIndex = i;
+    }
   }
   // re-sort entities so clicked is on top
   if (sortIndex != -1) {
@@ -69,7 +93,13 @@ void EventLoop::update() {
     if (categories[i].update()) {
       uiGlobal.clickActionAvailable = false;
       _fetchCategory(categories[i].id);
+      if (dialog.isDoubleInput) {
+        dialog.cleanup();
+        Rectangle oldPos = dialog.box.posSize;
+        dialog = DialogBox(&uiGlobal, Rectangle { oldPos.x, oldPos.y, 210.0f, 110.0f }, "-");
+      }
       dialog.changeDialog(NEW_ENTITY, categories[i].text, categories[i].id, 0, 0, 0);
+      dialog.isVisible = true;
     }
   }
   // update mouse state

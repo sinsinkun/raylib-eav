@@ -778,6 +778,13 @@ DbResponse<int> DbInterface::delete_any(EavItemType type, int id) {
   return res;
 }
 
+DbResponse<int> DbInterface::delete_all_entity_values(int id) {
+  DbResponse<int> res = DbResponse(0);
+  std::string query = "DELETE FROM eav_values WHERE entity_id = " + std::to_string(id);
+  res = _exec(query);
+  return res;
+}
+
 void DbInterface::disconnect() {
   int rcode = sqlite3_close(db);
   std::string srcode = std::to_string(rcode);

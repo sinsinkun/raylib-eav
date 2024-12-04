@@ -67,6 +67,7 @@ namespace DbI {
       DbResponse<int> update_value(int id, std::string value);
       // delete entries
       DbResponse<int> delete_any(EavItemType type, int id);
+      DbResponse<int> delete_all_entity_values(int entityId);
     private:
       unsigned int _now();
       bool _row_exists(EavItemType type, int id);

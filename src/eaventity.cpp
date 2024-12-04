@@ -7,6 +7,7 @@
 using namespace App;
 
 EavEntity::EavEntity(UIState* globalState, DbI::EavItem item, Rectangle posSizeIn, DbI::DbInterface* dbi) {
+  blueprintId = item.blueprint_id;
   id = item.entity_id;
   name = item.entity;
   // init box
@@ -23,7 +24,7 @@ EavEntity::EavEntity(UIState* globalState, DbI::EavItem item, Rectangle posSizeI
   // randomly generate box color
   int r = GetRandomValue(160, 250);
   int g = GetRandomValue(160, 220);
-  int b = GetRandomValue(120, 160);
+  int b = GetRandomValue(120, 240);
   box.boxColor = Color { (unsigned char)r, (unsigned char)g, (unsigned char)b, 255 };
   box.boxHoverColor = Color { 
     (unsigned char)(std::min(r + 20, 255)),

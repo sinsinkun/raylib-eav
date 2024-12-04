@@ -23,16 +23,16 @@ bool UIInput::update() {
     case MOUSE_OVER:
       event = UI_HOVER;
       if (isActive) _activeColor = boxActiveColor;
-      else if (isHovering) _activeColor = boxHoverColor;
+      else if (isHovering && !disabled) _activeColor = boxHoverColor;
       break;
     case MOUSE_HOLD:
       event = UI_HOLD;
-      if (isHovering) _activeColor = boxActiveColor;
+      if (isHovering && !disabled) _activeColor = boxActiveColor;
       break;
     case MOUSE_DOWN:
       event = UI_CLICK;
-      isActive = isHovering;
-      if (isHovering) _activeColor = boxActiveColor;
+      isActive = isHovering && !disabled;
+      if (isHovering && !disabled) _activeColor = boxActiveColor;
       else _activeColor = boxColor;
       break;
     case MOUSE_NONE:

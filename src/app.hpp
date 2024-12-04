@@ -45,6 +45,7 @@ namespace App {
       int maxInputSize = 255;
       float fontSize = 18.0f;
       bool isActive = false;
+      bool disabled = false;
       Color boxColor = Color { 140, 140, 140, 255 };
       Color boxHoverColor = Color { 160, 160, 160, 255 };
       Color boxActiveColor = Color { 210, 200, 240, 255 };
@@ -119,20 +120,25 @@ namespace App {
       Color _activeColor = boxColor;
   };
   // specific use
-  enum DialogOption { NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_VALUE };
+  enum DialogOption { NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_VALUE, DEL_ENTITY, DEL_VALUE };
   class DialogBox {
     public:
       DialogBox() {};
       DialogBox(UIState* gState, Rectangle bounds, std::string titleIn);
+      DialogBox(UIState* gState, Rectangle bounds, std::string titleIn, bool doubleInput);
       DialogOption activeDialog = NO_ACTION;
       int entityId = 0;
       int blueprintId = 0;
       int attrId = 0;
       int valueId = 0;
       bool isVisible = true;
+      bool isDoubleInput = false;
       UIBox box = UIBox(NULL);
       UIInput input = UIInput(NULL);
+      UIInput input2 = UIInput(NULL);
       UIButton btn = UIButton(NULL);
+      UIButton btn2 = UIButton(NULL);
+      UIButton closeBtn = UIButton(NULL);
       void changeDialog(DialogOption action, std::string metaText, int blueprintId, int entityId, int attrId, int valueId);
       bool update();
       void render();
@@ -153,6 +159,7 @@ namespace App {
   class EavEntity {
     public:
       EavEntity(UIState* globalState, DbI::EavItem item, Rectangle posSizeIn, DbI::DbInterface* dbi);
+      int blueprintId = 0;
       int id = 0;
       int dragId = 0;
       std::string name = "";
