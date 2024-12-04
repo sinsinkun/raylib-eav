@@ -2,13 +2,14 @@
 #include <string>
 #include <raylib.h>
 #include "app.hpp"
+#include "font.c"
 
 using namespace App;
 using namespace DbI;
 
 void EventLoop::init() {
   // initialize assets
-  uiGlobal.font = LoadFont("assets/Helvetica.ttf");
+  uiGlobal.font = LoadFont_Font();
   SetTextureFilter(uiGlobal.font.texture, TEXTURE_FILTER_BILINEAR);
   // load db
   dbInterface.init();

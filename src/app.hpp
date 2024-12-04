@@ -179,7 +179,6 @@ namespace App {
       void* grabbedObject = NULL;
       int fps = 0;
       double elapsed = 0.0;
-      Font font;
       Color bgColor = Color { 35, 35, 40, 255 };
       UIState uiGlobal;
       // data objects

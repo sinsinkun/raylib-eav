@@ -6,6 +6,7 @@ build/
 
 # external imports
 raygui.h
+font.c
 
 # ignore temp items
 temp*
