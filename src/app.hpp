@@ -70,8 +70,18 @@ namespace App {
       UIButton(UIState* globalState) {
         state = globalState;
       }
-      UIButton(UIState* globalState, int sharedDragId) {
+      UIButton(UIState* globalState, Rectangle posSizeIn, std::string textIn) {
         state = globalState;
+        text = textIn;
+        posSize = posSizeIn;
+        Vector2 txtDim = MeasureTextEx(state->font, text.c_str(), fontSize, 0.0);
+        if (txtDim.x > posSize.width) posSize.width = txtDim.x + 10.0f;
+        if (txtDim.y > posSize.height) posSize.height = txtDim.y + 10.0f;
+      }
+      UIButton(UIState* globalState, int sharedDragId) : UIButton(globalState) {
+        if (sharedDragId > 0) dragId = sharedDragId;
+      }
+      UIButton(UIState* globalState, Rectangle posSizeIn, std::string textIn, int sharedDragId) : UIButton(globalState, posSizeIn, textIn) {
         if (sharedDragId > 0) dragId = sharedDragId;
       }
       UIState* state = NULL;
@@ -128,7 +138,6 @@ namespace App {
     public:
       DialogBox() {};
       DialogBox(UIState* gState, Rectangle bounds, std::string titleIn);
-      DialogBox(UIState* gState, Rectangle bounds, std::string titleIn, bool doubleInput);
       DialogOption activeDialog = NO_ACTION;
       int entityId = 0;
       int blueprintId = 0;
@@ -147,17 +156,38 @@ namespace App {
       void render();
       void cleanup();
   };
-  class EavBlueprint: public UIButton {
+  enum OptionsParent { OP_NONE, OP_BLUEPRINT, OP_ENTITY };
+  class OptionsMenu {
     public:
-      EavBlueprint(UIState* globalState, DbI::EavItem item, Rectangle posSizeIn) : UIButton(globalState) {
+      OptionsMenu() {};
+      OptionsMenu(UIState* globalState, std::vector<std::string> options, OptionsParent parent);
+      bool isVisible = false;
+      int variant = 0;
+      OptionsParent parent = OP_NONE;
+      UIBox box = UIBox(NULL);
+      UIButton btn1 = UIButton(NULL);
+      UIButton btn2 = UIButton(NULL);
+      UIButton btn3 = UIButton(NULL);
+      void open();
+      bool update();
+      void render();
+  };
+  class EavBlueprint {
+    public:
+      EavBlueprint(UIState* globalState, DbI::EavItem item, Rectangle posSizeIn) {
         id = item.blueprint_id;
-        text = item.blueprint;
-        posSize = posSizeIn;
-        Vector2 txtDim = MeasureTextEx(state->font, text.c_str(), fontSize, 0.0);
-        if (txtDim.x > posSize.width) posSize.width = txtDim.x + 10.0f;
-        if (txtDim.y > posSize.height) posSize.height = txtDim.y + 10.0f;
+        name = item.blueprint;
+        btn = UIButton(globalState, posSizeIn, item.blueprint);
       }
-      int dragId = 0;
+      int id = 0;
+      std::string name = "";
+      UIButton btn = UIButton(NULL);
+      bool update() {
+        return btn.update();
+      }
+      void render() {
+        btn.render();
+      }
   };
   class EavEntity {
     public:
@@ -189,6 +219,7 @@ namespace App {
       std::vector<EavBlueprint> categories;
       std::vector<EavEntity> entities;
       DialogBox dialog;
+      OptionsMenu menu;
       // methods
       void init();
       void update();

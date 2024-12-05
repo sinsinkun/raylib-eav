@@ -23,13 +23,22 @@ void EventLoop::init() {
   // setup universal dialog box
   dialog = DialogBox(&uiGlobal, Rectangle { 580.0f, 10.0f, 210.0f, 110.0f }, "-");
   dialog.isVisible = false;
+  std::vector<std::string> options;
+  menu = OptionsMenu(&uiGlobal, options, OP_NONE);
 }
 
 void EventLoop::update() {
   _updateSystem();
   // update global state
   uiGlobal.update();
+  if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+    menu.isVisible = false;
+  }
+  if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+    menu.open();
+  }
   // update all components backwards -> first click event is the last component rendered
+  menu.update();
   // update dialog box
   if (dialog.update()) {
     _handleDialogEvent(&dialog);
@@ -38,11 +47,6 @@ void EventLoop::update() {
   int sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
     if (entities[i].update()) {
-      if (!dialog.isDoubleInput) {
-        dialog.cleanup();
-        Rectangle oldPos = dialog.box.posSize;
-        dialog = DialogBox(&uiGlobal, Rectangle { (float)screenW - 220.0f, 10.0f, 210.0f, 110.0f }, "-", true);
-      }
       dialog.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
       dialog.isVisible = true;
       sortIndex = i;
@@ -61,12 +65,7 @@ void EventLoop::update() {
     if (categories[i].update()) {
       uiGlobal.clickActionAvailable = false;
       _fetchCategory(categories[i].id);
-      if (dialog.isDoubleInput) {
-        dialog.cleanup();
-        Rectangle oldPos = dialog.box.posSize;
-        dialog = DialogBox(&uiGlobal, Rectangle { (float)screenW - 220.0f, 10.0f, 210.0f, 110.0f }, "-");
-      }
-      dialog.changeDialog(NEW_ENTITY, categories[i].text, categories[i].id, 0, 0, 0);
+      dialog.changeDialog(NEW_ENTITY, categories[i].name, categories[i].id, 0, 0, 0);
       dialog.isVisible = true;
     }
   }
@@ -95,6 +94,7 @@ void EventLoop::render() {
       entities[i].render();
     }
     dialog.render();
+    menu.render();
     // draw FPS overlay
     _drawFps();
   EndDrawing();

@@ -54,22 +54,6 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   closeBtn.btnDownColor = Color { 160, 160, 160, 255 };
 }
 
-DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn, bool dInput) : DialogBox(globalState, bounds, titleIn) {
-  if (dInput) {
-    isDoubleInput = true;
-    btn2.state = box.state;
-
-    input2.state = box.state;
-    input2.posSize.x = box.posSize.x + 5.0f;
-    input2.posSize.y = box.posSize.y + 70.0f;
-    box.posSize.height += 35.0f;
-    btn.posSize.y += 35.0f;
-    btn.text = "Update";
-    btn2.posSize.y += 35.0f;
-    btn2.text = "Add New";
-  }
-}
-
 void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId, int eId, int aId, int vId) {
   // update state
   activeDialog = action;
@@ -77,6 +61,7 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
   entityId = eId;
   attrId = aId;
   valueId = vId;
+  bool doubleInput = false;
   // change title
   switch (action) {
     case NEW_BLUEPRINT:
@@ -95,6 +80,7 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
       box.title = "";
       input.placeholder = "Attribute Name";
       input2.placeholder = "New Value";
+      doubleInput = true;
       break;
     default:
       box.title = "Dialog Box";
@@ -104,6 +90,30 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
   if (metaText.size() > 0) {
     if (metaText.size() > 23) metaText = metaText.substr(0, 20) + "...";
     box.title += metaText;
+  }
+  // change between double input and single input
+  if (doubleInput && isDoubleInput == false) {
+    isDoubleInput = true;
+    btn2.state = box.state;
+
+    input2.state = box.state;
+    input2.posSize.x = box.posSize.x + 5.0f;
+    input2.posSize.y = box.posSize.y + 70.0f;
+    box.posSize.height += 35.0f;
+    btn.posSize.y += 35.0f;
+    btn.text = "Update";
+    btn2.posSize.x = box.posSize.x + 108.0f;
+    btn2.posSize.y = box.posSize.y + 110.0f;
+    btn2.text = "Add New";
+  }
+  if (!doubleInput && isDoubleInput == true) {
+    isDoubleInput = false;
+    btn2.state = NULL;
+    input2.state = NULL;
+    btn.text = "Submit";
+    box.posSize.height -= 35.0f;
+    btn.posSize.y -= 35.0f;
+    btn2.posSize.y -= 35.0f;
   }
 }
 
