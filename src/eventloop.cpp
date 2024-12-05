@@ -41,7 +41,7 @@ void EventLoop::update() {
       if (!dialog.isDoubleInput) {
         dialog.cleanup();
         Rectangle oldPos = dialog.box.posSize;
-        dialog = DialogBox(&uiGlobal, Rectangle { oldPos.x, oldPos.y, 210.0f, 110.0f }, "-", true);
+        dialog = DialogBox(&uiGlobal, Rectangle { (float)screenW - 220.0f, 10.0f, 210.0f, 110.0f }, "-", true);
       }
       dialog.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
       dialog.isVisible = true;
@@ -64,7 +64,7 @@ void EventLoop::update() {
       if (dialog.isDoubleInput) {
         dialog.cleanup();
         Rectangle oldPos = dialog.box.posSize;
-        dialog = DialogBox(&uiGlobal, Rectangle { oldPos.x, oldPos.y, 210.0f, 110.0f }, "-");
+        dialog = DialogBox(&uiGlobal, Rectangle { (float)screenW - 220.0f, 10.0f, 210.0f, 110.0f }, "-");
       }
       dialog.changeDialog(NEW_ENTITY, categories[i].text, categories[i].id, 0, 0, 0);
       dialog.isVisible = true;
@@ -146,7 +146,7 @@ void EventLoop::_fetchCategory(int blueprintId) {
     std::vector<EavItem> es = eres.data;
     // instantiate buttons based on categories
     // calculate number of positions left to right
-    int xcount = screenW / 100 + 1;
+    int xcount = (screenW / 120) + 1;
     int yOffset = (screenH - 100) / (es.size() / xcount + 1);
     if (yOffset > 200) yOffset = 200;
     if (yOffset < 50) yOffset = 50;
@@ -220,7 +220,7 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
     } else {
       std::cout << res.msg << std::endl;
     }
-  } else if (dAction == NEW_VALUE) {
+  } else if (dAction == NEW_VALUE || dAction == NEW_VALUE_M) {
     // match up attr string to attr id
     std::string attrInput = d->input.input;
     std::string valueInput = d->input2.input;
@@ -253,8 +253,11 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
     }
     // submit to db
     DbI::DbResponse res = DbI::DbResponse(0);
-    if (attr->value_id != 0) res = dbInterface.update_value(attr->value_id, valueInput);
-    else res = dbInterface.new_value(ent->id, attr->attr_id, valueInput);
+    if (attr->value_id == 0 || (dAction == NEW_VALUE_M && attr->allow_multiple)) {
+      res = dbInterface.new_value(ent->id, attr->attr_id, valueInput);
+    } else {
+      res = dbInterface.update_value(attr->value_id, valueInput);
+    }
     if (res.code == 0) {
       d->input.input = "";
       d->input2.input = "";

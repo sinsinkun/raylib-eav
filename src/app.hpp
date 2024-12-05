@@ -121,7 +121,7 @@ namespace App {
   };
   // specific use
   enum DialogOption {
-    NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_VALUE,
+    NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_VALUE, NEW_VALUE_M,
     DEL_ENTITY, DEL_VALUE
   };
   class DialogBox {

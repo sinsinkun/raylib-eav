@@ -13,6 +13,7 @@ removing the need for running a separate MySQL instance in the background.
 - right click menu for new blueprints, adding attributes to blueprints, and deleting blueprints
 - right click menu for deleting entities
 - confirmation modal for deletion
+- search bar for filtering
 
 <img src="assets/screenshot.png" width="600x" />
 

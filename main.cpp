@@ -13,6 +13,8 @@ int main(int argc, char* argv[]) {
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   SetConfigFlags(FLAG_MSAA_4X_HINT);
   InitWindow(800, 600, "Raylib Eav");
+  Image icon = LoadImage("icon.png");
+  SetWindowIcon(icon);
   // InitAudioDevice();
   SetWindowMinSize(400, 300);
   SetTargetFPS(120);

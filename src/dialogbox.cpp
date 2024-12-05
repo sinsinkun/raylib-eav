@@ -29,16 +29,16 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   btn.text = "Submit";
   btn.btnColor = Color { 130, 130, 130, 255 };
   btn.btnHoverColor = Color { 150, 150, 150, 255 };
-  btn.btnDownColor = Color { 160, 160, 160, 255 };
+  btn.btnDownColor = Color { 180, 180, 180, 255 };
 
   btn2 = UIButton(NULL, dragId);
-  btn2.posSize.x = bounds.x + 112.0f;
+  btn2.posSize.x = bounds.x + 108.0f;
   btn2.posSize.y = bounds.y + 75.0f;
-  btn2.posSize.width -= 10.0f;
-  btn2.text = "Delete";
-  btn2.btnColor = Color { 180, 110, 110, 255 };
-  btn2.btnHoverColor = Color { 200, 130, 130, 255 };
-  btn2.btnDownColor = Color { 220, 150, 150, 255 };
+  btn2.posSize.width -= 5.0f;
+  btn2.text = "?";
+  btn2.btnColor = Color { 130, 130, 130, 255 };
+  btn2.btnHoverColor = Color { 150, 150, 150, 255 };
+  btn2.btnDownColor = Color { 180, 180, 180, 255 };
 
   closeBtn = UIButton(globalState, dragId);
   closeBtn.posSize = {
@@ -58,15 +58,15 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   if (dInput) {
     isDoubleInput = true;
     btn2.state = box.state;
-    btn2.posSize.x = box.posSize.x + 112.0f;
-    btn2.posSize.y = box.posSize.y + 75.0f;
 
     input2.state = box.state;
     input2.posSize.x = box.posSize.x + 5.0f;
     input2.posSize.y = box.posSize.y + 70.0f;
     box.posSize.height += 35.0f;
     btn.posSize.y += 35.0f;
+    btn.text = "Update";
     btn2.posSize.y += 35.0f;
+    btn2.text = "Add New";
   }
 }
 
@@ -121,7 +121,7 @@ bool DialogBox::update() {
   bool actioned = false;
   if (btn.update()) actioned = true;
   if (btn2.update() && activeDialog == NEW_VALUE) {
-    activeDialog = DEL_VALUE;
+    activeDialog = NEW_VALUE_M;
     actioned = true;
   }
   if (closeBtn.update()) isVisible = false;
