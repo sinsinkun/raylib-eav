@@ -123,74 +123,6 @@ void EventLoop::_drawFps() {
   DrawTextEx(uiGlobal.font, fpstxt.c_str(), pos, 18.0, 0.0, GREEN);
 }
 
-void EventLoop::_handleDialogEvent(DialogBox* d) {
-  DialogOption dAction = dialog.activeDialog;
-  if (dAction == NEW_BLUEPRINT) {
-    DbI::DbResponse res = dbInterface.new_blueprint(dialog.input.input);
-    if (res.code == 0) {
-      dialog.input.input = "";
-      _fetchAllCategories();
-    } else {
-      std::cout << res.msg << std::endl;
-    }
-  } else if (dAction == NEW_ENTITY) {
-    DbI::DbResponse res = dbInterface.new_entity(dialog.input.input, dialog.blueprintId);
-    if (res.code == 0) {
-      dialog.input.input = "";
-      _fetchCategory(dialog.blueprintId);
-    } else {
-      std::cout << res.msg << std::endl;
-    }
-  } else if (dAction == DEL_ENTITY) {
-    DbI::DbResponse res = dbInterface.delete_all_entity_values(dialog.entityId);
-    if (res.code == 0) {
-      res = dbInterface.delete_any(DbI::EavItemType::ENTITY, dialog.entityId);
-      if (res.code == 0) {
-        dialog.input.input = "";
-        _fetchCategory(dialog.blueprintId);
-        dialog.isVisible = false;
-      } else {
-        std::cout << res.msg << std::endl;
-      }
-    } else {
-      std::cout << res.msg << std::endl;
-    }
-  } else if (dAction == NEW_VALUE) {
-    // match up attr string to attr id
-    std::string attrInput = dialog.input.input;
-    std::string valueInput = dialog.input2.input;
-    EavEntity* ent = NULL;
-    for (int i=0; i<entities.size(); i++) {
-      if (entities[i].id == dialog.entityId) {
-        ent = &entities[i];
-        break;
-      }
-    }
-    if (ent == NULL) {
-      std::cout << "ERR: Entity not found" << std::endl;
-      return;
-    }
-    EavItem* attr = NULL;
-    for (int i=0; i<ent->values.size(); i++) {
-      if (ent->values[i].attr == attrInput) {
-        attr = &ent->values[i];
-        break;
-      }
-    }
-    if (attr == NULL) {
-      std::cout << "ERR: Attribute not found" << std::endl;
-      return;
-    }
-    // validate value type
-    std::cout << "New value: " << attrInput << " (" << attr->attr_id << ") = " << valueInput << std::endl;
-    // todo: submit to db
-  } else if (dAction == DEL_VALUE) {
-    // todo: match up attr string to attr id
-    // todo: validate value type
-    // todo: submit to db
-  }
-}
-
 #pragma region db actions
 void EventLoop::_fetchAllCategories() {
   EavResponse bpRes = dbInterface.get_blueprints();
@@ -231,3 +163,116 @@ void EventLoop::_fetchCategory(int blueprintId) {
   }
 }
 #pragma endregion db actions
+
+#pragma region helpers
+bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
+  switch (vType) {
+    case BOOL:
+      if (strV == "true" || strV == "True" || strV == "false" || strV == "False") {
+        return true;
+      } else return false;
+    case INT:
+      try {
+        int i = std::atoi(strV.c_str());
+        return true;
+      } catch (...) { return false; }
+    case FLOAT:
+      try {
+        float f = std::atof(strV.c_str());
+        return true;
+      } catch (...) { return false; }
+    case STR:
+      return true;
+    default:
+      return false;
+  }
+}
+
+void EventLoop::_handleDialogEvent(DialogBox* d) {
+  DialogOption dAction = d->activeDialog;
+  if (dAction == NEW_BLUEPRINT) {
+    DbI::DbResponse res = dbInterface.new_blueprint(d->input.input);
+    if (res.code == 0) {
+      d->input.input = "";
+      _fetchAllCategories();
+    } else {
+      std::cout << res.msg << std::endl;
+    }
+  } else if (dAction == NEW_ENTITY) {
+    DbI::DbResponse res = dbInterface.new_entity(d->input.input, d->blueprintId);
+    if (res.code == 0) {
+      d->input.input = "";
+      _fetchCategory(d->blueprintId);
+    } else {
+      std::cout << res.msg << std::endl;
+    }
+  } else if (dAction == DEL_ENTITY) {
+    DbI::DbResponse res = dbInterface.delete_all_entity_values(d->entityId);
+    if (res.code == 0) {
+      res = dbInterface.delete_any(DbI::EavItemType::ENTITY, d->entityId);
+      if (res.code == 0) {
+        d->input.input = "";
+        _fetchCategory(d->blueprintId);
+        d->isVisible = false;
+      } else {
+        std::cout << res.msg << std::endl;
+      }
+    } else {
+      std::cout << res.msg << std::endl;
+    }
+  } else if (dAction == NEW_VALUE) {
+    // match up attr string to attr id
+    std::string attrInput = d->input.input;
+    std::string valueInput = d->input2.input;
+    EavEntity* ent = NULL;
+    for (int i=0; i<entities.size(); i++) {
+      if (entities[i].id == d->entityId) {
+        ent = &entities[i];
+        break;
+      }
+    }
+    if (ent == NULL) {
+      std::cout << "ERR: Entity not found" << std::endl;
+      return;
+    }
+    EavItem* attr = NULL;
+    for (int i=0; i<ent->values.size(); i++) {
+      if (ent->values[i].attr == attrInput) {
+        attr = &ent->values[i];
+        break;
+      }
+    }
+    if (attr == NULL) {
+      std::cout << "ERR: Attribute not found" << std::endl;
+      return;
+    }
+    // validate value type
+    if (!_valueTypeIsValid(valueInput, attr->value_type)) {
+      std::cout << "ERR: Value not matching value type" << std::endl;
+      return;
+    }
+    // submit to db
+    DbI::DbResponse res = DbI::DbResponse(0);
+    if (attr->value_id != 0) res = dbInterface.update_value(attr->value_id, valueInput);
+    else res = dbInterface.new_value(ent->id, attr->attr_id, valueInput);
+    if (res.code == 0) {
+      d->input.input = "";
+      d->input2.input = "";
+      // fetch new values
+      DbI::EavResponse entRes = dbInterface.get_entity_values(ent->id);
+      if (entRes.code == 0) {
+        ent->values = entRes.data;
+        ent->fillBody();
+      } else {
+        std::cout << entRes.msg << std::endl;
+      }
+    } else {
+      std::cout << res.msg << std::endl;
+    }
+  } else if (dAction == DEL_VALUE) {
+    // todo: match up attr string to attr id
+    // todo: validate value type
+    // todo: submit to db
+  }
+}
+#pragma endregion helpers

@@ -120,7 +120,10 @@ namespace App {
       Color _activeColor = boxColor;
   };
   // specific use
-  enum DialogOption { NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_VALUE, DEL_ENTITY, DEL_VALUE };
+  enum DialogOption {
+    NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_VALUE,
+    DEL_ENTITY, DEL_VALUE
+  };
   class DialogBox {
     public:
       DialogBox() {};

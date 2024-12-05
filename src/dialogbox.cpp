@@ -109,6 +109,11 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
 
 bool DialogBox::update() {
   if (!isVisible) return false;
+  // take keyboard input
+  if (IsKeyPressed(KEY_TAB) && isDoubleInput && (input.isActive || input2.isActive)) {
+    input.isActive = !input.isActive;
+    input2.isActive = !input2.isActive;
+  }
   // update input
   input.update();
   input2.update();
@@ -116,8 +121,7 @@ bool DialogBox::update() {
   bool actioned = false;
   if (btn.update()) actioned = true;
   if (btn2.update() && activeDialog == NEW_VALUE) {
-    if (input.input.size() < 1) activeDialog = DEL_ENTITY;
-    else activeDialog = DEL_VALUE;
+    activeDialog = DEL_VALUE;
     actioned = true;
   }
   if (closeBtn.update()) isVisible = false;
