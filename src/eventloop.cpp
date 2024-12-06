@@ -34,9 +34,6 @@ void EventLoop::update() {
   if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
     menu.isVisible = false;
   }
-  if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-    menu.open();
-  }
   // update all components backwards -> first click event is the last component rendered
   menu.update();
   // update dialog box
@@ -50,6 +47,11 @@ void EventLoop::update() {
       dialog.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
       dialog.isVisible = true;
       sortIndex = i;
+    }
+    if (uiGlobal.rClickId == entities[i].box.id) {
+      std::vector<std::string> options = { "Delete Entity" };
+      menu = OptionsMenu(&uiGlobal, options, OP_ENTITY);
+      menu.open();
     }
   }
   // re-sort entities so clicked is on top

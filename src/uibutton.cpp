@@ -17,6 +17,9 @@ bool UIButton::update() {
       state->clickId = id;
       clicked = true;
     }
+    if (state->rMouseState == MOUSE_DOWN && state->rClickId == 0) {
+      state->rClickId = id;
+    }
   }
 
   // handle drag event

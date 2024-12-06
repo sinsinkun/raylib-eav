@@ -32,6 +32,7 @@ void UIState::update() {
 void UIState::postUpdate() {
   // release held objects
   if (mouseState == MOUSE_UP) clickId = 0;
+  if (rMouseState == MOUSE_UP) rClickId = 0;
   if (mouseState == MOUSE_UP && holdIds.size() > 0) {
     holdIds.clear();
   }

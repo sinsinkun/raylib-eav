@@ -10,6 +10,7 @@ OptionsMenu::OptionsMenu(UIState* gState, std::vector<std::string> options, Opti
   variant = options.size();
   parent = prt;
   box = UIBox(gState);
+  box.hideHover = true;
   box.posSize = { 0.0f, 0.0f, 150.0f, 50.0f };
   if (variant > 0) {
     UIButton btn1 = UIButton(gState);
