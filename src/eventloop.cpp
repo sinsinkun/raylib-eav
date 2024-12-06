@@ -20,6 +20,13 @@ void EventLoop::init() {
     return;
   }
   _fetchAllCategories();
+  if (categories.empty()) {
+    DbI::EavItem item;
+    item.blueprint_id = -10;
+    item.blueprint = "Start";
+    EavBlueprint addNew = EavBlueprint(&uiGlobal, item, Rectangle { 10.0f, 30.0f, 80.0f, 30.0f });
+    categories.push_back(addNew);
+  }
   // setup universal dialog box
   dialog = DialogBox(&uiGlobal, Rectangle { 580.0f, 10.0f, 210.0f, 110.0f }, "-");
   dialog.isVisible = false;
@@ -65,6 +72,14 @@ void EventLoop::update() {
   }
   // update categories
   for (int i=categories.size()-1; i >= 0; i--) {
+    // handler for "add new" button
+    if (categories[i].id == -10) {
+      if (categories[i].update()) {
+        dialog.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
+        dialog.isVisible = true;
+      }
+      break;
+    }
     if (categories[i].update()) {
       _fetchCategory(categories[i].id);
       dialog.changeDialog(NEW_ENTITY, categories[i].name, categories[i].id, 0, 0, 0);
