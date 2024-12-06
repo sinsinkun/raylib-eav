@@ -9,13 +9,12 @@ The advantage of sqlite is that it's designed to be embedded into applications,
 removing the need for running a separate MySQL instance in the background.
 
 ### Future Ideas
-- ~~new button for adding new values to attributes allowing multiple~~
-- ~~right click menu for new blueprints, adding attributes to blueprints, and deleting blueprints~~
-- ~~right click menu for deleting entities~~
-- confirmation modal for deletion
 - search bar for filtering
+- confirmation modal for deletion
+- deleting values from entities
 
 <img src="assets/screenshot.png" width="600x" />
+<img src="assets/screenshot2.png" width="600x" />
 
 ## Installation (with MSYS2)
 - Go through setup process to get mingw compiler working with VSCode (https://code.visualstudio.com/docs/languages/cpp)
