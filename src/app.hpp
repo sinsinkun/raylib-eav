@@ -162,14 +162,18 @@ namespace App {
       OptionsMenu() {};
       OptionsMenu(UIState* globalState, OptionsParent parent);
       bool isVisible = false;
-      int variant = 0;
+      int blueprintId = 0;
+      int entityId = 0;
+      int attrId = 0;
+      int valueId = 0;
+      std::string metaText = "";
       OptionsParent parent = OP_NONE;
       UIBox box = UIBox(NULL);
       UIButton btn1 = UIButton(NULL);
       UIButton btn2 = UIButton(NULL);
       UIButton btn3 = UIButton(NULL);
       void open();
-      bool update();
+      int update();
       void render();
   };
   class EavBlueprint {
@@ -232,5 +236,6 @@ namespace App {
       void _fetchAllCategories();
       void _fetchCategory(int blueprintId);
       void _handleDialogEvent(DialogBox* dialog);
+      void _handleOption(OptionsMenu* menu, int action);
   };
 }

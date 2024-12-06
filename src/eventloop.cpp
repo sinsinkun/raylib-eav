@@ -30,11 +30,12 @@ void EventLoop::update() {
   _updateSystem();
   // update global state
   uiGlobal.update();
-  if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+  // update all components backwards -> first click event is the last component rendered
+  int menuAction = menu.update();
+  if (menuAction > 0) {
+    _handleOption(&menu, menuAction);
     menu.isVisible = false;
   }
-  // update all components backwards -> first click event is the last component rendered
-  menu.update();
   // update dialog box
   if (dialog.update()) {
     _handleDialogEvent(&dialog);
@@ -49,6 +50,8 @@ void EventLoop::update() {
     }
     if (uiGlobal.uiIsRClicked(entities[i].box.id)) {
       menu = OptionsMenu(&uiGlobal, OP_ENTITY);
+      menu.blueprintId = entities[i].blueprintId;
+      menu.entityId = entities[i].id;
       menu.open();
     }
   }
@@ -69,6 +72,7 @@ void EventLoop::update() {
     }
     if (uiGlobal.uiIsRClicked(categories[i].btn.id)) {
       menu = OptionsMenu(&uiGlobal, OP_BLUEPRINT);
+      menu.blueprintId = categories[i].id;
       menu.open();
     }
   }
@@ -185,6 +189,10 @@ bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
 void EventLoop::_handleDialogEvent(DialogBox* d) {
   DialogOption dAction = d->activeDialog;
   if (dAction == NEW_BLUEPRINT) {
+    if (d->input.input.empty()) {
+      std::cout << "No name provided" << std::endl;
+      return;
+    }
     DbI::DbResponse res = dbInterface.new_blueprint(d->input.input);
     if (res.code == 0) {
       d->input.input = "";
@@ -193,6 +201,10 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       std::cout << res.msg << std::endl;
     }
   } else if (dAction == NEW_ENTITY) {
+    if (d->input.input.empty()) {
+      std::cout << "No name provided" << std::endl;
+      return;
+    }
     DbI::DbResponse res = dbInterface.new_entity(d->input.input, d->blueprintId);
     if (res.code == 0) {
       d->input.input = "";
@@ -202,22 +214,30 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
     }
   } else if (dAction == DEL_ENTITY) {
     DbI::DbResponse res = dbInterface.delete_all_entity_values(d->entityId);
-    if (res.code == 0) {
-      res = dbInterface.delete_any(DbI::EavItemType::ENTITY, d->entityId);
-      if (res.code == 0) {
-        d->input.input = "";
-        _fetchCategory(d->blueprintId);
-        d->isVisible = false;
-      } else {
-        std::cout << res.msg << std::endl;
-      }
-    } else {
+    if (res.code != 0) {
       std::cout << res.msg << std::endl;
+      return;
     }
+    res = dbInterface.delete_any(DbI::EavItemType::ENTITY, d->entityId);
+    if (res.code != 0) {
+      std::cout << res.msg << std::endl;
+      return;
+    }
+    d->input.input = "";
+    _fetchCategory(d->blueprintId);
+    d->isVisible = false;
   } else if (dAction == NEW_VALUE || dAction == NEW_VALUE_M) {
     // match up attr string to attr id
     std::string attrInput = d->input.input;
     std::string valueInput = d->input2.input;
+    if (attrInput.empty()) {
+      std::cout << "No attribute provided" << std::endl;
+      return;
+    }
+    if (valueInput.empty()) {
+      std::cout << "No value provided" << std::endl;
+      return;
+    }
     EavEntity* ent = NULL;
     for (int i=0; i<entities.size(); i++) {
       if (entities[i].id == d->entityId) {
@@ -270,6 +290,39 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
     // todo: match up attr string to attr id
     // todo: validate value type
     // todo: submit to db
+  }
+}
+
+void EventLoop::_handleOption(OptionsMenu* menu, int action)  {
+  if (menu->parent == OP_ENTITY) {
+    // delete entity
+    if (action == 1 && menu->entityId != 0) {
+      DbI::DbResponse res = dbInterface.delete_all_entity_values(menu->entityId);
+      if (res.code != 0) {
+        std::cout << res.msg << std::endl;
+        return;
+      }
+      res = dbInterface.delete_any(DbI::EavItemType::ENTITY, menu->entityId);
+      if (res.code != 0) {
+        std::cout << res.msg << std::endl;
+        return;
+      }
+      _fetchCategory(menu->blueprintId);
+    }
+  }
+  if (menu->parent == OP_BLUEPRINT) {
+    // new blueprint
+    if (action == 1) {
+      dialog.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
+    }
+    // open dialog for new attr
+    if (action == 2 && menu->blueprintId != 0) {
+      dialog.changeDialog(NEW_ATTR, menu->metaText, menu->blueprintId, 0, 0, 0);
+    }
+    // delete blueprint
+    if (action == 3 && menu->blueprintId != 0) {
+      std::cout << "Cannot delete categories (yet): " << menu->blueprintId << std::endl;
+    }
   }
 }
 #pragma endregion helpers

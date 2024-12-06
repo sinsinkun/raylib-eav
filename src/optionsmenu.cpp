@@ -39,13 +39,16 @@ void OptionsMenu::open() {
   btn3.posSize.y = box.posSize.y + 68.0f;
 }
 
-bool OptionsMenu::update() {
-  if (!isVisible) return false;
-  btn1.update();
-  btn2.update();
-  btn3.update();
+int OptionsMenu::update() {
+  if (!isVisible) return 0;
+  if (btn1.update()) return 1;
+  if (btn2.update()) return 2;
+  if (btn3.update()) return 3;
   box.update();
-  return false;
+  if (box.state->mouseState == MOUSE_DOWN) {
+    isVisible = false;
+  }
+  return 0;
 }
 
 void OptionsMenu::render() {
