@@ -63,23 +63,13 @@ void EventLoop::update() {
   // update categories
   for (int i=categories.size()-1; i >= 0; i--) {
     if (categories[i].update()) {
-      uiGlobal.clickActionAvailable = false;
       _fetchCategory(categories[i].id);
       dialog.changeDialog(NEW_ENTITY, categories[i].name, categories[i].id, 0, 0, 0);
       dialog.isVisible = true;
     }
   }
-  // update mouse state
-  switch (uiGlobal.uiEvent) {
-    case UI_HOVER:
-    case UI_HOLD:
-    case UI_CLICK:
-      SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-      break;
-    default:
-      SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-      break;
-  }
+  // finalize ui updates
+  uiGlobal.postUpdate();
 }
 
 void EventLoop::render() {

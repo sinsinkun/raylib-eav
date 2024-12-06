@@ -17,12 +17,19 @@ namespace App {
       Vector2 mouseDelta = { 0.0f, 0.0f };
       MouseState mouseState = MOUSE_NONE;
       MouseState rMouseState = MOUSE_NONE;
-      UIEvent uiEvent = UI_NONE;
-      int activeDragId = -1;
-      bool clickActionAvailable = true;
-      bool rClickActionAvailable = true;
+      bool invisHover = false;
+      int hoverId = 0;
+      int clickId = 0;
+      int rClickId = 0;
+      std::vector<int> holdIds;
       int getNewId();
       void update();
+      void postUpdate();
+      bool uiIsHovering(int id);
+      bool uiIsClicking(int id);
+      bool uiIsHolding(int id);
+      void uiStartHolding(int id);
+      void uiStartHolding(std::vector<int> id);
     private:
       int _uiId = 1;
   };
@@ -33,16 +40,14 @@ namespace App {
         if (state != NULL) id = state->getNewId();
         _mask = LoadRenderTexture(posSize.width, posSize.height);
       }
-      UIInput(UIState* globalState, int sharedDragId, Rectangle bounds) {
+      UIInput(UIState* globalState, Rectangle bounds) {
         state = globalState;
         if (state != NULL) id = state->getNewId();
-        if (sharedDragId > 0) dragId = sharedDragId;
         posSize = bounds;
         _mask = LoadRenderTexture(posSize.width, posSize.height);
       }
       UIState* state = NULL;
       int id = 0;
-      int dragId = 0;
       Rectangle posSize = { 0.0f, 0.0f, 200.0f, 30.0f };
       std::string placeholder = "Type Input Here";
       std::string input = "";
@@ -62,7 +67,7 @@ namespace App {
       void cleanup();
     private:
       RenderTexture2D _mask;
-      Color _activeColor = boxColor;
+      // Color _activeColor = boxColor;
       Vector2 _txtPos { 5.0f, 5.0f };
       float _bkspCooldown = 0.0f;
       int _blinkState = 0;
@@ -84,15 +89,8 @@ namespace App {
         if (txtDim.x > posSize.width) posSize.width = txtDim.x + 10.0f;
         if (txtDim.y > posSize.height) posSize.height = txtDim.y + 10.0f;
       }
-      UIButton(UIState* globalState, int sharedDragId) : UIButton(globalState) {
-        if (sharedDragId > 0) dragId = sharedDragId;
-      }
-      UIButton(UIState* globalState, Rectangle posSizeIn, std::string textIn, int sharedDragId) : UIButton(globalState, posSizeIn, textIn) {
-        if (sharedDragId > 0) dragId = sharedDragId;
-      }
       UIState* state = NULL;
       int id = 0;
-      int dragId = 0;
       std::string text = "";
       Rectangle posSize = { 0.0f, 0.0f, 100.0f, 30.0f };
       float fontSize = 18.0f;
@@ -102,9 +100,6 @@ namespace App {
       Color txtColor = BLACK;
       bool update();
       void render();
-    private:
-      Vector2 _txtPos { 0.0f, 0.0f };
-      Color _activeColor = btnColor;
   };
   class UIBox {
     public:
@@ -112,12 +107,8 @@ namespace App {
         state = globalState;
         if (state != NULL) id = state->getNewId();
       }
-      UIBox(UIState* globalState, int sharedDragId) : UIBox(globalState) {
-        if (sharedDragId > 0) dragId = sharedDragId;
-      }
       UIState* state = NULL;
       int id = 0;
-      int dragId = 0;
       std::string title = "";
       std::vector<std::string> body;
       Rectangle posSize = { 0.0f, 0.0f, 100.0f, 30.0f };
@@ -132,8 +123,6 @@ namespace App {
       Color txtColor = BLACK;
       bool update();
       void render();
-    private:
-      Color _activeColor = boxColor;
   };
   // specific use
   enum DialogOption {

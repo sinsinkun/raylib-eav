@@ -9,7 +9,7 @@ using namespace App;
 DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn) {
   int dragId = globalState->getNewId();
 
-  box = UIBox(globalState, dragId);
+  box = UIBox(globalState);
   box.posSize = bounds;
   if (box.posSize.width < 210.0f) box.posSize.width = 210.0f;
   if (box.posSize.height < 110.0f) box.posSize.height = 110.0f;
@@ -18,12 +18,12 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   box.boxHoverColor = LIGHTGRAY;
 
   Rectangle inputBounds = { bounds.x + 5.0f, bounds.y + 35.0f, 200.0f, 30.0f };
-  input = UIInput(globalState, dragId, inputBounds);
+  input = UIInput(globalState, inputBounds);
 
   Rectangle input2Bounds = { bounds.x + 5.0f, bounds.y + 70.0f, 200.0f, 30.0f };
-  input2 = UIInput(NULL, dragId, input2Bounds);
+  input2 = UIInput(NULL, input2Bounds);
 
-  btn = UIButton(globalState, dragId);
+  btn = UIButton(globalState);
   btn.posSize.x = bounds.x + 5.0f;
   btn.posSize.y = bounds.y + 75.0f;
   btn.text = "Submit";
@@ -31,7 +31,7 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   btn.btnHoverColor = Color { 150, 150, 150, 255 };
   btn.btnDownColor = Color { 180, 180, 180, 255 };
 
-  btn2 = UIButton(NULL, dragId);
+  btn2 = UIButton(NULL);
   btn2.posSize.x = bounds.x + 108.0f;
   btn2.posSize.y = bounds.y + 75.0f;
   btn2.posSize.width -= 5.0f;
@@ -40,7 +40,7 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   btn2.btnHoverColor = Color { 150, 150, 150, 255 };
   btn2.btnDownColor = Color { 180, 180, 180, 255 };
 
-  closeBtn = UIButton(globalState, dragId);
+  closeBtn = UIButton(globalState);
   closeBtn.posSize = {
     bounds.x + bounds.width - 25.0f,
     bounds.y + 5.0f,
@@ -95,8 +95,10 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
   if (doubleInput && isDoubleInput == false) {
     isDoubleInput = true;
     btn2.state = box.state;
+    if (btn2.id == 0) btn2.id = btn2.state->getNewId();
 
     input2.state = box.state;
+    if (input2.id == 0) input2.id = input2.state->getNewId();
     input2.posSize.x = box.posSize.x + 5.0f;
     input2.posSize.y = box.posSize.y + 70.0f;
     box.posSize.height += 35.0f;
@@ -136,7 +138,10 @@ bool DialogBox::update() {
   }
   if (closeBtn.update()) isVisible = false;
   // update box
-  box.update();
+  if (box.update()) {
+    std::vector<int> ids = { box.id, btn.id, btn2.id, input.id, input2.id, closeBtn.id };
+    box.state->uiStartHolding(ids);
+  }
   return actioned;
 };
 

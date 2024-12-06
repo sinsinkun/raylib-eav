@@ -11,8 +11,7 @@ EavEntity::EavEntity(UIState* globalState, DbI::EavItem item, Rectangle posSizeI
   id = item.entity_id;
   name = item.entity;
   // init box
-  int grabId = globalState->getNewId();
-  box = UIBox(globalState, grabId);
+  box = UIBox(globalState);
   box.title = item.entity;
   box.posSize = posSizeIn;
   Vector2 txtDim = MeasureTextEx(globalState->font, box.title.c_str(), box.titleFontSize, 0.0);
@@ -66,7 +65,9 @@ void EavEntity::fillBody() {
 
 bool EavEntity::update() {
   // update box
-  return box.update();
+  bool clicked = box.update();
+  if (clicked) box.state->uiStartHolding(box.id);
+  return clicked;
 }
 
 void EavEntity::render() {

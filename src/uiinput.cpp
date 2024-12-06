@@ -8,40 +8,18 @@ using namespace App;
 
 bool UIInput::update() {
   if (state == NULL) return false;
-  MouseState mState = MOUSE_NONE;
-  UIEvent event = UI_NONE;
   bool isHovering = false;
-  // calculate if input is being hovered
-  if (CheckCollisionPointRec(state->mousePos, posSize) && state->uiEvent == UI_NONE) {
-    if (state->mouseState == MOUSE_NONE) mState = MOUSE_OVER;
-    else mState = state->mouseState;
+  bool clicked = false;
+  if (CheckCollisionPointRec(state->mousePos, posSize) && state->hoverId == 0) {
     isHovering = true;
+    state->hoverId = id;
+    if (state->mouseState == MOUSE_NONE) state->mouseState = MOUSE_OVER;
+    if (state->mouseState == MOUSE_DOWN && state->clickId == 0) {
+      state->clickId = id;
+      clicked = true;
+      if (!disabled) isActive = true;
+    }
   }
-
-  switch (mState) {
-    case MOUSE_UP:
-    case MOUSE_OVER:
-      event = UI_HOVER;
-      if (isActive) _activeColor = boxActiveColor;
-      else if (isHovering && !disabled) _activeColor = boxHoverColor;
-      break;
-    case MOUSE_HOLD:
-      event = UI_HOLD;
-      if (isHovering && !disabled) _activeColor = boxActiveColor;
-      break;
-    case MOUSE_DOWN:
-      event = UI_CLICK;
-      isActive = isHovering && !disabled;
-      if (isHovering && !disabled) _activeColor = boxActiveColor;
-      else _activeColor = boxColor;
-      break;
-    case MOUSE_NONE:
-    default:
-      if (isActive) _activeColor = boxActiveColor;
-      else _activeColor = boxColor;
-      break;
-  }
-
   // handle keyboard input
   if (isActive) {
     // capture key inputs
@@ -81,30 +59,25 @@ bool UIInput::update() {
   }
 
   // handle drag event
-  if (dragId != 0 && event == UI_CLICK && state->activeDragId == -1) {
-    state->activeDragId = dragId;
-  } else if (dragId != 0 && state->mouseState == MOUSE_HOLD && dragId == state->activeDragId) {
+  if (state->mouseState == MOUSE_HOLD && state->uiIsHolding(id)) {
     posSize.x += state->mouseDelta.x;
     posSize.y += state->mouseDelta.y;
   }
-  // state updates
-  if (event > state->uiEvent) state->uiEvent = event;
-  bool isClicking = event == UI_CLICK && state->clickActionAvailable;
-  if (isClicking) {
-    if (isActive && !isHovering) isActive = false;
-    state->clickActionAvailable = false;
-  }
-  return isClicking;
+  return clicked;
 }
 
 void UIInput::render() {
   if (state == NULL) return;
+  // set color
+  Color activeColor = boxColor;
+  if (isActive) activeColor = boxActiveColor;
+  else if (state->uiIsHovering(id)) activeColor = boxHoverColor;
   // draw masked texture
   BeginTextureMode(_mask);
     // draw input bg
-    ClearBackground(_activeColor);
+    ClearBackground(activeColor);
     DrawRectangle(0, 0, posSize.width, posSize.height, shadowColor);
-    DrawRectangle(0, 0, (posSize.width - 4.0f), (posSize.height - 4.0f), _activeColor);
+    DrawRectangle(0, 0, (posSize.width - 4.0f), (posSize.height - 4.0f), activeColor);
     // draw text
     if (input != "") {
       DrawTextEx(state->font, input.c_str(), _txtPos, fontSize, 0.0, txtColor);
