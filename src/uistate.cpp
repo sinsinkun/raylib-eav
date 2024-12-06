@@ -11,8 +11,6 @@ int UIState::getNewId() {
 }
 
 void UIState::update() {
-  // clickActionAvailable = true;
-  // uiEvent = UI_NONE;
   mouseState = MOUSE_NONE;
   mousePos = GetMousePosition();
   mouseDelta = GetMouseDelta();
@@ -25,10 +23,10 @@ void UIState::update() {
   if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) rMouseState = MOUSE_DOWN;
   if (IsMouseButtonReleased(MOUSE_RIGHT_BUTTON)) rMouseState = MOUSE_UP;
   // prevent mouse events when holding something
-  // if (mouseState == MOUSE_HOLD && holdIds.size() > 0) {
-  //   clickId = -1;
-  //   hoverId = -1;
-  // }
+  if (mouseState == MOUSE_HOLD && holdIds.size() > 0) {
+    clickId = -1;
+    hoverId = -1;
+  }
 }
 
 void UIState::postUpdate() {

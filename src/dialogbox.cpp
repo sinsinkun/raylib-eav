@@ -16,6 +16,7 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   box.title = titleIn;
   box.boxColor = LIGHTGRAY;
   box.boxHoverColor = LIGHTGRAY;
+  box.hideHover = true;
 
   Rectangle inputBounds = { bounds.x + 5.0f, bounds.y + 35.0f, 200.0f, 30.0f };
   input = UIInput(globalState, inputBounds);

@@ -109,6 +109,7 @@ namespace App {
       }
       UIState* state = NULL;
       int id = 0;
+      bool hideHover = false;
       std::string title = "";
       std::vector<std::string> body;
       Rectangle posSize = { 0.0f, 0.0f, 100.0f, 30.0f };

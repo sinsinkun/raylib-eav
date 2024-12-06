@@ -12,7 +12,7 @@ bool UIBox::update() {
   bool clicked = false;
   if (CheckCollisionPointRec(state->mousePos, posSize) && state->hoverId == 0) {
     state->hoverId = id;
-    state->invisHover = true;
+    if (hideHover) state->invisHover = true;
     if (state->mouseState == MOUSE_NONE) state->mouseState = MOUSE_OVER;
     if (state->mouseState == MOUSE_DOWN && state->clickId == 0) {
       state->clickId = id;
