@@ -6,23 +6,20 @@
 
 using namespace App;
 
-OptionsMenu::OptionsMenu(UIState* gState, std::vector<std::string> options, OptionsParent prt) {
-  variant = options.size();
+OptionsMenu::OptionsMenu(UIState* gState, OptionsParent prt) {
   parent = prt;
   box = UIBox(gState);
   box.hideHover = true;
-  box.posSize = { 0.0f, 0.0f, 150.0f, 50.0f };
-  if (variant > 0) {
-    UIButton btn1 = UIButton(gState);
-    btn1.text = options[0];
+  box.posSize = { 0.0f, 0.0f, 150.0f, 34.0f };
+  box.boxHoverColor = box.boxColor;
+  if (parent == OP_ENTITY) {
+    btn1 = UIButton(gState, Rectangle{ 0.0f, 2.0f, 146.0f, 30.0f }, "Delete Entity");
   }
-  if (variant > 1) {
-    UIButton btn2 = UIButton(gState);
-    btn2.text = options[1];
-  }
-  if (variant > 2) {
-    UIButton btn3 = UIButton(gState);
-    btn3.text = options[2];
+  if (parent == OP_BLUEPRINT) {
+    box.posSize.height = 100.0f;
+    btn1 = UIButton(gState, Rectangle{ 0.0f, 2.0f, 146.0f, 30.0f }, "New Category");
+    btn2 = UIButton(gState, Rectangle{ 0.0f, 34.0f, 146.0f, 30.0f }, "New Attribute");
+    btn3 = UIButton(gState, Rectangle{ 0.0f, 68.0f, 146.0f, 30.0f }, "Delete Category");
   }
 }
 
@@ -31,7 +28,15 @@ void OptionsMenu::open() {
   isVisible = true;
   box.posSize.x = box.state->mousePos.x;
   box.posSize.y = box.state->mousePos.y;
-  // todo: update btn positions
+
+  btn1.posSize.x = box.posSize.x + 2.0f;
+  btn1.posSize.y = box.posSize.y + 2.0f;
+
+  btn2.posSize.x = box.posSize.x + 2.0f;
+  btn2.posSize.y = box.posSize.y + 34.0f;
+
+  btn3.posSize.x = box.posSize.x + 2.0f;
+  btn3.posSize.y = box.posSize.y + 68.0f;
 }
 
 bool OptionsMenu::update() {
@@ -46,7 +51,7 @@ bool OptionsMenu::update() {
 void OptionsMenu::render() {
   if (!isVisible) return;
   box.render();
-  if (variant > 0) btn1.render();
-  if (variant > 1) btn2.render();
-  if (variant > 2) btn3.render();
+  btn1.render();
+  btn2.render();
+  btn3.render();
 }

@@ -18,6 +18,8 @@ namespace App {
       MouseState mouseState = MOUSE_NONE;
       MouseState rMouseState = MOUSE_NONE;
       bool invisHover = false;
+      bool clickFrame = false;
+      bool rClickFrame = false;
       int hoverId = 0;
       int clickId = 0;
       int rClickId = 0;
@@ -25,6 +27,8 @@ namespace App {
       int getNewId();
       void update();
       void postUpdate();
+      bool uiIsClicked(int id);
+      bool uiIsRClicked(int id);
       bool uiIsHovering(int id);
       bool uiIsClicking(int id);
       bool uiIsHolding(int id);
@@ -156,7 +160,7 @@ namespace App {
   class OptionsMenu {
     public:
       OptionsMenu() {};
-      OptionsMenu(UIState* globalState, std::vector<std::string> options, OptionsParent parent);
+      OptionsMenu(UIState* globalState, OptionsParent parent);
       bool isVisible = false;
       int variant = 0;
       OptionsParent parent = OP_NONE;

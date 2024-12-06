@@ -16,11 +16,13 @@ bool UIInput::update() {
     if (state->mouseState == MOUSE_NONE) state->mouseState = MOUSE_OVER;
     if (state->mouseState == MOUSE_DOWN && state->clickId == 0) {
       state->clickId = id;
+      state->clickFrame = true;
       clicked = true;
       if (!disabled) isActive = true;
     }
     if (state->rMouseState == MOUSE_DOWN && state->rClickId == 0) {
       state->rClickId = id;
+      state->rClickFrame = true;
     }
   }
   // handle keyboard input

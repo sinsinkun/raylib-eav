@@ -17,6 +17,8 @@ void UIState::update() {
   timeDelta = GetFrameTime();
   hoverId = 0;
   invisHover = false;
+  clickFrame = false;
+  rClickFrame = false;
   if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) mouseState = MOUSE_HOLD;
   if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) mouseState = MOUSE_DOWN;
   if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) mouseState = MOUSE_UP;
@@ -42,6 +44,14 @@ void UIState::postUpdate() {
   } else {
     SetMouseCursor(MOUSE_CURSOR_DEFAULT);
   }
+}
+
+bool UIState::uiIsClicked(int id) {
+  return clickId == id && clickFrame;
+}
+
+bool UIState::uiIsRClicked(int id) {
+  return rClickId == id && rClickFrame;
 }
 
 bool UIState::uiIsHovering(int id) {

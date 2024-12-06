@@ -23,8 +23,7 @@ void EventLoop::init() {
   // setup universal dialog box
   dialog = DialogBox(&uiGlobal, Rectangle { 580.0f, 10.0f, 210.0f, 110.0f }, "-");
   dialog.isVisible = false;
-  std::vector<std::string> options;
-  menu = OptionsMenu(&uiGlobal, options, OP_NONE);
+  menu = OptionsMenu(&uiGlobal, OP_NONE);
 }
 
 void EventLoop::update() {
@@ -48,9 +47,8 @@ void EventLoop::update() {
       dialog.isVisible = true;
       sortIndex = i;
     }
-    if (uiGlobal.rClickId == entities[i].box.id) {
-      std::vector<std::string> options = { "Delete Entity" };
-      menu = OptionsMenu(&uiGlobal, options, OP_ENTITY);
+    if (uiGlobal.uiIsRClicked(entities[i].box.id)) {
+      menu = OptionsMenu(&uiGlobal, OP_ENTITY);
       menu.open();
     }
   }
@@ -68,6 +66,10 @@ void EventLoop::update() {
       _fetchCategory(categories[i].id);
       dialog.changeDialog(NEW_ENTITY, categories[i].name, categories[i].id, 0, 0, 0);
       dialog.isVisible = true;
+    }
+    if (uiGlobal.uiIsRClicked(categories[i].btn.id)) {
+      menu = OptionsMenu(&uiGlobal, OP_BLUEPRINT);
+      menu.open();
     }
   }
   // finalize ui updates
