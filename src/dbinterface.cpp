@@ -28,7 +28,7 @@ unsigned int DbInterface::_now() {
   return duration.count();
 }
 
-std::string _value_type_to_str(EavValueType type) {
+std::string DbI::value_type_to_str(EavValueType type) {
   switch (type) {
     case EavValueType::STR: return "str";
     case EavValueType::INT: return "int";
@@ -38,7 +38,7 @@ std::string _value_type_to_str(EavValueType type) {
   }
 }
 
-EavValueType _str_to_value_type(std::string str) {
+EavValueType DbI::str_to_value_type(std::string str) {
   if (str == "str") return EavValueType::STR;
   else if (str == "int") return EavValueType::INT;
   else if (str == "bool") return EavValueType::BOOL;
@@ -164,7 +164,7 @@ EavResponse DbInterface::_exec_get_eav(std::string query, EavItemType type) {
         item.allow_multiple = am;
       } else if (colstr == "value_type") {
         std::string vt = reinterpret_cast<const char*>(vPtr);
-        item.value_type = _str_to_value_type(vt);
+        item.value_type = str_to_value_type(vt);
       } else if (colstr == "value") {
         // note: value_type MUST be interpreted before value
         bool conversion_failed = false;
@@ -409,7 +409,7 @@ DbResponse<int> DbInterface::new_entity(std::string name, int blueprintId) {
 
 DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, bool allowMultiple) {
   std::string query = "INSERT INTO eav_attrs (attr, value_type, allow_multiple, created_at) VALUES (\"";
-  std::string vType = _value_type_to_str(valueType);
+  std::string vType = value_type_to_str(valueType);
   std::string am = std::to_string(allowMultiple);
   std::string now = std::to_string(_now());
   query += name + "\",\"" + vType + "\"," + am + "," + now + ");";
@@ -428,7 +428,7 @@ DbResponse<int> DbInterface::new_attr(std::string name, EavValueType valueType, 
     return res;
   }
   std::string query = "INSERT INTO eav_attrs (attr, value_type, allow_multiple, value_unit, created_at) VALUES (\"";
-  std::string vType = _value_type_to_str(valueType);
+  std::string vType = value_type_to_str(valueType);
   std::string am = std::to_string(allowMultiple);
   std::string now = std::to_string(_now());
   query += name + "\",\"" + vType + "\"," + am + ",\"" + unit + "\"," + now + ");";
@@ -698,7 +698,7 @@ DbResponse<int> DbInterface::update_attr(int id, std::string name, EavValueType 
     return res;
   }
   // build attr
-  std::string vtypeStr = _value_type_to_str(valueType);
+  std::string vtypeStr = value_type_to_str(valueType);
   std::string am = std::to_string(allowMultiple);
   std::string query = "UPDATE eav_attrs SET attr = \"" +
     name + "\", value_type = \"" + vtypeStr + "\", allow_multiple = " + am +
@@ -718,7 +718,7 @@ DbResponse<int> DbInterface::update_attr(int id, std::string name, EavValueType 
     return res;
   }
   // build attr
-  std::string vtypeStr = _value_type_to_str(valueType);
+  std::string vtypeStr = value_type_to_str(valueType);
   std::string am = std::to_string(allowMultiple);
   std::string query = "UPDATE eav_attrs SET attr = \"" +
     name + "\", value_type = \"" + vtypeStr + "\", allow_multiple = " + am + ", value_unit = " + unit +

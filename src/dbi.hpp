@@ -75,4 +75,6 @@ namespace DbI {
       DbResponse<int> _exec(std::string query);
       EavResponse _exec_get_eav(std::string query, EavItemType type);
   };
+  std::string value_type_to_str(EavValueType type);
+  EavValueType str_to_value_type(std::string str);
 }

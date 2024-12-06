@@ -16,10 +16,10 @@ OptionsMenu::OptionsMenu(UIState* gState, OptionsParent prt) {
     btn1 = UIButton(gState, Rectangle{ 0.0f, 2.0f, 146.0f, 30.0f }, "Delete Entity");
   }
   if (parent == OP_BLUEPRINT) {
-    box.posSize.height = 100.0f;
+    box.posSize.height = 98.0f;
     btn1 = UIButton(gState, Rectangle{ 0.0f, 2.0f, 146.0f, 30.0f }, "New Category");
     btn2 = UIButton(gState, Rectangle{ 0.0f, 34.0f, 146.0f, 30.0f }, "New Attribute");
-    btn3 = UIButton(gState, Rectangle{ 0.0f, 68.0f, 146.0f, 30.0f }, "Delete Category");
+    btn3 = UIButton(gState, Rectangle{ 0.0f, 66.0f, 146.0f, 30.0f }, "Delete Category");
   }
 }
 
@@ -36,7 +36,7 @@ void OptionsMenu::open() {
   btn2.posSize.y = box.posSize.y + 34.0f;
 
   btn3.posSize.x = box.posSize.x + 2.0f;
-  btn3.posSize.y = box.posSize.y + 68.0f;
+  btn3.posSize.y = box.posSize.y + 66.0f;
 }
 
 int OptionsMenu::update() {

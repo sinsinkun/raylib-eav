@@ -73,6 +73,7 @@ void EventLoop::update() {
     if (uiGlobal.uiIsRClicked(categories[i].btn.id)) {
       menu = OptionsMenu(&uiGlobal, OP_BLUEPRINT);
       menu.blueprintId = categories[i].id;
+      menu.metaText = categories[i].name;
       menu.open();
     }
   }
@@ -226,6 +227,24 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
     d->input.input = "";
     _fetchCategory(d->blueprintId);
     d->isVisible = false;
+  } else if (dAction == NEW_ATTR || dAction == NEW_ATTR_M) {
+    bool allowMultiple = dAction == NEW_ATTR_M;
+    std::string attrInput = d->input.input;
+    DbI::EavValueType vt = DbI::str_to_value_type(d->input2.input);
+    if (vt == DbI::NONE) {
+      std::cout << "Invalid value type" << std::endl;
+      return;
+    }
+    DbI::DbResponse res = dbInterface.new_attr_for_blueprint(
+      d->blueprintId, attrInput, vt, allowMultiple, ""
+    );
+    if (res.code == 0) {
+      d->input.input = "";
+      d->input2.input = "";
+      _fetchCategory(d->blueprintId);
+    } else {
+      std::cout << res.msg << std::endl;
+    }
   } else if (dAction == NEW_VALUE || dAction == NEW_VALUE_M) {
     // match up attr string to attr id
     std::string attrInput = d->input.input;

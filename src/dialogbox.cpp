@@ -24,22 +24,26 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   Rectangle input2Bounds = { bounds.x + 5.0f, bounds.y + 70.0f, 200.0f, 30.0f };
   input2 = UIInput(NULL, input2Bounds);
 
+  Color btnDefault = Color { 150, 150, 150, 255 };
+  Color btnHover = Color { 160, 160, 160, 255 };
+  Color btnDown = Color { 180, 180, 180, 255 };
+
   btn = UIButton(globalState);
   btn.posSize.x = bounds.x + 5.0f;
   btn.posSize.y = bounds.y + 75.0f;
   btn.text = "Submit";
-  btn.btnColor = Color { 130, 130, 130, 255 };
-  btn.btnHoverColor = Color { 150, 150, 150, 255 };
-  btn.btnDownColor = Color { 180, 180, 180, 255 };
+  btn.btnColor = btnDefault;
+  btn.btnHoverColor = btnHover;
+  btn.btnDownColor = btnDown;
 
   btn2 = UIButton(NULL);
   btn2.posSize.x = bounds.x + 108.0f;
   btn2.posSize.y = bounds.y + 75.0f;
   btn2.posSize.width -= 5.0f;
   btn2.text = "?";
-  btn2.btnColor = Color { 130, 130, 130, 255 };
-  btn2.btnHoverColor = Color { 150, 150, 150, 255 };
-  btn2.btnDownColor = Color { 180, 180, 180, 255 };
+  btn2.btnColor = btnDefault;
+  btn2.btnHoverColor = btnHover;
+  btn2.btnDownColor = btnDown;
 
   closeBtn = UIButton(globalState);
   closeBtn.posSize = {
@@ -50,9 +54,9 @@ DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn
   };
   closeBtn.text = "X";
   closeBtn.fontSize = 14.0f;
-  closeBtn.btnColor = Color { 130, 130, 130, 255 };
-  closeBtn.btnHoverColor = Color { 150, 150, 150, 255 };
-  closeBtn.btnDownColor = Color { 160, 160, 160, 255 };
+  closeBtn.btnColor = btnDefault;
+  closeBtn.btnHoverColor = btnHover;
+  closeBtn.btnDownColor = btnDown;
 }
 
 void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId, int eId, int aId, int vId) {
@@ -74,13 +78,19 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
       input.placeholder = "New Entity Name";
       break;
     case NEW_ATTR:
-      box.title = "Add ";
+      box.title = "Add Attr to ";
       input.placeholder = "New Attribute Name";
+      input2.placeholder = "Value type";
+      btn.text = "Add Single";
+      btn2.text = "Add Multi";
+      doubleInput = true;
       break;
     case NEW_VALUE:
       box.title = "";
       input.placeholder = "Attribute Name";
       input2.placeholder = "New Value";
+      btn.text = "Update";
+      btn2.text = "Add New";
       doubleInput = true;
       break;
     default:
@@ -96,18 +106,16 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
   if (doubleInput && isDoubleInput == false) {
     isDoubleInput = true;
     btn2.state = box.state;
-    if (btn2.id == 0) btn2.id = btn2.state->getNewId();
+    if (btn2.state != NULL && btn2.id == 0) btn2.id = btn2.state->getNewId();
 
     input2.state = box.state;
-    if (input2.id == 0) input2.id = input2.state->getNewId();
+    if (input2.state != NULL && input2.id == 0) input2.id = input2.state->getNewId();
     input2.posSize.x = box.posSize.x + 5.0f;
     input2.posSize.y = box.posSize.y + 70.0f;
     box.posSize.height += 35.0f;
     btn.posSize.y += 35.0f;
-    btn.text = "Update";
     btn2.posSize.x = box.posSize.x + 108.0f;
     btn2.posSize.y = box.posSize.y + 110.0f;
-    btn2.text = "Add New";
   }
   if (!doubleInput && isDoubleInput == true) {
     isDoubleInput = false;
