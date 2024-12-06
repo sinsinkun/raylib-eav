@@ -16,22 +16,26 @@ namespace App {
       Vector2 mousePos = { 0.0f, 0.0f };
       Vector2 mouseDelta = { 0.0f, 0.0f };
       MouseState mouseState = MOUSE_NONE;
+      MouseState rMouseState = MOUSE_NONE;
       UIEvent uiEvent = UI_NONE;
       int activeDragId = -1;
       bool clickActionAvailable = true;
-      int getNewDragId();
+      bool rClickActionAvailable = true;
+      int getNewId();
       void update();
     private:
-      int _dragId = 1;
+      int _uiId = 1;
   };
   class UIInput {
     public:
       UIInput(UIState* globalState) {
         state = globalState;
+        if (state != NULL) id = state->getNewId();
         _mask = LoadRenderTexture(posSize.width, posSize.height);
       }
       UIInput(UIState* globalState, int sharedDragId, Rectangle bounds) {
         state = globalState;
+        if (state != NULL) id = state->getNewId();
         if (sharedDragId > 0) dragId = sharedDragId;
         posSize = bounds;
         _mask = LoadRenderTexture(posSize.width, posSize.height);
@@ -69,9 +73,11 @@ namespace App {
     public:
       UIButton(UIState* globalState) {
         state = globalState;
+        if (state != NULL) id = state->getNewId();
       }
       UIButton(UIState* globalState, Rectangle posSizeIn, std::string textIn) {
         state = globalState;
+        if (state != NULL) id = state->getNewId();
         text = textIn;
         posSize = posSizeIn;
         Vector2 txtDim = MeasureTextEx(state->font, text.c_str(), fontSize, 0.0);
@@ -104,9 +110,9 @@ namespace App {
     public:
       UIBox(UIState* globalState) {
         state = globalState;
+        if (state != NULL) id = state->getNewId();
       }
-      UIBox(UIState* globalState, int sharedDragId) {
-        state = globalState;
+      UIBox(UIState* globalState, int sharedDragId) : UIBox(globalState) {
         if (sharedDragId > 0) dragId = sharedDragId;
       }
       UIState* state = NULL;
@@ -183,6 +189,7 @@ namespace App {
       std::string name = "";
       UIButton btn = UIButton(NULL);
       bool update() {
+        // right click handle
         return btn.update();
       }
       void render() {

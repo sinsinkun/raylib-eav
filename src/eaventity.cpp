@@ -11,7 +11,7 @@ EavEntity::EavEntity(UIState* globalState, DbI::EavItem item, Rectangle posSizeI
   id = item.entity_id;
   name = item.entity;
   // init box
-  int grabId = globalState->getNewDragId();
+  int grabId = globalState->getNewId();
   box = UIBox(globalState, grabId);
   box.title = item.entity;
   box.posSize = posSizeIn;

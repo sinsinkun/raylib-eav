@@ -7,7 +7,7 @@
 using namespace App;
 
 DialogBox::DialogBox(UIState* globalState, Rectangle bounds, std::string titleIn) {
-  int dragId = globalState->getNewDragId();
+  int dragId = globalState->getNewId();
 
   box = UIBox(globalState, dragId);
   box.posSize = bounds;
