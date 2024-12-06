@@ -141,7 +141,13 @@ bool DialogBox::update() {
   // update btn
   bool actioned = false;
   if (btn.update()) actioned = true;
-  if (btn2.update() && activeDialog == NEW_VALUE) {
+  bool click2 = btn2.update();
+  if (click2 && activeDialog == NEW_ATTR) {
+    activeDialog = NEW_ATTR_M;
+    actioned = true;
+  }
+  if (click2 && activeDialog == NEW_VALUE) {
+    std::cout << "btn2 click value" << std::endl;
     activeDialog = NEW_VALUE_M;
     actioned = true;
   }

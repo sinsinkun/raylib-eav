@@ -475,12 +475,28 @@ DbResponse<int> DbInterface::new_attr_for_blueprint(int blueprintId, std::string
     res.msg = "Blueprint does not exist";
     return res;
   }
-  // insert attr
-  if (unit == "") res = new_attr(name, valueType, allowMultiple);
-  else res = new_attr(name, valueType, allowMultiple, unit);
+  // check if attr exists
+  std::string aquery = "SELECT * FROM eav_attrs WHERE attr = \"" + name + 
+    "\" AND value_type = \"" + value_type_to_str(valueType) + "\";";
+  EavResponse aRes = _exec_get_eav(aquery, ATTR);
+  int attrId = 0;
+  if (aRes.code == 0 && aRes.data.size() == 0) {
+    // insert attr
+    if (unit == "") res = new_attr(name, valueType, allowMultiple);
+    else res = new_attr(name, valueType, allowMultiple, unit);
+    if (res.code != SQLITE_OK) return res;
+    attrId = res.data;
+  } else if (aRes.code == 0 && aRes.data.size() == 1) {
+    // grab existing attr id
+    attrId = aRes.data[0].attr_id;
+  } else {
+    res.code = aRes.code;
+    res.msg = aRes.msg;
+    return res;
+  }
   // insert bp_link
-  if (res.code == SQLITE_OK) {
-    DbResponse<int> lres = new_ba_link(blueprintId, res.data);
+  if (res.code == SQLITE_OK && attrId != 0) {
+    DbResponse<int> lres = new_ba_link(blueprintId, attrId);
     if (lres.code != SQLITE_OK) return lres;
   }
   return res;
