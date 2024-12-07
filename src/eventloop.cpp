@@ -214,9 +214,10 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       errBox.setError("ERR: No name provided");
       return;
     }
-    DbI::DbResponse res = dbInterface.new_blueprint(d->input.input);
+    std::string name = trim_space(d->input.input);
+    DbI::DbResponse res = dbInterface.new_blueprint(name);
     if (res.code == 0) {
-      d->input.input = "";
+      d->input.input.clear();
       _fetchAllCategories();
     } else {
       errBox.setError(res.msg);
@@ -226,9 +227,10 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       errBox.setError("ERR: No name provided");
       return;
     }
-    DbI::DbResponse res = dbInterface.new_entity(d->input.input, d->blueprintId);
+    std::string name = trim_space(d->input.input);
+    DbI::DbResponse res = dbInterface.new_entity(name, d->blueprintId);
     if (res.code == 0) {
-      d->input.input = "";
+      d->input.input.clear();
       _fetchCategory(d->blueprintId);
     } else {
       errBox.setError(res.msg);
@@ -244,12 +246,12 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       errBox.setError(res.msg);
       return;
     }
-    d->input.input = "";
+    d->input.input.clear();
     _fetchCategory(d->blueprintId);
     d->isVisible = false;
   } else if (dAction == NEW_ATTR || dAction == NEW_ATTR_M) {
     bool allowMultiple = dAction == NEW_ATTR_M;
-    std::string attrInput = d->input.input;
+    std::string attrInput = trim_space(d->input.input);
     std::vector<std::string> valueInput = str_split(d->input2.input, "-");
     DbI::EavValueType vt = DbI::str_to_value_type(trim_space(valueInput.at(0)));
     std::string unit = valueInput.size() > 1 ? trim_space(valueInput.at(1)) : "";
@@ -261,16 +263,16 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       d->blueprintId, attrInput, vt, allowMultiple, unit
     );
     if (res.code == 0) {
-      d->input.input = "";
-      d->input2.input = "";
+      d->input.input.clear();
+      d->input2.input.clear();
       _fetchCategory(d->blueprintId);
     } else {
       errBox.setError(res.msg);
     }
   } else if (dAction == NEW_VALUE || dAction == NEW_VALUE_M) {
     // match up attr string to attr id
-    std::string attrInput = d->input.input;
-    std::string valueInput = d->input2.input;
+    std::string attrInput = trim_space(d->input.input);
+    std::string valueInput = trim_space(d->input2.input);
     if (attrInput.empty()) {
       errBox.setError("ERR: No attribute provided");
       return;
@@ -314,8 +316,8 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       res = dbInterface.update_value(attr->value_id, valueInput);
     }
     if (res.code == 0) {
-      d->input.input = "";
-      d->input2.input = "";
+      if (!attr->allow_multiple) d->input.input.clear();
+      d->input2.input.clear();
       // fetch new values
       DbI::EavResponse entRes = dbInterface.get_entity_values(ent->id);
       if (entRes.code == 0) {

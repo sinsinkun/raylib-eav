@@ -130,23 +130,26 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
 
 bool DialogBox::update() {
   if (!isVisible) return false;
+  bool actioned = false;
   // take keyboard input
   if (IsKeyPressed(KEY_TAB) && isDoubleInput && (input.isActive || input2.isActive)) {
     input.isActive = !input.isActive;
     input2.isActive = !input2.isActive;
   }
+  if (IsKeyPressed(KEY_ENTER) && (input.isActive || input2.isActive)) {
+    actioned = true;
+  }
   // update input
   input.update();
   input2.update();
   // update btn
-  bool actioned = false;
   if (btn.update()) actioned = true;
   bool click2 = btn2.update();
-  if (click2 && activeDialog == NEW_ATTR) {
+  if (click2 && (activeDialog == NEW_ATTR || activeDialog == NEW_ATTR_M)) {
     activeDialog = NEW_ATTR_M;
     actioned = true;
   }
-  if (click2 && activeDialog == NEW_VALUE) {
+  if (click2 && (activeDialog == NEW_VALUE || activeDialog == NEW_VALUE_M)) {
     activeDialog = NEW_VALUE_M;
     actioned = true;
   }

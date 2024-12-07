@@ -266,5 +266,6 @@ namespace App {
   };
   // util functions
   std::vector<std::string> str_split(std::string str, std::string delimiter);
+  std::vector<std::string> str_split_length(std::string str, int size);
   std::string trim_space(std::string str);
 }

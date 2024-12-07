@@ -19,6 +19,30 @@ std::vector<std::string> App::str_split(std::string str, std::string delimiter) 
   return res;
 };
 
+std::vector<std::string> App::str_split_length(std::string str, int size) {
+  std::vector<std::string> o;
+  std::string s;
+  std::string sp; // string up to last space
+  for (int i=0; i<str.length(); i++) {
+    if (s.length() < size) {
+      // append character to string
+      if (str[i] == ' ') sp = s;
+      s += str[i];
+    } else if (sp.empty()) {
+      // no spaces found: cut string as is
+      o.push_back(s);
+      s = str[i];
+    } else {
+      // space found before cutoff: use space as cutoff
+      o.push_back(sp);
+      s = s.substr(sp.length() + 1) + str[i];
+      sp.clear();
+    }
+  }
+  if (s.length() > 0) o.push_back(s);
+  return o;
+}
+
 std::string App::trim_space(std::string str) {
   std::string o = "";
   int start = -1;
@@ -26,7 +50,7 @@ std::string App::trim_space(std::string str) {
   int len = str.size();
   for (int i=0; i<len; i++) {
     if (start == -1 && str[i] != ' ') start = i;
-    if (end == -1 && str[len-1-i] != ' ') end = len-1-i;
+    if (end == -1 && str[len-1-i] != ' ') end = len-i;
   }
   if (start == -1 || end == -1) return o;
   o = str.substr(start, end - start);

@@ -43,6 +43,7 @@ void EavEntity::fillBody() {
   for (int i=0; i<values.size(); i++) {
     DbI::EavItem v = values[i];
     std::string str = v.attr + ": ";
+    if (v.allow_multiple) str = v.attr + ":: ";
     switch (v.value_type) {
       case DbI::INT:
         if (v.int_value == 0) {
@@ -67,7 +68,14 @@ void EavEntity::fillBody() {
         str += v.str_value == "" ? "-" : v.str_value;
         break;
     }
-    box.body.push_back(str);
+    // cut long strings down
+    if (str.length() * box.bodyFontSize > box.posSize.width * 2.3) {
+      int maxCharsPerRow = (2.3 * box.posSize.width) / box.bodyFontSize;
+      std::vector<std::string> strArr = str_split_length(str, maxCharsPerRow);
+      for (std::string s : strArr) box.body.push_back(s);
+    } else {
+      box.body.push_back(str);
+    }
   }
 }
 
