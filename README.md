@@ -1,4 +1,4 @@
-## Raylib EAV
+## RayEAV
 
 EAV db system setup with sqlite3, and raylib for GUI.
 
