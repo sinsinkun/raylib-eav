@@ -233,6 +233,18 @@ namespace App {
     private:
       float _timer = 0.0f;
   };
+  class SearchBox {
+    public:
+      SearchBox() {}
+      SearchBox(UIState* globalState, Rectangle bounds);
+      UIState* state = NULL;
+      UIBox box = UIBox(NULL);
+      UIInput input = UIInput(NULL);
+      UIButton btn = UIButton(NULL);
+      bool update();
+      void render();
+      void cleanup();
+  };
   class EventLoop {
     public:
       // global states
@@ -244,14 +256,16 @@ namespace App {
       int fps = 0;
       double elapsed = 0.0;
       Color bgColor = Color { 35, 35, 40, 255 };
+      // ui objects
       UIState uiGlobal;
+      DialogBox dialog;
+      OptionsMenu menu;
       ErrorBox errBox = ErrorBox(NULL);
+      SearchBox search;
       // data objects
       DbI::DbInterface dbInterface;
       std::vector<EavBlueprint> categories;
       std::vector<EavEntity> entities;
-      DialogBox dialog;
-      OptionsMenu menu;
       // methods
       void init();
       void update();

@@ -28,10 +28,11 @@ void EventLoop::init() {
     EavBlueprint addNew = EavBlueprint(&uiGlobal, item, Rectangle { 10.0f, 30.0f, 80.0f, 30.0f });
     categories.push_back(addNew);
   }
-  // setup universal dialog box
+  // setup universal ui components
   dialog = DialogBox(&uiGlobal, Rectangle { 980.0f, 10.0f, 210.0f, 110.0f }, "-");
   dialog.show(false, 0);
   menu = OptionsMenu(&uiGlobal, OP_NONE);
+  search = SearchBox(&uiGlobal, Rectangle { 430.0f, 10.0f, 320.0f, 40.0f });
 }
 
 void EventLoop::update() {
@@ -43,6 +44,9 @@ void EventLoop::update() {
   if (menuAction > 0) {
     _handleOption(&menu, menuAction);
     menu.isVisible = false;
+  }
+  if (search.update()) {
+    _searchEntities(search.input.input, 0);
   }
   // update dialog box
   if (dialog.update()) {
@@ -110,6 +114,7 @@ void EventLoop::render() {
       entities[i].render();
     }
     dialog.render();
+    search.render();
     menu.render();
     errBox.render();
     // draw FPS overlay
@@ -119,6 +124,7 @@ void EventLoop::render() {
 
 void EventLoop::cleanup() {
   // destroy instantiated resources
+  search.cleanup();
   dialog.cleanup();
   dbInterface.disconnect();
 }
