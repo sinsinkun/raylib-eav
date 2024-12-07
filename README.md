@@ -34,6 +34,9 @@ removing the need for running a separate MySQL instance in the background.
 - create an empty "main.db" file in the root folder
 - (FYI: `-lraylib -lsqlite3` flag was added to tasks.json manually)
 
+Note: there's a `src/font.c` and `src/icon.c` resource file missing from the repo.
+These files are generated through raylib using the `ExportFontAsCode()` and `ExportImageAsCode()` functions.
+The unconverted files are included in `/assets`.
 
 ## Release
 - This is for compiling a release version of the project, packaging dependencies into the .exe

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <raylib.h>
 #include "src/app.hpp"
+#include "src/icon.c"
 
 #define GLSL_VERSION 330
 
@@ -13,7 +14,12 @@ int main(int argc, char* argv[]) {
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   SetConfigFlags(FLAG_MSAA_4X_HINT);
   InitWindow(1200, 700, "RayEav");
-  Image icon = LoadImage("icon.png");
+  Image icon = {
+    .data = ICON_DATA,
+    .width = ICON_WIDTH,
+    .height = ICON_HEIGHT,
+    .format = ICON_FORMAT
+  };
   SetWindowIcon(icon);
   // InitAudioDevice();
   SetWindowMinSize(400, 300);

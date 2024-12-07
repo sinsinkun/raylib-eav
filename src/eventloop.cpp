@@ -32,7 +32,7 @@ void EventLoop::init() {
   dialog = DialogBox(&uiGlobal, Rectangle { 980.0f, 10.0f, 210.0f, 110.0f }, "-");
   dialog.show(false, 0);
   menu = OptionsMenu(&uiGlobal, OP_NONE);
-  search = SearchBox(&uiGlobal, Rectangle { 430.0f, 10.0f, 320.0f, 40.0f });
+  search = SearchBox(&uiGlobal, Rectangle { 430.0f, 650.0f, 320.0f, 40.0f });
 }
 
 void EventLoop::update() {
