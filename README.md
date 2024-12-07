@@ -8,8 +8,10 @@ though its not quite modular enough (yet) to fully separate from the project.
 The advantage of sqlite is that it's designed to be embedded into applications,
 removing the need for running a separate MySQL instance in the background.
 
-### Usage
+<img src="assets/screenshot.png" width="600x" />
+<img src="assets/screenshot2.png" width="600x" />
 
+### Usage
 - Entities are grouped by category
 - Attributes are shared per category
 - Attributes define what type of value they take as an input
@@ -23,8 +25,6 @@ removing the need for running a separate MySQL instance in the background.
 - deleting values from entities
 - differentiating null values from false/0/0.0f
 
-<img src="assets/screenshot.png" width="600x" />
-<img src="assets/screenshot2.png" width="600x" />
 
 ## Installation (with MSYS2)
 - Go through setup process to get mingw compiler working with VSCode (https://code.visualstudio.com/docs/languages/cpp)
@@ -33,6 +33,7 @@ removing the need for running a separate MySQL instance in the background.
 - Install package with `pacman -S {...}`
 - create an empty "main.db" file in the root folder
 - (FYI: `-lraylib -lsqlite3` flag was added to tasks.json manually)
+
 
 ## Release
 - This is for compiling a release version of the project, packaging dependencies into the .exe
