@@ -8,11 +8,21 @@ though its not quite modular enough (yet) to fully separate from the project.
 The advantage of sqlite is that it's designed to be embedded into applications,
 removing the need for running a separate MySQL instance in the background.
 
+### Usage
+
+- Entities are grouped by category
+- Attributes are shared per category
+- Attributes define what type of value they take as an input
+- Valid value types: int, float, str, bool
+- int and float values can optionally have units displayed next to their values
+- units can be added by inputting the unit in the value type box separated by "-" (e.g. "float - kgs");
+
 ### Future Ideas
 - display errors on UI
 - search bar for filtering
 - confirmation modal for deletion
 - deleting values from entities
+- differentiating null values from false/0/0.0f
 
 <img src="assets/screenshot.png" width="600x" />
 <img src="assets/screenshot2.png" width="600x" />
