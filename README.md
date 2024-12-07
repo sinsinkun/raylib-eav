@@ -18,7 +18,6 @@ removing the need for running a separate MySQL instance in the background.
 - units can be added by inputting the unit in the value type box separated by "-" (e.g. "float - kgs");
 
 ### Future Ideas
-- display errors on UI
 - search bar for filtering
 - confirmation modal for deletion
 - deleting values from entities
