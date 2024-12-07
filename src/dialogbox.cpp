@@ -128,6 +128,22 @@ void DialogBox::changeDialog(DialogOption action, std::string metaText, int bId,
   }
 }
 
+void DialogBox::show(bool onOff, int position) {
+  if (box.state == NULL) return;
+  isVisible = onOff;
+  // reposition dialog - 0 = no change
+  if (position == 1) {
+    // center
+  }
+  if (position == 2) {
+    // top right corner
+  }
+  if (position == 3) {
+    // bottom left corner
+
+  }
+}
+
 bool DialogBox::update() {
   if (!isVisible) return false;
   bool actioned = false;

@@ -29,8 +29,8 @@ void EventLoop::init() {
     categories.push_back(addNew);
   }
   // setup universal dialog box
-  dialog = DialogBox(&uiGlobal, Rectangle { 580.0f, 10.0f, 210.0f, 110.0f }, "-");
-  dialog.isVisible = false;
+  dialog = DialogBox(&uiGlobal, Rectangle { 980.0f, 10.0f, 210.0f, 110.0f }, "-");
+  dialog.show(false, 0);
   menu = OptionsMenu(&uiGlobal, OP_NONE);
 }
 
@@ -53,7 +53,7 @@ void EventLoop::update() {
   for (int i=entities.size()-1; i >= 0; i--) {
     if (entities[i].update()) {
       dialog.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
-      dialog.isVisible = true;
+      dialog.show(true, 0);
       sortIndex = i;
     }
     if (uiGlobal.uiIsRClicked(entities[i].box.id)) {
@@ -77,14 +77,14 @@ void EventLoop::update() {
     if (categories[i].id == -10) {
       if (categories[i].update()) {
         dialog.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
-        dialog.isVisible = true;
+        dialog.show(true, 0);
       }
       break;
     }
     if (categories[i].update()) {
       _fetchCategory(categories[i].id);
       dialog.changeDialog(NEW_ENTITY, categories[i].name, categories[i].id, 0, 0, 0);
-      dialog.isVisible = true;
+      dialog.show(true, 0);
     }
     if (uiGlobal.uiIsRClicked(categories[i].btn.id)) {
       menu = OptionsMenu(&uiGlobal, OP_BLUEPRINT);
@@ -246,7 +246,7 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
     }
     d->input.input.clear();
     _fetchCategory(d->blueprintId);
-    d->isVisible = false;
+    d->show(false, 0);
   } else if (dAction == NEW_ATTR || dAction == NEW_ATTR_M) {
     bool allowMultiple = dAction == NEW_ATTR_M;
     std::string attrInput = trim_space(d->input.input);

@@ -152,6 +152,7 @@ namespace App {
       UIButton btn2 = UIButton(NULL);
       UIButton closeBtn = UIButton(NULL);
       void changeDialog(DialogOption action, std::string metaText, int blueprintId, int entityId, int attrId, int valueId);
+      void show(bool onOff, int position);
       bool update();
       void render();
       void cleanup();

@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
   // --- INITIALIZATION ---
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   SetConfigFlags(FLAG_MSAA_4X_HINT);
-  InitWindow(800, 600, "RayEav");
+  InitWindow(1200, 700, "RayEav");
   Image icon = LoadImage("icon.png");
   SetWindowIcon(icon);
   // InitAudioDevice();
