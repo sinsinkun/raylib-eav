@@ -182,6 +182,8 @@ void EventLoop::_fetchCategory(int blueprintId) {
 bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
   switch (vType) {
     case BOOL:
+      if (strV == "yes" || strV == "Yes") strV = "true";
+      if (strV == "no" || strV == "No") strV = "false";
       if (strV == "true" || strV == "True" || strV == "false" || strV == "False") {
         return true;
       } else return false;
@@ -245,13 +247,15 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
   } else if (dAction == NEW_ATTR || dAction == NEW_ATTR_M) {
     bool allowMultiple = dAction == NEW_ATTR_M;
     std::string attrInput = d->input.input;
-    DbI::EavValueType vt = DbI::str_to_value_type(d->input2.input);
+    std::vector<std::string> valueInput = str_split(d->input2.input, "-");
+    DbI::EavValueType vt = DbI::str_to_value_type(trim_space(valueInput.at(0)));
+    std::string unit = valueInput.size() > 1 ? trim_space(valueInput.at(1)) : "";
     if (vt == DbI::NONE) {
       std::cout << "Invalid value type" << std::endl;
       return;
     }
     DbI::DbResponse res = dbInterface.new_attr_for_blueprint(
-      d->blueprintId, attrInput, vt, allowMultiple, ""
+      d->blueprintId, attrInput, vt, allowMultiple, unit
     );
     if (res.code == 0) {
       d->input.input = "";

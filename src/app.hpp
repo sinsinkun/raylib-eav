@@ -238,4 +238,7 @@ namespace App {
       void _handleDialogEvent(DialogBox* dialog);
       void _handleOption(OptionsMenu* menu, int action);
   };
+  // util functions
+  std::vector<std::string> str_split(std::string str, std::string delimiter);
+  std::string trim_space(std::string str);
 }

@@ -45,12 +45,20 @@ void EavEntity::fillBody() {
     std::string str = v.attr + ": ";
     switch (v.value_type) {
       case DbI::INT:
-        str += std::to_string(v.int_value);
-        if (v.value_unit != "") str += " " + v.value_unit; 
+        if (v.int_value == 0) {
+          str += "-";
+        } else {
+          str += std::to_string(v.int_value);
+          if (v.value_unit != "") str += " " + v.value_unit; 
+        }
         break;
       case DbI::FLOAT:
-        str += std::to_string(v.float_value);
-        if (v.value_unit != "") str += " " + v.value_unit; 
+        if (v.float_value == 0.0f) {
+          str += "-";
+        } else {
+          str += std::to_string(v.float_value);
+          if (v.value_unit != "") str += " " + v.value_unit; 
+        }
         break;
       case DbI::BOOL:
         str += v.bool_value ? "Yes" : "No";
