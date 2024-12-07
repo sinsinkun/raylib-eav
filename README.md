@@ -9,6 +9,7 @@ The advantage of sqlite is that it's designed to be embedded into applications,
 removing the need for running a separate MySQL instance in the background.
 
 ### Future Ideas
+- display errors on UI
 - search bar for filtering
 - confirmation modal for deletion
 - deleting values from entities
