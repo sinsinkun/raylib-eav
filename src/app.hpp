@@ -207,6 +207,31 @@ namespace App {
       bool update();
       void render();
   };
+  class ErrorBox {
+    public:
+      ErrorBox(UIState* globalState) {
+        state = globalState;
+      }
+      UIState* state = NULL;
+      std::string msg;
+      void setError(std::string err) {
+        msg = err;
+        _timer = 0.01f;
+      };
+      void update() {
+        if (_timer > 0.0f) _timer += GetFrameTime();
+        if (_timer> 2.5f) {
+          _timer = 0.0f;
+          msg.clear();
+        }
+      };
+      void render() {
+        if (msg.empty() || state == NULL) return;
+        DrawTextEx(state->font, msg.c_str(), Vector2{95.0f, 10.0f}, 18.0f, 0.0f, RED);
+      };
+    private:
+      float _timer = 0.0f;
+  };
   class EventLoop {
     public:
       // global states
@@ -219,6 +244,7 @@ namespace App {
       double elapsed = 0.0;
       Color bgColor = Color { 35, 35, 40, 255 };
       UIState uiGlobal;
+      ErrorBox errBox = ErrorBox(NULL);
       // data objects
       DbI::DbInterface dbInterface;
       std::vector<EavBlueprint> categories;
@@ -229,7 +255,7 @@ namespace App {
       void init();
       void update();
       void render();
-      void cleanup();
+      void cleanup(); 
     private:
       void _updateSystem();
       void _drawFps();

@@ -11,11 +11,12 @@ void EventLoop::init() {
   // initialize assets
   uiGlobal.font = LoadFont_Font();
   SetTextureFilter(uiGlobal.font.texture, TEXTURE_FILTER_BILINEAR);
+  errBox = ErrorBox(&uiGlobal);
   // load db
   dbInterface.init();
   int err = dbInterface.check_tables();
   if (err != 0) {
-    std::cout << "ERR: db structure is corrupted" << std::endl;
+    errBox.setError("ERR: db structure is corrupted");
     CloseWindow();
     return;
   }
@@ -93,6 +94,7 @@ void EventLoop::update() {
     }
   }
   // finalize ui updates
+  errBox.update();
   uiGlobal.postUpdate();
 }
 
@@ -109,6 +111,7 @@ void EventLoop::render() {
     }
     dialog.render();
     menu.render();
+    errBox.render();
     // draw FPS overlay
     _drawFps();
   EndDrawing();
@@ -149,7 +152,7 @@ void EventLoop::_fetchAllCategories() {
       categories.push_back(bp);
     }
   } else {
-    std::cout << "ERR: could not find categories" << std::endl;
+    errBox.setError("ERR: could not find categories");
   }
 }
 
@@ -173,7 +176,7 @@ void EventLoop::_fetchCategory(int blueprintId) {
       entities.push_back(e);
     }
   } else {
-    std::cout << "ERR: could not find category" << std::endl;
+    errBox.setError("ERR: could not find category");
   }
 }
 #pragma endregion db actions
@@ -208,7 +211,7 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
   DialogOption dAction = d->activeDialog;
   if (dAction == NEW_BLUEPRINT) {
     if (d->input.input.empty()) {
-      std::cout << "No name provided" << std::endl;
+      errBox.setError("ERR: No name provided");
       return;
     }
     DbI::DbResponse res = dbInterface.new_blueprint(d->input.input);
@@ -216,11 +219,11 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       d->input.input = "";
       _fetchAllCategories();
     } else {
-      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
     }
   } else if (dAction == NEW_ENTITY) {
     if (d->input.input.empty()) {
-      std::cout << "No name provided" << std::endl;
+      errBox.setError("ERR: No name provided");
       return;
     }
     DbI::DbResponse res = dbInterface.new_entity(d->input.input, d->blueprintId);
@@ -228,17 +231,17 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       d->input.input = "";
       _fetchCategory(d->blueprintId);
     } else {
-      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
     }
   } else if (dAction == DEL_ENTITY) {
     DbI::DbResponse res = dbInterface.delete_all_entity_values(d->entityId);
     if (res.code != 0) {
-      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
       return;
     }
     res = dbInterface.delete_any(DbI::EavItemType::ENTITY, d->entityId);
     if (res.code != 0) {
-      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
       return;
     }
     d->input.input = "";
@@ -251,7 +254,7 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
     DbI::EavValueType vt = DbI::str_to_value_type(trim_space(valueInput.at(0)));
     std::string unit = valueInput.size() > 1 ? trim_space(valueInput.at(1)) : "";
     if (vt == DbI::NONE) {
-      std::cout << "Invalid value type" << std::endl;
+      errBox.setError("ERR: Invalid value type");
       return;
     }
     DbI::DbResponse res = dbInterface.new_attr_for_blueprint(
@@ -262,18 +265,18 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       d->input2.input = "";
       _fetchCategory(d->blueprintId);
     } else {
-      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
     }
   } else if (dAction == NEW_VALUE || dAction == NEW_VALUE_M) {
     // match up attr string to attr id
     std::string attrInput = d->input.input;
     std::string valueInput = d->input2.input;
     if (attrInput.empty()) {
-      std::cout << "No attribute provided" << std::endl;
+      errBox.setError("ERR: No attribute provided");
       return;
     }
     if (valueInput.empty()) {
-      std::cout << "No value provided" << std::endl;
+      errBox.setError("ERR: No value provided");
       return;
     }
     EavEntity* ent = NULL;
@@ -284,7 +287,7 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       }
     }
     if (ent == NULL) {
-      std::cout << "ERR: Entity not found" << std::endl;
+      errBox.setError("ERR: Entity not found");
       return;
     }
     EavItem* attr = NULL;
@@ -295,12 +298,12 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       }
     }
     if (attr == NULL) {
-      std::cout << "ERR: Attribute not found" << std::endl;
+      errBox.setError("ERR: Attribute not found");
       return;
     }
     // validate value type
     if (!_valueTypeIsValid(valueInput, attr->value_type)) {
-      std::cout << "ERR: Value not matching value type" << std::endl;
+      errBox.setError("ERR: Value not matching value type");
       return;
     }
     // submit to db
@@ -319,10 +322,10 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
         ent->values = entRes.data;
         ent->fillBody();
       } else {
-        std::cout << entRes.msg << std::endl;
+        errBox.setError(entRes.msg);
       }
     } else {
-      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
     }
   } else if (dAction == DEL_VALUE) {
     // todo: match up attr string to attr id
@@ -337,12 +340,12 @@ void EventLoop::_handleOption(OptionsMenu* menu, int action)  {
     if (action == 1 && menu->entityId != 0) {
       DbI::DbResponse res = dbInterface.delete_all_entity_values(menu->entityId);
       if (res.code != 0) {
-        std::cout << res.msg << std::endl;
+        errBox.setError(res.msg);
         return;
       }
       res = dbInterface.delete_any(DbI::EavItemType::ENTITY, menu->entityId);
       if (res.code != 0) {
-        std::cout << res.msg << std::endl;
+        errBox.setError(res.msg);
         return;
       }
       _fetchCategory(menu->blueprintId);
@@ -359,7 +362,8 @@ void EventLoop::_handleOption(OptionsMenu* menu, int action)  {
     }
     // delete blueprint
     if (action == 3 && menu->blueprintId != 0) {
-      std::cout << "Cannot delete categories (yet): " << menu->blueprintId << std::endl;
+      std::string msg = "Cannot delete categories (yet): " + std::to_string(menu->blueprintId);
+      errBox.setError(msg);
     }
   }
 }
