@@ -260,8 +260,12 @@ namespace App {
     private:
       void _updateSystem();
       void _drawFps();
+      // db actions
       void _fetchAllCategories();
+      void _fillEntities(DbI::EavResponse* res);
       void _fetchCategory(int blueprintId);
+      void _searchEntities(std::string query, int altNameId);
+      // helpers
       void _handleDialogEvent(DialogBox* dialog);
       void _handleOption(OptionsMenu* menu, int action);
   };

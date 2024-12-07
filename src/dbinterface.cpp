@@ -668,6 +668,28 @@ EavResponse DbInterface::get_entity_values(int id) {
   EavResponse res = _exec_get_eav(query, EavItemType::VIEW);
   return res;
 }
+
+EavResponse DbInterface::get_entities_like(std::string q) {
+  std::string query = "SELECT * FROM eav_entities WHERE entity LIKE \"%" + q + "%\"";
+  EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
+  return res;
+}
+
+EavResponse DbInterface::get_entities_like(std::string q, int attrId) {
+  std::string query = "SELECT ee.* FROM eav_entities ee " \
+    "LEFT JOIN eav_values ev ON ev.entity_id = ee.id " \
+    "WHERE ee.entity LIKE \"%" + q + "%\" OR " \
+    "(ev.attr_id = " + std::to_string(attrId) + " AND ev.value LIKE \"%" + q + "%\"";
+  EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
+  return res;
+}
+
+EavResponse DbInterface::get_values_like(int attrId, std::string q) {
+  std::string query = "SELECT * FROM eav_values WHERE attr_id = " + std::to_string(attrId) + 
+    " AND value LIKE \"%" + q + "%\"";
+  EavResponse res = _exec_get_eav(query, EavItemType::VALUE);
+  return res;
+}
 #pragma endregion fetch_entries
 
 #pragma region update_entries

@@ -156,25 +156,41 @@ void EventLoop::_fetchAllCategories() {
   }
 }
 
+void EventLoop::_fillEntities(EavResponse* res) {
+  std::vector<EavItem> es = res->data;
+  // instantiate buttons based on categories
+  // calculate number of positions left to right
+  int xcount = (screenW / 120) + 1;
+  int yOffset = (screenH - 100) / (es.size() / xcount + 1);
+  if (yOffset > 200) yOffset = 200;
+  if (yOffset < 50) yOffset = 50;
+  for (int i=0; i<es.size(); i++) {
+    // random position near center
+    int x = 20 + 100 * (i % xcount) + GetRandomValue(-10, 10);
+    int y = 70 + yOffset * (int)(i / xcount) + GetRandomValue(0, 20);
+    Rectangle posSize = { (float)x, (float)y, 200.0f, 250.0f };
+    EavEntity e = EavEntity(&uiGlobal, es[i], posSize, &dbInterface);
+    entities.push_back(e);
+  }
+}
+
 void EventLoop::_fetchCategory(int blueprintId) {
   entities.clear();
-  EavResponse eres = dbInterface.get_blueprint_entities(blueprintId);
-  if (eres.code == 0) {
-    std::vector<EavItem> es = eres.data;
-    // instantiate buttons based on categories
-    // calculate number of positions left to right
-    int xcount = (screenW / 120) + 1;
-    int yOffset = (screenH - 100) / (es.size() / xcount + 1);
-    if (yOffset > 200) yOffset = 200;
-    if (yOffset < 50) yOffset = 50;
-    for (int i=0; i<es.size(); i++) {
-      // random position near center
-      int x = 20 + 100 * (i % xcount) + GetRandomValue(-10, 10);
-      int y = 70 + yOffset * (int)(i / xcount) + GetRandomValue(0, 20);
-      Rectangle posSize = { (float)x, (float)y, 200.0f, 250.0f };
-      EavEntity e = EavEntity(&uiGlobal, es[i], posSize, &dbInterface);
-      entities.push_back(e);
-    }
+  EavResponse eRes = dbInterface.get_blueprint_entities(blueprintId);
+  if (eRes.code == 0) {
+    _fillEntities(&eRes);
+  } else {
+    errBox.setError("ERR: could not find category");
+  }
+}
+
+void EventLoop::_searchEntities(std::string q, int altId) {
+  entities.clear();
+  EavResponse eRes = EavResponse({});
+  if (altId > 0) eRes = dbInterface.get_entities_like(q, altId);
+  else eRes = dbInterface.get_entities_like(q);
+  if (eRes.code == 0) {
+    _fillEntities(&eRes);
   } else {
     errBox.setError("ERR: could not find category");
   }
