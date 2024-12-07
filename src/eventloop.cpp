@@ -185,8 +185,6 @@ void EventLoop::_fetchCategory(int blueprintId) {
 bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
   switch (vType) {
     case BOOL:
-      if (strV == "yes" || strV == "Yes") strV = "true";
-      if (strV == "no" || strV == "No") strV = "false";
       if (strV == "true" || strV == "True" || strV == "false" || strV == "False") {
         return true;
       } else return false;
@@ -302,6 +300,10 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
     if (attr == NULL) {
       errBox.setError("ERR: Attribute not found");
       return;
+    }
+    if (attr->value_type == DbI::BOOL) {
+      if (valueInput == "yes" || valueInput == "Yes") valueInput = "true";
+      if (valueInput == "no" || valueInput == "No") valueInput = "false";
     }
     // validate value type
     if (!_valueTypeIsValid(valueInput, attr->value_type)) {
