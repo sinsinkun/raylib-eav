@@ -5,7 +5,7 @@
 #include <raylib.h>
 
 namespace App {
-  enum UIEvent { UI_NONE, UI_HOVER, UI_HOLD, UI_CLICK, UI_R_CLICK, UI_BOTH_CLICK };
+  enum UIEvent { UI_NONE, UI_HOVER, UI_HOLD, UI_CLICK, UI_R_CLICK, UI_BOTH_CLICK, UI_RELEASE, UI_R_RELEASE };
   enum MouseState { MOUSE_NONE, MOUSE_OVER, MOUSE_DOWN, MOUSE_HOLD, MOUSE_UP };
   class UIState {
     public:
@@ -14,15 +14,15 @@ namespace App {
       float timeDelta = 0.0f;
       Vector2 mousePos = { 0.0f, 0.0f };
       Vector2 mouseDelta = { 0.0f, 0.0f };
-      MouseState mouseState = MOUSE_NONE;
-      MouseState rMouseState = MOUSE_NONE;
-      int hoverId = 0;
+
       int getNewId();
       void update();
       void postUpdate();
       UIEvent componentUpdate(int id, Rectangle* posSize);
       UIEvent componentUpdate(int id, Rectangle* posSize, bool clickOnDown, bool hideHover);
       bool uiIsClicked(int id);
+      bool uiIsClickedOutside(int id);
+      bool uiIsClickedOutside(Rectangle* bounds);
       bool uiIsRClicked(int id);
       bool uiIsHovering(int id);
       bool uiIsClicking(int id);
@@ -31,11 +31,14 @@ namespace App {
       void uiStartHolding(std::vector<int> id);
     private:
       int uiId = 1;
+      int hoverId = 0;
       int clickId = 0;
       int rClickId = 0;
       bool clickFrame = false;
       bool rClickFrame = false;
       bool invisHover = false;
+      MouseState mouseState = MOUSE_NONE;
+      MouseState rMouseState = MOUSE_NONE;
       std::vector<int> holdIds;
   };
   class UIInput {

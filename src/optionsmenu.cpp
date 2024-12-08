@@ -45,7 +45,7 @@ int OptionsMenu::update() {
   if (btn2.update()) return 2;
   if (btn3.update()) return 3;
   box.update();
-  if (box.state->mouseState == MOUSE_DOWN) {
+  if (box.state->uiIsClickedOutside(&box.posSize)) {
     isVisible = false;
   }
   return 0;

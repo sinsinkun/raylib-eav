@@ -37,7 +37,7 @@ bool UIInput::update() {
       }
     }
 
-    if (state->mouseState == MOUSE_DOWN && evt == UI_NONE) {
+    if (state->uiIsClickedOutside(id)) {
       isActive = false;
     }
 

@@ -85,6 +85,15 @@ bool UIState::uiIsClicked(int id) {
   return clickId == id && clickFrame;
 }
 
+bool UIState::uiIsClickedOutside(int id) {
+  return clickId != id && mouseState == MOUSE_DOWN;
+};
+
+bool UIState::uiIsClickedOutside(Rectangle* bounds) {
+  bool inside = CheckCollisionPointRec(mousePos, *bounds);
+  return !inside && mouseState == MOUSE_DOWN;
+};
+
 bool UIState::uiIsRClicked(int id) {
   return rClickId == id && rClickFrame;
 }
