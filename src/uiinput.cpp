@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 #include <raylib.h>
-#include "app.hpp"
+#include "ui.hpp"
 
 using namespace App;
 
@@ -13,23 +13,8 @@ void UIInput::clear() {
 
 bool UIInput::update() {
   if (state == NULL) return false;
-  bool isHovering = false;
-  bool clicked = false;
-  if (CheckCollisionPointRec(state->mousePos, posSize) && state->hoverId == 0) {
-    isHovering = true;
-    state->hoverId = id;
-    if (state->mouseState == MOUSE_NONE) state->mouseState = MOUSE_OVER;
-    if (state->mouseState == MOUSE_DOWN && state->clickId == 0) {
-      state->clickId = id;
-      state->clickFrame = true;
-      clicked = true;
-      if (!disabled) isActive = true;
-    }
-    if (state->rMouseState == MOUSE_DOWN && state->rClickId == 0) {
-      state->rClickId = id;
-      state->rClickFrame = true;
-    }
-  }
+  UIEvent evt = state->componentUpdate(id, &posSize);
+  if (evt == UI_CLICK) isActive = true;
   // handle keyboard input
   if (isActive) {
     // capture key inputs
@@ -52,7 +37,7 @@ bool UIInput::update() {
       }
     }
 
-    if (state->mouseState == MOUSE_DOWN && !isHovering) {
+    if (state->mouseState == MOUSE_DOWN && evt == UI_NONE) {
       isActive = false;
     }
 
@@ -67,13 +52,7 @@ bool UIInput::update() {
     _blinkState = 0;
     _blinkTimer = 0.5f;
   }
-
-  // handle drag event
-  if (state->mouseState == MOUSE_HOLD && state->uiIsHolding(id)) {
-    posSize.x += state->mouseDelta.x;
-    posSize.y += state->mouseDelta.y;
-  }
-  return clicked;
+  return evt == UI_CLICK;
 }
 
 void UIInput::render() {

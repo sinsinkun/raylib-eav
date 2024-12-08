@@ -3,10 +3,9 @@
 #include <vector>
 #include <string>
 #include <raylib.h>
-#include "dbi.hpp"
 
 namespace App {
-  enum UIEvent { UI_NONE, UI_HOVER_INVIS, UI_HOVER, UI_HOLD, UI_CLICK };
+  enum UIEvent { UI_NONE, UI_HOVER, UI_HOLD, UI_CLICK, UI_R_CLICK, UI_BOTH_CLICK };
   enum MouseState { MOUSE_NONE, MOUSE_OVER, MOUSE_DOWN, MOUSE_HOLD, MOUSE_UP };
   class UIState {
     public:
@@ -27,6 +26,8 @@ namespace App {
       int getNewId();
       void update();
       void postUpdate();
+      UIEvent componentUpdate(int id, Rectangle* posSize);
+      UIEvent componentUpdate(int id, Rectangle* posSize, bool clickOnDown, bool hideHover);
       bool uiIsClicked(int id);
       bool uiIsRClicked(int id);
       bool uiIsHovering(int id);
@@ -127,6 +128,25 @@ namespace App {
       Color shadowColor = Color { 0, 0, 0, 50 };
       Color borderColor = Color { 0, 0, 0, 140 };
       Color txtColor = BLACK;
+      bool update();
+      void render();
+  };
+  class UIRadio {
+    public:
+      UIRadio(UIState* globalState) {
+        state = globalState;
+        if (state != NULL) id = state->getNewId();
+      }
+      UIRadio(UIState* globalState, Vector2 topLeft, std::string text);
+      UIState* state;
+      int id = 0;
+      std::string text;
+      Vector2 topLeft;
+      float width = 0.0f;
+      float height = 0.0f;
+      float fontSize = 18.0f;
+      Color txtColor = BLACK;
+      bool on = false;
       bool update();
       void render();
   };

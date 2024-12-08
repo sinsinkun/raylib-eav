@@ -2,34 +2,14 @@
 #include <vector>
 #include <string>
 #include <raylib.h>
-#include "app.hpp"
+#include "ui.hpp"
 
 using namespace App;
 
 bool UIButton::update() {
   if (state == NULL) return false;
-  // calculate if btn is being hovered
-  bool clicked = false;
-  if (CheckCollisionPointRec(state->mousePos, posSize) && state->hoverId == 0) {
-    state->hoverId = id;
-    if (state->mouseState == MOUSE_NONE) state->mouseState = MOUSE_OVER;
-    if (state->mouseState == MOUSE_DOWN && state->clickId == 0) {
-      state->clickId = id;
-      state->clickFrame = true;
-      clicked = true;
-    }
-    if (state->rMouseState == MOUSE_DOWN && state->rClickId == 0) {
-      state->rClickId = id;
-      state->rClickFrame = true;
-    }
-  }
-
-  // handle drag event
-  if (state->mouseState == MOUSE_HOLD && state->uiIsHolding(id)) {
-    posSize.x += state->mouseDelta.x;
-    posSize.y += state->mouseDelta.y;
-  }
-  return clicked;
+  UIEvent evt = state->componentUpdate(id, &posSize);
+  return evt == UI_CLICK;
 }
 
 void UIButton::render() {

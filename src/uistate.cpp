@@ -1,6 +1,6 @@
 #include <iostream>
 #include <raylib.h>
-#include "app.hpp"
+#include "ui.hpp"
 
 using namespace App;
 
@@ -44,6 +44,41 @@ void UIState::postUpdate() {
   } else {
     SetMouseCursor(MOUSE_CURSOR_DEFAULT);
   }
+}
+
+UIEvent UIState::componentUpdate(int id, Rectangle* posSize) {
+  return componentUpdate(id, posSize, false, false);
+}
+
+UIEvent UIState::componentUpdate(int id, Rectangle* posSize, bool clickOnDown, bool hideHover) {
+  UIEvent evt = UI_NONE;
+  // calculate if component is being hovered
+  if (CheckCollisionPointRec(mousePos, *posSize) && hoverId == 0) {
+    hoverId = id;
+    evt = UI_HOVER;
+    invisHover = hideHover;
+    if (mouseState == MOUSE_NONE) mouseState = MOUSE_OVER;
+    MouseState clickState = clickOnDown ? MOUSE_DOWN : MOUSE_UP;
+    if (mouseState == clickState && clickId == 0) {
+      clickId = id;
+      clickFrame = true;
+      evt = UI_CLICK;
+    }
+    if (rMouseState == MOUSE_DOWN && rClickId == 0) {
+      rClickId = id;
+      rClickFrame = true;
+      evt = evt == UI_CLICK ? UI_BOTH_CLICK : UI_R_CLICK;
+    }
+  }
+
+  // handle drag event
+  if (mouseState == MOUSE_HOLD && uiIsHolding(id)) {
+    posSize->x += mouseDelta.x;
+    posSize->y += mouseDelta.y;
+    if (evt < UI_HOLD) evt = UI_HOLD;
+  }
+  // state updates
+  return evt;
 }
 
 bool UIState::uiIsClicked(int id) {
