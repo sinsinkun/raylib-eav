@@ -5,8 +5,8 @@
 using namespace App;
 
 int UIState::getNewId() {
-  int thisId = _uiId;
-  _uiId++;
+  int thisId = uiId;
+  uiId++;
   return thisId;
 }
 

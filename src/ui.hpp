@@ -16,13 +16,7 @@ namespace App {
       Vector2 mouseDelta = { 0.0f, 0.0f };
       MouseState mouseState = MOUSE_NONE;
       MouseState rMouseState = MOUSE_NONE;
-      bool invisHover = false;
-      bool clickFrame = false;
-      bool rClickFrame = false;
       int hoverId = 0;
-      int clickId = 0;
-      int rClickId = 0;
-      std::vector<int> holdIds;
       int getNewId();
       void update();
       void postUpdate();
@@ -36,7 +30,13 @@ namespace App {
       void uiStartHolding(int id);
       void uiStartHolding(std::vector<int> id);
     private:
-      int _uiId = 1;
+      int uiId = 1;
+      int clickId = 0;
+      int rClickId = 0;
+      bool clickFrame = false;
+      bool rClickFrame = false;
+      bool invisHover = false;
+      std::vector<int> holdIds;
   };
   class UIInput {
     public:

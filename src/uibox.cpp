@@ -18,7 +18,7 @@ void UIBox::render() {
     DrawRectangle(posSize.x - 2, posSize.y - 2, posSize.width + 6, posSize.height + 7, shadowColor);
   }
   Color activeColor = boxColor;
-  if (state->hoverId == id) activeColor = boxHoverColor;
+  if (state->uiIsHovering(id)) activeColor = boxHoverColor;
   DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, activeColor);
   // draw text
   if (title != "") {
