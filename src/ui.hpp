@@ -76,7 +76,6 @@ namespace App {
       void cleanup();
     private:
       RenderTexture2D _mask;
-      // Color _activeColor = boxColor;
       Vector2 _txtPos { 5.0f, 5.0f };
       float _bkspCooldown = 0.0f;
       int _blinkState = 0;
@@ -144,13 +143,37 @@ namespace App {
       UIState* state;
       int id = 0;
       std::string text;
-      Vector2 topLeft;
-      float width = 0.0f;
-      float height = 0.0f;
+      Rectangle posSize = { 0.0f, 0.0f, 10.0f, 10.0f };
       float fontSize = 18.0f;
       Color txtColor = BLACK;
       bool on = false;
       bool update();
       void render();
+  };
+  class UIText {
+    public:
+      UIText(UIState* globalState, std::string txt) {
+        state = globalState;
+        if (state != NULL) id = state->getNewId();
+        text = txt;
+      };
+      UIText(UIState* globalState, std::string txt, Rectangle bounds, int variant);
+      UIState* state = NULL;
+      int id = 0;
+      std::string text;
+      int variant = 0;
+      float speed = 5.0f;
+      Rectangle posSize = { 0.0f, 0.0f, 10.0f, 10.0f };
+      float fontSize = 18.0f;
+      Color txtColor = BLACK;
+      bool update();
+      void render();
+      void updateDisplayText(int startIndex);
+      int maxCharForWidth(float w);
+    private:
+      std::string displayText;
+      int scrollIndex = 0;
+      int maxChar = 1;
+      float dt = 0.0f;
   };
 }
