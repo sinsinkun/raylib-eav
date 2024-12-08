@@ -6,6 +6,11 @@
 
 using namespace App;
 
+void UIInput::clear() {
+  input.clear();
+  _txtPos.x = 5.0f;
+}
+
 bool UIInput::update() {
   if (state == NULL) return false;
   bool isHovering = false;

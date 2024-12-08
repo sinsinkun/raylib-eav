@@ -237,7 +237,7 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
     std::string name = trim_space(d->input.input);
     DbI::DbResponse res = dbInterface.new_blueprint(name);
     if (res.code == 0) {
-      d->input.input.clear();
+      d->input.clear();
       _fetchAllCategories();
     } else {
       errBox.setError(res.msg);
@@ -250,7 +250,7 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
     std::string name = trim_space(d->input.input);
     DbI::DbResponse res = dbInterface.new_entity(name, d->blueprintId);
     if (res.code == 0) {
-      d->input.input.clear();
+      d->input.clear();
       _fetchCategory(d->blueprintId);
     } else {
       errBox.setError(res.msg);
@@ -266,7 +266,7 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       errBox.setError(res.msg);
       return;
     }
-    d->input.input.clear();
+    d->input.clear();
     _fetchCategory(d->blueprintId);
     d->show(false, 0);
   } else if (dAction == NEW_ATTR || dAction == NEW_ATTR_M) {
@@ -283,8 +283,8 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       d->blueprintId, attrInput, vt, allowMultiple, unit
     );
     if (res.code == 0) {
-      d->input.input.clear();
-      d->input2.input.clear();
+      d->input.clear();
+      d->input2.clear();
       _fetchCategory(d->blueprintId);
     } else {
       errBox.setError(res.msg);
@@ -340,8 +340,8 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
       res = dbInterface.update_value(attr->value_id, valueInput);
     }
     if (res.code == 0) {
-      if (!attr->allow_multiple) d->input.input.clear();
-      d->input2.input.clear();
+      if (!attr->allow_multiple) d->input.clear();
+      d->input2.clear();
       // fetch new values
       DbI::EavResponse entRes = dbInterface.get_entity_values(ent->id);
       if (entRes.code == 0) {

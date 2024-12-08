@@ -66,6 +66,7 @@ namespace App {
       Color borderColor = Color { 0, 0, 0, 180 };
       Color txtColor = BLACK;
       Color placeholderColor = DARKGRAY;
+      void clear();
       bool update();
       void render();
       void cleanup();

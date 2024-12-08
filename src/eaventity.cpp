@@ -69,8 +69,8 @@ void EavEntity::fillBody() {
         break;
     }
     // cut long strings down
-    if (str.length() * box.bodyFontSize > box.posSize.width * 2.3) {
-      int maxCharsPerRow = (2.3 * box.posSize.width) / box.bodyFontSize;
+    if (str.length() * box.bodyFontSize > box.posSize.width * 2.2) {
+      int maxCharsPerRow = (2.2 * box.posSize.width) / box.bodyFontSize;
       std::vector<std::string> strArr = str_split_length(str, maxCharsPerRow);
       for (std::string s : strArr) box.body.push_back(s);
     } else {
