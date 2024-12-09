@@ -111,15 +111,15 @@ namespace App {
     private:
       float _timer = 0.0f;
   };
-  class SearchBox {
+  class AppBar {
     public:
-      SearchBox() {}
-      SearchBox(UIState* globalState, Rectangle bounds);
-      UIState* state = NULL;
+      AppBar() {};
+      AppBar(UIState* globalState, Rectangle bounds);
       UIBox box = UIBox(NULL);
-      UIInput input = UIInput(NULL);
-      UIButton btn = UIButton(NULL);
-      bool update();
+      UIInput searchInput = UIInput(NULL);
+      UIButton searchBtn = UIButton(NULL);
+      std::vector<UIButton> categoryBtns;
+      int update();
       void render();
       void cleanup();
   };
@@ -139,7 +139,7 @@ namespace App {
       DialogBox dialog;
       OptionsMenu menu;
       ErrorBox errBox = ErrorBox(NULL);
-      SearchBox search;
+      AppBar appBar;
       // data objects
       DbI::DbInterface dbInterface;
       std::vector<EavBlueprint> categories;

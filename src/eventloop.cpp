@@ -25,14 +25,14 @@ void EventLoop::init() {
     DbI::EavItem item;
     item.blueprint_id = -10;
     item.blueprint = "Start";
-    EavBlueprint addNew = EavBlueprint(&uiGlobal, item, Rectangle { 10.0f, 30.0f, 80.0f, 30.0f });
+    EavBlueprint addNew = EavBlueprint(&uiGlobal, item, Rectangle { 10.0f, 45.0f, 80.0f, 30.0f });
     categories.push_back(addNew);
   }
   // setup universal ui components
   dialog = DialogBox(&uiGlobal, Rectangle { 980.0f, 10.0f, 210.0f, 110.0f }, "-");
   dialog.show(false, 0);
   menu = OptionsMenu(&uiGlobal, OP_NONE);
-  search = SearchBox(&uiGlobal, Rectangle { 430.0f, 650.0f, 320.0f, 40.0f });
+  appBar = AppBar(&uiGlobal, Rectangle {0.0f, 0.0f, 1200.0f, 80.0f });
 }
 
 void EventLoop::update() {
@@ -45,35 +45,9 @@ void EventLoop::update() {
     _handleOption(&menu, menuAction);
     menu.isVisible = false;
   }
-  if (search.update()) {
-    _searchEntities(search.input.input, 0);
-  }
   // update dialog box
   if (dialog.update()) {
     _handleDialogEvent(&dialog);
-  }
-  // update entities
-  int sortIndex = -1;
-  for (int i=entities.size()-1; i >= 0; i--) {
-    if (entities[i].update()) {
-      dialog.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
-      dialog.show(true, 0);
-      sortIndex = i;
-    }
-    if (uiGlobal.uiIsRClicked(entities[i].box.id)) {
-      menu = OptionsMenu(&uiGlobal, OP_ENTITY);
-      menu.blueprintId = entities[i].blueprintId;
-      menu.entityId = entities[i].id;
-      menu.open();
-    }
-  }
-  // re-sort entities so clicked is on top
-  if (sortIndex != -1) {
-    EavEntity e = entities[sortIndex];
-    entities.erase(entities.begin() + sortIndex);
-    entities.push_back(e);
-    // this needs to be done AFTER reordering
-    if (grabbedObject == NULL) grabbedObject = &entities.back().box;
   }
   // update categories
   for (int i=categories.size()-1; i >= 0; i--) {
@@ -97,6 +71,33 @@ void EventLoop::update() {
       menu.open();
     }
   }
+  // update appbar
+  if (appBar.update() == 1) {
+    _searchEntities(appBar.searchInput.input, 0);
+  };
+  // update entities
+  int sortIndex = -1;
+  for (int i=entities.size()-1; i >= 0; i--) {
+    if (entities[i].update()) {
+      dialog.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
+      dialog.show(true, 0);
+      sortIndex = i;
+    }
+    if (uiGlobal.uiIsRClicked(entities[i].box.id)) {
+      menu = OptionsMenu(&uiGlobal, OP_ENTITY);
+      menu.blueprintId = entities[i].blueprintId;
+      menu.entityId = entities[i].id;
+      menu.open();
+    }
+  }
+  // re-sort entities so clicked is on top
+  if (sortIndex != -1) {
+    EavEntity e = entities[sortIndex];
+    entities.erase(entities.begin() + sortIndex);
+    entities.push_back(e);
+    // this needs to be done AFTER reordering
+    if (grabbedObject == NULL) grabbedObject = &entities.back().box;
+  }
   // finalize ui updates
   errBox.update();
   uiGlobal.postUpdate();
@@ -105,16 +106,16 @@ void EventLoop::update() {
 void EventLoop::render() {
   BeginDrawing();
     ClearBackground(bgColor);
-    // draw category buttons
-    for (int i=0; i < categories.size(); i++) {
-      categories[i].render();
-    }
     // draw entities
     for (int i=0; i < entities.size(); i++) {
       entities[i].render();
     }
+    appBar.render();
+    // draw category buttons
+    for (int i=0; i < categories.size(); i++) {
+      categories[i].render();
+    }
     dialog.render();
-    search.render();
     menu.render();
     errBox.render();
     // draw FPS overlay
@@ -124,8 +125,8 @@ void EventLoop::render() {
 
 void EventLoop::cleanup() {
   // destroy instantiated resources
-  search.cleanup();
   dialog.cleanup();
+  appBar.cleanup();
   dbInterface.disconnect();
 }
 
@@ -153,7 +154,7 @@ void EventLoop::_fetchAllCategories() {
     std::vector<EavItem> bps = bpRes.data;
     // instantiate buttons based on categories
     for (int i=0; i<bps.size(); i++) {
-      Rectangle posSize = { 10.0f + (float)i * 90.0f, 30.0f, 80.0f, 30.0f };
+      Rectangle posSize = { 10.0f + (float)i * 90.0f, 45.0f, 80.0f, 30.0f };
       EavBlueprint bp = EavBlueprint(&uiGlobal, bps[i], posSize);
       categories.push_back(bp);
     }
@@ -173,7 +174,7 @@ void EventLoop::_fillEntities(EavResponse* res) {
   for (int i=0; i<es.size(); i++) {
     // random position near center
     int x = 20 + 100 * (i % xcount) + GetRandomValue(-10, 10);
-    int y = 70 + yOffset * (int)(i / xcount) + GetRandomValue(0, 20);
+    int y = 90 + yOffset * (int)(i / xcount) + GetRandomValue(0, 20);
     Rectangle posSize = { (float)x, (float)y, 200.0f, 250.0f };
     EavEntity e = EavEntity(&uiGlobal, es[i], posSize, &dbInterface);
     entities.push_back(e);

@@ -9,12 +9,11 @@ namespace App {
   enum MouseState { MOUSE_NONE, MOUSE_OVER, MOUSE_DOWN, MOUSE_HOLD, MOUSE_UP };
   class UIState {
     public:
-      Vector2 screenCenter = { 0.0f, 0.0f };
+      Rectangle screen = Rectangle { 0.0f, 0.0f, 0.0f, 0.0f };
       Font font = GetFontDefault();
       float timeDelta = 0.0f;
       Vector2 mousePos = { 0.0f, 0.0f };
       Vector2 mouseDelta = { 0.0f, 0.0f };
-
       int getNewId();
       void update();
       void postUpdate();
