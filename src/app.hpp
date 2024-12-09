@@ -57,21 +57,13 @@ namespace App {
   };
   class EavBlueprint {
     public:
-      EavBlueprint(UIState* globalState, DbI::EavItem item, Rectangle posSizeIn) {
-        id = item.blueprint_id;
-        name = item.blueprint;
-        btn = UIButton(globalState, posSizeIn, item.blueprint);
-      }
+      EavBlueprint(UIState* globalState, DbI::EavItem item, Rectangle posSizeIn);
       int id = 0;
       std::string name = "";
+      bool isActive = false;
       UIButton btn = UIButton(NULL);
-      bool update() {
-        // right click handle
-        return btn.update();
-      }
-      void render() {
-        btn.render();
-      }
+      bool update();
+      void render();
   };
   class EavEntity {
     public:
@@ -126,13 +118,7 @@ namespace App {
   class EventLoop {
     public:
       // global states
-      int screenW = 0;
-      int screenH = 0;
-      Vector2 screenCenter = { 0.0f, 0.0f };
-      Vector2 mousePos = { 0.0f, 0.0f };
-      void* grabbedObject = NULL;
       int fps = 0;
-      double elapsed = 0.0;
       Color bgColor = Color { 35, 35, 40, 255 };
       // ui objects
       UIState uiGlobal;

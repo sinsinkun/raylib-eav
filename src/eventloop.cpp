@@ -21,13 +21,6 @@ void EventLoop::init() {
     return;
   }
   _fetchAllCategories();
-  if (categories.empty()) {
-    DbI::EavItem item;
-    item.blueprint_id = -10;
-    item.blueprint = "Start";
-    EavBlueprint addNew = EavBlueprint(&uiGlobal, item, Rectangle { 10.0f, 45.0f, 80.0f, 30.0f });
-    categories.push_back(addNew);
-  }
   // setup universal ui components
   dialog = DialogBox(&uiGlobal, Rectangle { 980.0f, 10.0f, 210.0f, 110.0f }, "-");
   dialog.show(false, 0);
@@ -50,6 +43,7 @@ void EventLoop::update() {
     _handleDialogEvent(&dialog);
   }
   // update categories
+  int sortIndex = -1;
   for (int i=categories.size()-1; i >= 0; i--) {
     // handler for "add new" button
     if (categories[i].id == -10) {
@@ -70,13 +64,20 @@ void EventLoop::update() {
       menu.metaText = categories[i].name;
       menu.open();
     }
+    if (categories[i].isActive) sortIndex = i;
+  }
+  // re-sort so active category is on top
+  if (sortIndex != -1) {
+    EavBlueprint b = categories[sortIndex];
+    categories.erase(categories.begin() + sortIndex);
+    categories.push_back(b);
   }
   // update appbar
   if (appBar.update() == 1) {
     _searchEntities(appBar.searchInput.input, 0);
   };
   // update entities
-  int sortIndex = -1;
+  sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
     if (entities[i].update()) {
       dialog.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
@@ -95,8 +96,6 @@ void EventLoop::update() {
     EavEntity e = entities[sortIndex];
     entities.erase(entities.begin() + sortIndex);
     entities.push_back(e);
-    // this needs to be done AFTER reordering
-    if (grabbedObject == NULL) grabbedObject = &entities.back().box;
   }
   // finalize ui updates
   errBox.update();
@@ -132,19 +131,17 @@ void EventLoop::cleanup() {
 
 void EventLoop::_updateSystem() {
   fps = GetFPS();
-  screenW = GetScreenWidth();
-  screenH = GetScreenHeight();
-  elapsed = GetTime();
-  mousePos = GetMousePosition();
-  screenCenter = { (float)screenW/2, (float)screenH/2 };
 }
 
 void EventLoop::_drawFps() {
   std::string fpst = std::to_string(fps);
   std::string fpstxt = "FPS: ";
   fpstxt.append(fpst);
-  Vector2 pos = { 10.0, 10.0 };
-  DrawTextEx(uiGlobal.font, fpstxt.c_str(), pos, 18.0, 0.0, GREEN);
+  Vector2 pos = { 5.0f, uiGlobal.screen.height - 20.0f };
+  Color clr = GREEN;
+  if (fps < 60) clr = YELLOW;
+  if (fps < 30) clr = RED;
+  DrawTextEx(uiGlobal.font, fpstxt.c_str(), pos, 18.0, 0.0, clr);
 }
 
 #pragma region db actions
@@ -154,9 +151,17 @@ void EventLoop::_fetchAllCategories() {
     std::vector<EavItem> bps = bpRes.data;
     // instantiate buttons based on categories
     for (int i=0; i<bps.size(); i++) {
-      Rectangle posSize = { 10.0f + (float)i * 90.0f, 45.0f, 80.0f, 30.0f };
+      Rectangle posSize = { 5.0f + (float)i * 95.0f, 50.0f, 100.0f, 30.0f };
       EavBlueprint bp = EavBlueprint(&uiGlobal, bps[i], posSize);
       categories.push_back(bp);
+    }
+    // add empty button if none exist
+    if (categories.empty()) {
+      DbI::EavItem item;
+      item.blueprint_id = -10;
+      item.blueprint = "Start";
+      EavBlueprint addNew = EavBlueprint(&uiGlobal, item, Rectangle { 5.0f, 50.0f, 100.0f, 30.0f });
+      categories.push_back(addNew);
     }
   } else {
     errBox.setError("ERR: could not find categories");
@@ -167,8 +172,8 @@ void EventLoop::_fillEntities(EavResponse* res) {
   std::vector<EavItem> es = res->data;
   // instantiate buttons based on categories
   // calculate number of positions left to right
-  int xcount = (screenW / 120) + 1;
-  int yOffset = (screenH - 100) / (es.size() / xcount + 1);
+  int xcount = (uiGlobal.screen.width / 120) + 1;
+  int yOffset = (uiGlobal.screen.height - 100) / (es.size() / xcount + 1);
   if (yOffset > 200) yOffset = 200;
   if (yOffset < 50) yOffset = 50;
   for (int i=0; i<es.size(); i++) {
@@ -186,6 +191,13 @@ void EventLoop::_fetchCategory(int blueprintId) {
   EavResponse eRes = dbInterface.get_blueprint_entities(blueprintId);
   if (eRes.code == 0) {
     _fillEntities(&eRes);
+    // select active blueprint
+    for (int i=0; i<categories.size(); i++) {
+      if (categories[i].id == blueprintId) categories[i].isActive = true;
+      else categories[i].isActive = false;
+    }
+    // match active color
+    bgColor = Color { 75, 58, 52, 255 };
   } else {
     errBox.setError("ERR: could not find category");
   }
@@ -198,6 +210,12 @@ void EventLoop::_searchEntities(std::string q, int altId) {
   else eRes = dbInterface.get_entities_like(q);
   if (eRes.code == 0) {
     _fillEntities(&eRes);
+    // clear active category
+    for (int i=0; i<categories.size(); i++) {
+      categories[i].isActive = false;
+    }
+    // reset bg color
+    bgColor = Color { 56, 38, 27, 255 };
   } else {
     errBox.setError("ERR: could not find category");
   }
