@@ -10,6 +10,7 @@ namespace App {
   class UIState {
     public:
       Rectangle screen = Rectangle { 0.0f, 0.0f, 0.0f, 0.0f };
+      bool screenUpdate = false;
       Font font = GetFontDefault();
       float timeDelta = 0.0f;
       Vector2 mousePos = { 0.0f, 0.0f };
@@ -42,17 +43,8 @@ namespace App {
   };
   class UIInput {
     public:
-      UIInput(UIState* globalState) {
-        state = globalState;
-        if (state != NULL) id = state->getNewId();
-        _mask = LoadRenderTexture(posSize.width, posSize.height);
-      }
-      UIInput(UIState* globalState, Rectangle bounds) {
-        state = globalState;
-        if (state != NULL) id = state->getNewId();
-        posSize = bounds;
-        _mask = LoadRenderTexture(posSize.width, posSize.height);
-      }
+      UIInput(UIState* globalState);
+      UIInput(UIState* globalState, Rectangle bounds);
       UIState* state = NULL;
       int id = 0;
       Rectangle posSize = { 0.0f, 0.0f, 200.0f, 30.0f };

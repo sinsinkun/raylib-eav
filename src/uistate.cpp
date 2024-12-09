@@ -11,10 +11,13 @@ int UIState::getNewId() {
 }
 
 void UIState::update() {
-  screen.width = GetScreenWidth();
-  screen.height = GetScreenHeight();
-  screen.x = screen.width / 2.0f;
-  screen.y = screen.height / 2.0f;
+  int w = GetScreenWidth();
+  int h = GetScreenHeight();
+  float x = w / 2.0f;
+  float y = h / 2.0f;
+  if ((int)screen.width != w || (int)screen.height != h) screenUpdate = true;
+  else screenUpdate = false;
+  screen = { x, y, (float)w, (float)h };
   mouseState = MOUSE_NONE;
   mousePos = GetMousePosition();
   mouseDelta = GetMouseDelta();

@@ -18,6 +18,7 @@ AppBar::AppBar(UIState* gs, Rectangle scrn) {
   float six = (scrn.width / 4.0f) - 45.0f;
   float sbx = scrn.width - six - 40.0f;
   searchInput = UIInput(gs, Rectangle { six, 10.0f, siw, 30.0f });
+  searchInput.placeholder = "Search all categories";
   searchBtn = UIButton(gs, Rectangle { sbx, 10.0f, 90.0f, 26.0f }, "Search");
 }
 

@@ -215,7 +215,7 @@ void EventLoop::_searchEntities(std::string q, int altId) {
       categories[i].isActive = false;
     }
     // reset bg color
-    bgColor = Color { 56, 38, 27, 255 };
+    bgColor = Color { 35, 35, 40, 255 };
   } else {
     errBox.setError("ERR: could not find category");
   }

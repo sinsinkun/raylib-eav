@@ -6,6 +6,19 @@
 
 using namespace App;
 
+UIInput::UIInput(UIState* globalState) {
+  state = globalState;
+  if (state != NULL) id = state->getNewId();
+  _mask = LoadRenderTexture(posSize.width, posSize.height);
+}
+
+UIInput::UIInput(UIState* globalState, Rectangle bounds) {
+  state = globalState;
+  if (state != NULL) id = state->getNewId();
+  posSize = bounds;
+  _mask = LoadRenderTexture(posSize.width, posSize.height);
+}
+
 void UIInput::clear() {
   input.clear();
   _txtPos.x = 5.0f;
@@ -15,6 +28,10 @@ bool UIInput::update() {
   if (state == NULL) return false;
   UIEvent evt = state->componentUpdate(id, &posSize);
   if (evt == UI_CLICK) isActive = true;
+  // resize mask
+  if (state->screenUpdate) {
+    _mask = LoadRenderTexture(posSize.width, posSize.height);
+  }
   // handle keyboard input
   if (isActive) {
     // capture key inputs
