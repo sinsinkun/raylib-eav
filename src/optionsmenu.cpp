@@ -20,7 +20,7 @@ OptionsMenu::OptionsMenu(UIState* gState, OptionsParent prt) {
   if (parent == OP_BLUEPRINT) {
     box.posSize.height = 98.0f;
     btn1 = UIButton(gState, Rectangle{ 0.0f, 2.0f, 146.0f, 30.0f }, "New Category");
-    btn2 = UIButton(gState, Rectangle{ 0.0f, 34.0f, 146.0f, 30.0f }, "New Attribute");
+    btn2 = UIButton(gState, Rectangle{ 0.0f, 34.0f, 146.0f, 30.0f }, "Edit Category");
     btn3 = UIButton(gState, Rectangle{ 0.0f, 66.0f, 146.0f, 30.0f }, "Delete Category");
   }
 }

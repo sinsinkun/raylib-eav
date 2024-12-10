@@ -44,33 +44,17 @@ void EavEntity::fillBody() {
     DbI::EavItem v = values[i];
     std::string str = v.attr + ": ";
     if (v.allow_multiple) str = v.attr + ":: ";
-    switch (v.value_type) {
-      case DbI::INT:
-        if (v.int_value == 0) {
-          str += "-";
-        } else {
-          str += std::to_string(v.int_value);
-          if (v.value_unit != "") str += " " + v.value_unit; 
-        }
-        break;
-      case DbI::FLOAT:
-        if (v.float_value == 0.0f) {
-          str += "-";
-        } else {
-          str += std::to_string(v.float_value);
-          if (v.value_unit != "") str += " " + v.value_unit; 
-        }
-        break;
-      case DbI::BOOL:
-        str += v.bool_value ? "Yes" : "No";
-        break;
-      default:
-        str += v.str_value == "" ? "-" : v.str_value;
-        break;
+    if (v.value_type == DbI::BOOL && v.bool_value) {
+      str += "Yes";
+    } else if (v.value_type == DbI::BOOL && !v.bool_value) {
+      str += v.str_value.empty() ? "-" : "No";
+    } else {
+      str += v.str_value.empty() ? "-" : v.str_value;
+      if (v.value_unit != "") str += " " + v.value_unit;
     }
     // cut long strings down
-    if (str.length() * box.bodyFontSize > box.posSize.width * 2.2) {
-      int maxCharsPerRow = (2.2 * box.posSize.width) / box.bodyFontSize;
+    if (str.length() * box.bodyFontSize > box.posSize.width * 2.0f) {
+      int maxCharsPerRow = (2.0f * box.posSize.width) / box.bodyFontSize;
       std::vector<std::string> strArr = str_split_length(str, maxCharsPerRow);
       for (std::string s : strArr) box.body.push_back(s);
     } else {

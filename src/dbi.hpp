@@ -59,6 +59,7 @@ namespace DbI {
       // fetch entries
       DbResponse<EavItem> get_one(EavItemType type, int id);
       EavResponse get_blueprints();
+      EavResponse get_blueprint_attrs(int id);
       EavResponse get_blueprint_entities(int id);
       EavResponse get_entity_values(int id);
       EavResponse get_entities_like(std::string query);

@@ -170,6 +170,7 @@ EavResponse DbInterface::_exec_get_eav(std::string query, EavItemType type) {
         bool conversion_failed = false;
         if (vPtr != NULL) {
           std::string strv = reinterpret_cast<const char*>(vPtr);
+          item.str_value = strv;
           switch (item.value_type) {
             case INT:
               try {
@@ -188,11 +189,13 @@ EavResponse DbInterface::_exec_get_eav(std::string query, EavItemType type) {
             case BOOL:
               if (strv == "true" || strv == "TRUE" || strv == "1") {
                 item.bool_value = true;
+                item.str_value = "true";
+              } else if (strv == "false" || strv == "FALSE" || strv == "0") {
+                item.str_value = "false";
               }
               break;
             case STR:
             default:
-              item.str_value = strv;
               break;
           }
         }
@@ -627,6 +630,25 @@ DbResponse<EavItem> DbInterface::get_one(EavItemType type, int id) {
 EavResponse DbInterface::get_blueprints() {
   std::string query = "SELECT * FROM eav_blueprints;";
   EavResponse res = _exec_get_eav(query, EavItemType::BLUEPRINT);
+  return res;
+}
+
+EavResponse DbInterface::get_blueprint_attrs(int id) {
+  bool exists = _row_exists(BLUEPRINT, id);
+  if (!exists) {
+    std::vector<EavItem> vec;
+    EavResponse res = DbResponse(vec);
+    res.code = 1;
+    res.msg = "Blueprint does not exist";
+    return res;
+  }
+  std::string query = "SELECT b.id as blueprint_id, b.blueprint, " \
+    "a.id as attr_id, a.attr, a.value_type, a.allow_multiple, a.value_unit " \
+    "FROM eav_blueprints b " \
+    "INNER JOIN eav_ba_links ba ON ba.blueprint_id = b.id " \
+    "INNER JOIN eav_attrs a ON ba.attr_id = a.id " \
+    "WHERE b.id = " + std::to_string(id);
+  EavResponse res = _exec_get_eav(query, EavItemType::VIEW);
   return res;
 }
 

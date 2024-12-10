@@ -13,11 +13,12 @@ EnhancedInput::EnhancedInput(UIState* globalState, Rectangle bounds) : UIInput(g
 };
 
 // right aligned input
-EnhancedInput::EnhancedInput(UIState* globalState, Rectangle bounds, std::string labl, int id) : UIInput(globalState, bounds) {
+EnhancedInput::EnhancedInput(UIState* globalState, Rectangle bounds, std::string labl, int id1, int id2) : UIInput(globalState, bounds) {
   posSize.x = bounds.x + 180.0f;
   posSize.width = 200.0f;
   label = labl;
-  attrId = id;
+  attrId = id1;
+  valueId = id2;
 }
 
 // update position relative to box

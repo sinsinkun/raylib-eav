@@ -120,7 +120,7 @@ namespace App {
     public:
       EnhancedInput(UIState* globalState) : UIInput(globalState) {};
       EnhancedInput(UIState* globalState, Rectangle bounds);
-      EnhancedInput(UIState* globalState, Rectangle bounds, std::string label, int id);
+      EnhancedInput(UIState* globalState, Rectangle bounds, std::string label, int attrId, int valueId);
       int attrId = 0;
       int valueId = 0;
       float botMargin = 5.0f;

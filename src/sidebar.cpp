@@ -3,6 +3,7 @@
 #include <string>
 #include <raylib.h>
 #include "app.hpp"
+#include "dbi.hpp"
 
 using namespace App;
 
@@ -15,6 +16,7 @@ SideBar::SideBar(UIState* globalState, DbI::DbInterface* dbi, Rectangle scrn) {
   box.boxColor = clr;
   box.boxHoverColor = clr;
   box.title = "Test";
+  box.shadowColor = Color { 0, 0, 0, 100 };
 
   closeBtn = UIButton(
     globalState,
@@ -68,9 +70,9 @@ int SideBar::update() {
   // handle buttons
   yOffset += 20.0f;
   int actioned = 0;
-  btn1.posSize.x = box.posSize.x + 20.0f;
+  btn1.posSize.x = box.posSize.x + 50.0f;
   btn1.posSize.y = yOffset;
-  btn2.posSize.x = box.posSize.x + box.posSize.width - 120.0f;
+  btn2.posSize.x = box.posSize.x + box.posSize.width - 150.0f;
   btn2.posSize.y = yOffset;
   if (btn1.update()) actioned = 1;
   if (btn2.update()) actioned = 2;
@@ -114,20 +116,23 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     // input for blueprint name
     EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
     in1.placeholder = "New Category Name";
-    // input for attributes
     inputs.push_back(in1);
     btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Add New");
     btn1.renderBorder = true;
+    btn2.state = NULL;
   }
   else if (act == EDIT_BLUEPRINT) {
     box.title = "Edit ";
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
+    // todo: add attributes
+    // todo: remove attributes
   }
   else if (act == DEL_BLUEPRINT) {
     box.title = "Delete ";
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
     box.title += "?";
     btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "TODO");
+    btn2.state = NULL;
   }
   else if (act == NEW_ENTITY) {
     box.title = "Add to ";
@@ -136,18 +141,84 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
     in1.placeholder = "New Entity Name";
     in1.botMargin = 20.0f;
-    // input for attributes
-    // todo: load attributes for entity
-    EnhancedInput in2 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f }, "-", 1);
-    in2.placeholder = "Commercial";
     inputs.push_back(in1);
-    inputs.push_back(in2);
-    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Update");
+    // inputs for attributes
+    DbI::EavResponse aRes = db->get_blueprint_attrs(blueprintId);
+    if (aRes.code != 0) {
+      std::cout << aRes.msg << std::endl;
+      return;
+    }
+    for (int i=0; i<aRes.data.size(); i++) {
+      std::string label = aRes.data[i].attr;
+      if (aRes.data[i].allow_multiple) label += " (+)";
+      EnhancedInput ini = EnhancedInput(
+        box.state,
+        Rectangle{ x0, 120.0f + i * 35.0f, 400.0f, 30.0f },
+        label,
+        aRes.data[i].attr_id,
+        0
+      );
+      ini.placeholder = "Enter Value Here";
+      inputs.push_back(ini);
+    }
+    btn1 = UIButton(box.state, { x0 + 50.0f, 650.0f, 100.0f, 30.0f }, "Add New");
     btn1.renderBorder = true;
+    btn2.state = NULL;
   }
   else if (act == EDIT_ENTITY) {
-    box.title = "Update ";
-    box.title += mTxt.empty() ? "(Unknown)" : mTxt;
+    box.title = "Update Entity";
+    // input for entity name
+    EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
+    in1.placeholder = "Entity Name";
+    in1.input = mTxt;
+    in1.botMargin = 20.0f;
+    inputs.push_back(in1);
+    // inputs for attributes
+    DbI::EavResponse vRes = db->get_entity_values(entityId);
+    if (vRes.code != 0) {
+      std::cout << vRes.msg << std::endl;
+      return;
+    }
+    std::vector<EnhancedInput> filledMultiAttrs;
+    std::vector<int> fmaIds;
+    for (int i=0; i<vRes.data.size(); i++) {
+      std::string label = vRes.data[i].attr;
+      if (!vRes.data[i].value_unit.empty()) label += " (" + vRes.data[i].value_unit + ")";
+      EnhancedInput ini = EnhancedInput(
+        box.state,
+        Rectangle{ x0, 120.0f + i * 35.0f, 400.0f, 30.0f },
+        label,
+        vRes.data[i].attr_id,
+        vRes.data[i].value_id
+      );
+      ini.placeholder = "Enter Value Here";
+      ini.input = vRes.data[i].str_value;
+      inputs.push_back(ini);
+      // append to fma items that allow multiple
+      if (vRes.data[i].allow_multiple && vRes.data[i].value_id != 0) {
+        bool addFma = true;
+        for (int id : fmaIds) {
+          if (id == vRes.data[i].attr_id) addFma = false;
+        }
+        if (addFma) {
+          fmaIds.push_back(vRes.data[i].attr_id);
+          EnhancedInput inf = EnhancedInput(
+            box.state,
+            Rectangle{ x0, 120.0f + i * 35.0f, 400.0f, 30.0f },
+            label,
+            vRes.data[i].attr_id,
+            0
+          );
+          filledMultiAttrs.push_back(inf);
+        }
+      }
+    }
+    for (int i=0; i<filledMultiAttrs.size(); i++) {
+      inputs.push_back(filledMultiAttrs[i]);
+    }
+    btn1 = UIButton(box.state, { x0 + 50.0f, 650.0f, 100.0f, 30.0f }, "Update");
+    btn1.renderBorder = true;
+    btn2.state = NULL;
   }
   else if (act == DEL_ENTITY) {
     box.title = "Delete ";
