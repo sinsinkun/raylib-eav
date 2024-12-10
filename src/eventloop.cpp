@@ -39,26 +39,19 @@ void EventLoop::update() {
     _handleOption(&menu, menuAction);
     menu.isVisible = false;
   }
-  // update dialog box
-  if (dialog.update()) {
-    _handleDialogEvent(&dialog);
-  }
   // update categories
   int sortIndex = -1;
   for (int i=categories.size()-1; i >= 0; i--) {
     // handler for "add new" button
     if (categories[i].id == -10) {
       if (categories[i].update()) {
-        dialog.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
-        dialog.show(true, 0);
         sideBar.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
+        sideBar.open = true;
       }
       break;
     }
     if (categories[i].update()) {
       _fetchCategory(categories[i].id);
-      dialog.changeDialog(NEW_ENTITY, categories[i].name, categories[i].id, 0, 0, 0);
-      dialog.show(true, 0);
       sideBar.changeDialog(NEW_ENTITY, categories[i].name, categories[i].id, 0, 0, 0);
     }
     if (uiGlobal.uiIsRClicked(categories[i].btn.id)) {
@@ -84,13 +77,12 @@ void EventLoop::update() {
   sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
     if (entities[i].update()) {
-      dialog.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
-      dialog.show(true, 0);
-      sideBar.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
+      sideBar.changeDialog(EDIT_ENTITY, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
       sortIndex = i;
     }
     if (uiGlobal.uiIsRClicked(entities[i].box.id)) {
       menu = OptionsMenu(&uiGlobal, OP_ENTITY);
+      menu.metaText = entities[i].name;
       menu.blueprintId = entities[i].blueprintId;
       menu.entityId = entities[i].id;
       menu.open();
@@ -120,7 +112,6 @@ void EventLoop::render() {
     for (int i=0; i < categories.size(); i++) {
       categories[i].render();
     }
-    dialog.render();
     menu.render();
     errBox.render();
     // draw FPS overlay
@@ -383,36 +374,30 @@ void EventLoop::_handleDialogEvent(DialogBox* d) {
 
 void EventLoop::_handleOption(OptionsMenu* menu, int action)  {
   if (menu->parent == OP_ENTITY) {
-    // delete entity
     if (action == 1 && menu->entityId != 0) {
-      DbI::DbResponse res = dbInterface.delete_all_entity_values(menu->entityId);
-      if (res.code != 0) {
-        errBox.setError(res.msg);
-        return;
-      }
-      res = dbInterface.delete_any(DbI::EavItemType::ENTITY, menu->entityId);
-      if (res.code != 0) {
-        errBox.setError(res.msg);
-        return;
-      }
-      _fetchCategory(menu->blueprintId);
+      sideBar.changeDialog(EDIT_ENTITY, menu->metaText, menu->blueprintId, menu->entityId, 0, 0);
+      sideBar.open = true;
+    }
+    if (action == 2 && menu->entityId != 0) {
+      sideBar.changeDialog(DEL_ENTITY, menu->metaText, menu->blueprintId, menu->entityId, 0, 0);
+      sideBar.open = true;
     }
   }
   if (menu->parent == OP_BLUEPRINT) {
     // new blueprint
     if (action == 1) {
-      dialog.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
       sideBar.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
+      sideBar.open = true;
     }
     // open dialog for new attr
     if (action == 2 && menu->blueprintId != 0) {
-      dialog.changeDialog(NEW_ATTR, menu->metaText, menu->blueprintId, 0, 0, 0);
-      sideBar.changeDialog(NEW_ATTR, menu->metaText, menu->blueprintId, 0, 0, 0);
+      sideBar.changeDialog(EDIT_BLUEPRINT, menu->metaText, menu->blueprintId, 0, 0, 0);
+      sideBar.open = true;
     }
     // delete blueprint
     if (action == 3 && menu->blueprintId != 0) {
-      std::string msg = "Cannot delete categories (yet): " + std::to_string(menu->blueprintId);
-      errBox.setError(msg);
+      sideBar.changeDialog(DEL_BLUEPRINT, menu->metaText, menu->blueprintId, 0, 0, 0);
+      sideBar.open = true;
     }
   }
 }

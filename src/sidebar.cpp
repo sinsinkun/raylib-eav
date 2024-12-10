@@ -67,16 +67,17 @@ int SideBar::update() {
   
   // handle buttons
   yOffset += 20.0f;
+  int actioned = 0;
   btn1.posSize.x = box.posSize.x + 20.0f;
   btn1.posSize.y = yOffset;
   btn2.posSize.x = box.posSize.x + box.posSize.width - 120.0f;
   btn2.posSize.y = yOffset;
-  btn1.update();
-  btn2.update();
+  if (btn1.update()) actioned = 1;
+  if (btn2.update()) actioned = 2;
   if (closeBtn.update()) open = !open;
 
   box.update();
-  return 0;
+  return actioned;
 }
 
 void SideBar::render() {
@@ -110,23 +111,32 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
   float x0 = box.posSize.x;
   if (act == NEW_BLUEPRINT) {
     box.title = "New Category";
+    // input for blueprint name
     EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
     in1.placeholder = "New Category Name";
+    // input for attributes
     inputs.push_back(in1);
     btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Add New");
     btn1.renderBorder = true;
   }
-  else if (act == NEW_ATTR || act == EDIT_BLUEPRINT) {
+  else if (act == EDIT_BLUEPRINT) {
     box.title = "Edit ";
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
+  }
+  else if (act == DEL_BLUEPRINT) {
+    box.title = "Delete ";
+    box.title += mTxt.empty() ? "(Unknown)" : mTxt;
+    box.title += "?";
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "TODO");
   }
   else if (act == NEW_ENTITY) {
     box.title = "Add to ";
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
-
+    // input for entity name
     EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
     in1.placeholder = "New Entity Name";
     in1.botMargin = 20.0f;
+    // input for attributes
     // todo: load attributes for entity
     EnhancedInput in2 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f }, "-", 1);
     in2.placeholder = "Commercial";
@@ -135,9 +145,15 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Update");
     btn1.renderBorder = true;
   }
-  else if (act == NEW_VALUE || act == EDIT_ENTITY) {
+  else if (act == EDIT_ENTITY) {
     box.title = "Update ";
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
+  }
+  else if (act == DEL_ENTITY) {
+    box.title = "Delete ";
+    box.title += mTxt.empty() ? "(Unknown)" : mTxt;
+    box.title += "?";
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "TODO");
   }
   else {
     box.title = "Unknown Menu";
