@@ -26,4 +26,8 @@ void UIButton::render() {
     float txtY = posSize.y + (posSize.height - txtDim.y) / 2.0f;
     DrawTextEx(state->font, text.c_str(), Vector2{ txtX, txtY }, fontSize, 0.0, txtColor);
   }
+  // draw border
+  if (renderBorder) {
+    DrawRectangleLinesEx(posSize, 1.0f, borderColor);
+  }
 }

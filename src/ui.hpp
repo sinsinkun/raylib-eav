@@ -91,12 +91,14 @@ namespace App {
       UIState* state = NULL;
       int id = 0;
       std::string text = "";
+      bool renderBorder = false;
       Rectangle posSize = { 0.0f, 0.0f, 100.0f, 30.0f };
       float fontSize = 18.0f;
       Color btnColor = LIGHTGRAY;
       Color btnHoverColor = Color { 220, 220, 220, 255 };
       Color btnDownColor = Color { 230, 230, 240, 255 };
       Color txtColor = BLACK;
+      Color borderColor = BLACK;
       bool update();
       void render();
   };

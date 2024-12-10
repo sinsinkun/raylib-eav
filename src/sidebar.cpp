@@ -9,7 +9,7 @@ using namespace App;
 SideBar::SideBar(UIState* globalState, DbI::DbInterface* dbi, Rectangle scrn) {
   db = dbi;
   box = UIBox(globalState);
-  box.posSize = { 1200.0f - scrn.width, 80.0f, scrn.width, scrn.height - 80.0f };
+  box.posSize = { 1200.0f, 80.0f, scrn.width, scrn.height - 80.0f };
   box.hideHover = true;
   Color clr = Color { 180, 180, 180, 255 };
   box.boxColor = clr;
@@ -18,7 +18,7 @@ SideBar::SideBar(UIState* globalState, DbI::DbInterface* dbi, Rectangle scrn) {
 
   closeBtn = UIButton(
     globalState,
-    Rectangle { 1200.0f-scrn.width-20.0f, scrn.height/2.0f-20.0f, 21.0f, 80.0f },
+    Rectangle { 1200.0f - 20.0f, scrn.height/2.0f - 20.0f, 21.0f, 80.0f },
     "+"
   );
   closeBtn.fontSize = 12.0f;
@@ -69,7 +69,7 @@ int SideBar::update() {
   yOffset += 20.0f;
   btn1.posSize.x = box.posSize.x + 20.0f;
   btn1.posSize.y = yOffset;
-  btn2.posSize.x = box.posSize.x + box.posSize.width - 80.0f;
+  btn2.posSize.x = box.posSize.x + box.posSize.width - 120.0f;
   btn2.posSize.y = yOffset;
   btn1.update();
   btn2.update();
@@ -94,6 +94,8 @@ void SideBar::render() {
   DrawLineEx(p1, p2, 1.5f, box.borderColor);
   DrawLineEx(p1, p3, 1.5f, box.borderColor);
   DrawLineEx(p3, p4, 1.5f, box.borderColor);
+  btn1.render();
+  btn2.render();
 }
 
 void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId, int aId, int vId) {
@@ -111,7 +113,8 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
     in1.placeholder = "New Category Name";
     inputs.push_back(in1);
-    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 80.0f, 30.0f }, "Add");
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Add New");
+    btn1.renderBorder = true;
   }
   else if (act == NEW_ATTR || act == EDIT_BLUEPRINT) {
     box.title = "Edit ";
@@ -129,11 +132,17 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     in2.placeholder = "Commercial";
     inputs.push_back(in1);
     inputs.push_back(in2);
-    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 80.0f, 30.0f }, "Update");
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Update");
+    btn1.renderBorder = true;
   }
   else if (act == NEW_VALUE || act == EDIT_ENTITY) {
     box.title = "Update ";
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
+  }
+  else {
+    box.title = "Unknown Menu";
+    btn1.state = NULL;
+    btn2.state = NULL;
   }
 }
 
