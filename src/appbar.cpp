@@ -9,7 +9,7 @@ AppBar::AppBar(UIState* gs, Rectangle scrn) {
   box = UIBox(gs);
   box.posSize = scrn;
   box.hideHover = true;
-  Color boxC = Color{ 29, 38, 59, 255 };
+  Color boxC = Color{ 39, 48, 79, 255 };
   box.boxColor = boxC;
   box.boxHoverColor = boxC;
   box.renderShadow = false;

@@ -10,6 +10,7 @@ namespace App {
   // specific use
   enum DialogOption {
     NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_ATTR_M,
+    EDIT_BLUEPRINT, EDIT_ENTITY,
     NEW_VALUE, NEW_VALUE_M, DEL_ENTITY, DEL_VALUE
   };
   class DialogBox {
@@ -115,6 +116,44 @@ namespace App {
       void render();
       void cleanup();
   };
+  class EnhancedInput : public UIInput {
+    public:
+      EnhancedInput(UIState* globalState) : UIInput(globalState) {};
+      EnhancedInput(UIState* globalState, Rectangle bounds);
+      EnhancedInput(UIState* globalState, Rectangle bounds, std::string label, int id);
+      int attrId = 0;
+      int valueId = 0;
+      float botMargin = 5.0f;
+      std::string label;
+      void updatePos(float boxLeft, float yOffset);
+      void render();
+  };
+  class SideBar {
+    public:
+      SideBar() {};
+      SideBar(UIState* globalState, DbI::DbInterface* db, Rectangle screenBounds);
+      DbI::DbInterface* db = NULL;
+      bool open = false;
+      DialogOption action = NO_ACTION;
+      int blueprintId = 0;
+      int entityId = 0;
+      int attrId = 0;
+      int valueId = 0;
+      UIBox box = UIBox(NULL);
+      UIButton closeBtn = UIButton(NULL);
+      UIButton btn1 = UIButton(NULL);
+      UIButton btn2 = UIButton(NULL);
+      std::vector<EnhancedInput> inputs;
+      void changeDialog(
+        DialogOption action, std::string metaText,
+        int blueprintId, int entityId, int attrId, int valueId
+      );
+      int update();
+      void render();
+      void cleanup();
+    private:
+      void clearInputs();
+  };
   class EventLoop {
     public:
       // global states
@@ -126,6 +165,7 @@ namespace App {
       OptionsMenu menu;
       ErrorBox errBox = ErrorBox(NULL);
       AppBar appBar;
+      SideBar sideBar;
       // data objects
       DbI::DbInterface dbInterface;
       std::vector<EavBlueprint> categories;

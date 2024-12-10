@@ -12,7 +12,7 @@ EavBlueprint::EavBlueprint(UIState* globalState, DbI::EavItem item, Rectangle po
   btn = UIButton(globalState, posSizeIn, item.blueprint);
   btn.btnColor = Color { 50, 74, 95, 255 };
   btn.btnHoverColor = Color { 76, 76, 76, 255 };
-  btn.btnDownColor = Color { 75, 58, 52, 255 };
+  btn.btnDownColor = Color { 35, 35, 40, 255 };
   btn.txtColor = WHITE;
 }
 

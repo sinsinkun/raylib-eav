@@ -26,6 +26,7 @@ void EventLoop::init() {
   dialog.show(false, 0);
   menu = OptionsMenu(&uiGlobal, OP_NONE);
   appBar = AppBar(&uiGlobal, Rectangle {0.0f, 0.0f, 1200.0f, 80.0f });
+  sideBar = SideBar(&uiGlobal, &dbInterface, Rectangle { 0.0f, 0.0f, 360.0f, 700.0f });
 }
 
 void EventLoop::update() {
@@ -50,6 +51,7 @@ void EventLoop::update() {
       if (categories[i].update()) {
         dialog.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
         dialog.show(true, 0);
+        sideBar.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
       }
       break;
     }
@@ -57,6 +59,7 @@ void EventLoop::update() {
       _fetchCategory(categories[i].id);
       dialog.changeDialog(NEW_ENTITY, categories[i].name, categories[i].id, 0, 0, 0);
       dialog.show(true, 0);
+      sideBar.changeDialog(NEW_ENTITY, categories[i].name, categories[i].id, 0, 0, 0);
     }
     if (uiGlobal.uiIsRClicked(categories[i].btn.id)) {
       menu = OptionsMenu(&uiGlobal, OP_BLUEPRINT);
@@ -76,12 +79,14 @@ void EventLoop::update() {
   if (appBar.update() == 1) {
     _searchEntities(appBar.searchInput.input, 0);
   };
+  sideBar.update();
   // update entities
   sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
     if (entities[i].update()) {
       dialog.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
       dialog.show(true, 0);
+      sideBar.changeDialog(NEW_VALUE, entities[i].name, entities[i].blueprintId, entities[i].id, 0, 0);
       sortIndex = i;
     }
     if (uiGlobal.uiIsRClicked(entities[i].box.id)) {
@@ -109,6 +114,7 @@ void EventLoop::render() {
     for (int i=0; i < entities.size(); i++) {
       entities[i].render();
     }
+    sideBar.render();
     appBar.render();
     // draw category buttons
     for (int i=0; i < categories.size(); i++) {
@@ -196,8 +202,6 @@ void EventLoop::_fetchCategory(int blueprintId) {
       if (categories[i].id == blueprintId) categories[i].isActive = true;
       else categories[i].isActive = false;
     }
-    // match active color
-    bgColor = Color { 75, 58, 52, 255 };
   } else {
     errBox.setError("ERR: could not find category");
   }
@@ -214,8 +218,6 @@ void EventLoop::_searchEntities(std::string q, int altId) {
     for (int i=0; i<categories.size(); i++) {
       categories[i].isActive = false;
     }
-    // reset bg color
-    bgColor = Color { 35, 35, 40, 255 };
   } else {
     errBox.setError("ERR: could not find category");
   }
@@ -400,10 +402,12 @@ void EventLoop::_handleOption(OptionsMenu* menu, int action)  {
     // new blueprint
     if (action == 1) {
       dialog.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
+      sideBar.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
     }
     // open dialog for new attr
     if (action == 2 && menu->blueprintId != 0) {
       dialog.changeDialog(NEW_ATTR, menu->metaText, menu->blueprintId, 0, 0, 0);
+      sideBar.changeDialog(NEW_ATTR, menu->metaText, menu->blueprintId, 0, 0, 0);
     }
     // delete blueprint
     if (action == 3 && menu->blueprintId != 0) {
