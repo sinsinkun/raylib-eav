@@ -81,9 +81,7 @@ namespace App {
   };
   class ErrorBox {
     public:
-      ErrorBox(UIState* globalState) {
-        state = globalState;
-      }
+      ErrorBox(UIState* globalState) { state = globalState; }
       UIState* state = NULL;
       std::string msg;
       void setError(std::string err) {
@@ -99,7 +97,7 @@ namespace App {
       };
       void render() {
         if (msg.empty() || state == NULL) return;
-        DrawTextEx(state->font, msg.c_str(), Vector2{95.0f, 10.0f}, 18.0f, 0.0f, RED);
+        DrawTextEx(state->font, msg.c_str(), Vector2{10.0f, 10.0f}, 18.0f, 0.0f, RED);
       };
     private:
       float _timer = 0.0f;
@@ -120,10 +118,11 @@ namespace App {
     public:
       EnhancedInput(UIState* globalState) : UIInput(globalState) {};
       EnhancedInput(UIState* globalState, Rectangle bounds);
-      EnhancedInput(UIState* globalState, Rectangle bounds, std::string label, int attrId, int valueId);
+      EnhancedInput(UIState* globalState, Rectangle bounds, std::string label, int attrId, DbI::EavValueType valueType, int valueId);
       int attrId = 0;
       int valueId = 0;
       float botMargin = 5.0f;
+      DbI::EavValueType valueType = DbI::NONE;
       std::string label;
       void updatePos(float boxLeft, float yOffset);
       void render();
@@ -144,10 +143,8 @@ namespace App {
       UIButton btn1 = UIButton(NULL);
       UIButton btn2 = UIButton(NULL);
       std::vector<EnhancedInput> inputs;
-      void changeDialog(
-        DialogOption action, std::string metaText,
-        int blueprintId, int entityId, int attrId, int valueId
-      );
+      void changeDialog(DialogOption action, std::string metaText,
+        int blueprintId, int entityId, int attrId, int valueId);
       int update();
       void render();
       void cleanup();
@@ -157,7 +154,6 @@ namespace App {
   class EventLoop {
     public:
       // global states
-      int fps = 0;
       Color bgColor = Color { 35, 35, 40, 255 };
       // ui objects
       UIState uiGlobal;
@@ -176,7 +172,6 @@ namespace App {
       void render();
       void cleanup(); 
     private:
-      void _updateSystem();
       void _drawFps();
       // db actions
       void _fetchAllCategories();
@@ -184,7 +179,7 @@ namespace App {
       void _fetchCategory(int blueprintId);
       void _searchEntities(std::string query, int altNameId);
       // helpers
-      void _handleDialogEvent(DialogBox* dialog);
+      void _handleSideBar(SideBar* sideBar, int action);
       void _handleOption(OptionsMenu* menu, int action);
   };
   // util functions

@@ -30,7 +30,6 @@ void EventLoop::init() {
 }
 
 void EventLoop::update() {
-  _updateSystem();
   // update global state
   uiGlobal.update();
   // update all components backwards -> first click event is the last component rendered
@@ -72,7 +71,10 @@ void EventLoop::update() {
   if (appBar.update() == 1) {
     _searchEntities(appBar.searchInput.input, 0);
   };
-  sideBar.update();
+  int sideBarAction = sideBar.update();
+  if (sideBarAction > 0) {
+    _handleSideBar(&sideBar, sideBarAction);
+  }
   // update entities
   sortIndex = -1;
   for (int i=entities.size()-1; i >= 0; i--) {
@@ -126,11 +128,8 @@ void EventLoop::cleanup() {
   dbInterface.disconnect();
 }
 
-void EventLoop::_updateSystem() {
-  fps = GetFPS();
-}
-
 void EventLoop::_drawFps() {
+  int fps = GetFPS();
   std::string fpst = std::to_string(fps);
   std::string fpstxt = "FPS: ";
   fpstxt.append(fpst);
@@ -239,136 +238,99 @@ bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
   }
 }
 
-void EventLoop::_handleDialogEvent(DialogBox* d) {
-  DialogOption dAction = d->activeDialog;
-  if (dAction == NEW_BLUEPRINT) {
-    if (d->input.input.empty()) {
-      errBox.setError("ERR: No name provided");
+void EventLoop::_handleSideBar(SideBar* sb, int btn) {
+  if (sb->action == NEW_BLUEPRINT) {
+    // new blueprint
+  }
+  else if (sb->action == EDIT_BLUEPRINT) {
+    // edit blueprint
+  }
+  else if (sb->action == DEL_BLUEPRINT) {
+    // del blueprint
+  }
+  else if (sb->action == NEW_ATTR) {
+    // new attr
+  }
+  else if (sb->action == NEW_ENTITY || sb->action == EDIT_ENTITY) {
+    if (sb->blueprintId == 0) {
+      std::string msg = "Missing blueprint id";
+      std::cout << msg << std::endl;
+      errBox.setError(msg);
       return;
     }
-    std::string name = trim_space(d->input.input);
-    DbI::DbResponse res = dbInterface.new_blueprint(name);
-    if (res.code == 0) {
-      d->input.clear();
-      _fetchAllCategories();
+    DbResponse res = DbResponse(0);
+    // create/update new entity
+    if (sb->entityId == 0) {
+      res = dbInterface.new_entity(sb->inputs[0].input, sb->blueprintId);
+      sb->entityId = res.data;
     } else {
-      errBox.setError(res.msg);
+      res = dbInterface.update_entity(sb->entityId, sb->blueprintId, sb->inputs[0].input);
     }
-  } else if (dAction == NEW_ENTITY) {
-    if (d->input.input.empty()) {
-      errBox.setError("ERR: No name provided");
-      return;
-    }
-    std::string name = trim_space(d->input.input);
-    DbI::DbResponse res = dbInterface.new_entity(name, d->blueprintId);
-    if (res.code == 0) {
-      d->input.clear();
-      _fetchCategory(d->blueprintId);
-    } else {
-      errBox.setError(res.msg);
-    }
-  } else if (dAction == DEL_ENTITY) {
-    DbI::DbResponse res = dbInterface.delete_all_entity_values(d->entityId);
     if (res.code != 0) {
+      std::cout << res.msg << std::endl;
       errBox.setError(res.msg);
       return;
     }
-    res = dbInterface.delete_any(DbI::EavItemType::ENTITY, d->entityId);
-    if (res.code != 0) {
-      errBox.setError(res.msg);
-      return;
-    }
-    d->input.clear();
-    _fetchCategory(d->blueprintId);
-    d->show(false, 0);
-  } else if (dAction == NEW_ATTR || dAction == NEW_ATTR_M) {
-    bool allowMultiple = dAction == NEW_ATTR_M;
-    std::string attrInput = trim_space(d->input.input);
-    std::vector<std::string> valueInput = str_split(d->input2.input, "-");
-    DbI::EavValueType vt = DbI::str_to_value_type(trim_space(valueInput.at(0)));
-    std::string unit = valueInput.size() > 1 ? trim_space(valueInput.at(1)) : "";
-    if (vt == DbI::NONE) {
-      errBox.setError("ERR: Invalid value type");
-      return;
-    }
-    DbI::DbResponse res = dbInterface.new_attr_for_blueprint(
-      d->blueprintId, attrInput, vt, allowMultiple, unit
-    );
-    if (res.code == 0) {
-      d->input.clear();
-      d->input2.clear();
-      _fetchCategory(d->blueprintId);
-    } else {
-      errBox.setError(res.msg);
-    }
-  } else if (dAction == NEW_VALUE || dAction == NEW_VALUE_M) {
-    // match up attr string to attr id
-    std::string attrInput = trim_space(d->input.input);
-    std::string valueInput = trim_space(d->input2.input);
-    if (attrInput.empty()) {
-      errBox.setError("ERR: No attribute provided");
-      return;
-    }
-    if (valueInput.empty()) {
-      errBox.setError("ERR: No value provided");
-      return;
-    }
-    EavEntity* ent = NULL;
-    for (int i=0; i<entities.size(); i++) {
-      if (entities[i].id == d->entityId) {
-        ent = &entities[i];
+    // validate attr/value data
+    std::string err;
+    for (int i=1; i<sb->inputs.size(); i++) {
+      if (sb->inputs[i].attrId == 0) {
+        err = "ERR: attrId for field " + std::to_string(i) + " not provided";
+        break;
+      }
+      if (!_valueTypeIsValid(sb->inputs[i].input, sb->inputs[i].valueType)) {
+        err = "ERR: value for field" + std::to_string(i) + " not valid";
         break;
       }
     }
-    if (ent == NULL) {
-      errBox.setError("ERR: Entity not found");
+    if (!err.empty()) {
+      std::cout << err << std::endl;
+      errBox.setError(err);
       return;
     }
-    EavItem* attr = NULL;
-    for (int i=0; i<ent->values.size(); i++) {
-      if (ent->values[i].attr == attrInput) {
-        attr = &ent->values[i];
-        break;
+    // update attrs for entity
+    for (int i=1; i<sb->inputs.size(); i++) {
+      // skip empty inputs
+      if (sb->inputs[i].input.empty()) continue;
+      int attrId = sb->inputs[i].attrId;
+      int valueId = sb->inputs[i].valueId;
+      if (attrId != 0 && valueId == 0) {
+        res = dbInterface.new_value(sb->entityId, attrId, sb->inputs[i].input);
+      } else if (valueId != 0) {
+        res = dbInterface.update_value(valueId, sb->inputs[i].input);
       }
-    }
-    if (attr == NULL) {
-      errBox.setError("ERR: Attribute not found");
-      return;
-    }
-    if (attr->value_type == DbI::BOOL) {
-      if (valueInput == "yes" || valueInput == "Yes") valueInput = "true";
-      if (valueInput == "no" || valueInput == "No") valueInput = "false";
-    }
-    // validate value type
-    if (!_valueTypeIsValid(valueInput, attr->value_type)) {
-      errBox.setError("ERR: Value not matching value type");
-      return;
-    }
-    // submit to db
-    DbI::DbResponse res = DbI::DbResponse(0);
-    if (attr->value_id == 0 || (dAction == NEW_VALUE_M && attr->allow_multiple)) {
-      res = dbInterface.new_value(ent->id, attr->attr_id, valueInput);
-    } else {
-      res = dbInterface.update_value(attr->value_id, valueInput);
-    }
-    if (res.code == 0) {
-      if (!attr->allow_multiple) d->input.clear();
-      d->input2.clear();
-      // fetch new values
-      DbI::EavResponse entRes = dbInterface.get_entity_values(ent->id);
-      if (entRes.code == 0) {
-        ent->values = entRes.data;
-        ent->fillBody();
-      } else {
-        errBox.setError(entRes.msg);
+      if (res.code != 0) {
+        std::cout << res.msg << std::endl;
+        errBox.setError(res.msg);
+        return;
       }
-    } else {
+      if (valueId == 0) sb->inputs[i].valueId = res.data;
+    }
+    // refresh data
+    _fetchCategory(sb->blueprintId);
+    sb->changeDialog(EDIT_ENTITY, sb->inputs[0].input, sb->blueprintId, sb->entityId, 0, 0);
+  }
+  else if (sb->action == DEL_ENTITY) {
+    if (sb->entityId == 0) {
+      std::string msg = "Missing entity id";
+      std::cout << msg << std::endl;
+      errBox.setError(msg);
+      return;
+    }
+    // delete values for entity
+    DbResponse res = dbInterface.delete_all_entity_values(sb->entityId);
+    if (res.code != 0) {
+      std::cout << res.msg << std::endl;
       errBox.setError(res.msg);
+      return;
     }
-  } else if (dAction == DEL_VALUE) {
-    // todo: match up attr string to attr id
-    // todo: validate value type
-    // todo: submit to db
+    // delete entity
+    res = dbInterface.delete_any(DbI::ENTITY, sb->entityId);
+    if (res.code != 0) {
+      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
+      return;
+    }
   }
 }
 
@@ -384,17 +346,14 @@ void EventLoop::_handleOption(OptionsMenu* menu, int action)  {
     }
   }
   if (menu->parent == OP_BLUEPRINT) {
-    // new blueprint
     if (action == 1) {
       sideBar.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
       sideBar.open = true;
     }
-    // open dialog for new attr
     if (action == 2 && menu->blueprintId != 0) {
       sideBar.changeDialog(EDIT_BLUEPRINT, menu->metaText, menu->blueprintId, 0, 0, 0);
       sideBar.open = true;
     }
-    // delete blueprint
     if (action == 3 && menu->blueprintId != 0) {
       sideBar.changeDialog(DEL_BLUEPRINT, menu->metaText, menu->blueprintId, 0, 0, 0);
       sideBar.open = true;

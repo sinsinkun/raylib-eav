@@ -23,7 +23,7 @@ SideBar::SideBar(UIState* globalState, DbI::DbInterface* dbi, Rectangle scrn) {
     Rectangle { 1200.0f - 20.0f, scrn.height/2.0f - 20.0f, 21.0f, 80.0f },
     "+"
   );
-  closeBtn.fontSize = 12.0f;
+  closeBtn.fontSize = 14.0f;
   closeBtn.btnColor = clr;
   closeBtn.btnHoverColor = clr;
 }
@@ -116,7 +116,9 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     // input for blueprint name
     EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
     in1.placeholder = "New Category Name";
+    in1.botMargin = 20.0f;
     inputs.push_back(in1);
+
     btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Add New");
     btn1.renderBorder = true;
     btn2.state = NULL;
@@ -126,11 +128,18 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
     // todo: add attributes
     // todo: remove attributes
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Add New");
+    btn1.renderBorder = true;
+    btn2.state = NULL;
   }
   else if (act == DEL_BLUEPRINT) {
     box.title = "Delete ";
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
     box.title += "?";
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "TODO");
+    btn2.state = NULL;
+  }
+  else if (act == NEW_ATTR) {
     btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "TODO");
     btn2.state = NULL;
   }
@@ -150,12 +159,13 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     }
     for (int i=0; i<aRes.data.size(); i++) {
       std::string label = aRes.data[i].attr;
-      if (aRes.data[i].allow_multiple) label += " (+)";
+      if (aRes.data[i].allow_multiple) label += " +";
       EnhancedInput ini = EnhancedInput(
         box.state,
         Rectangle{ x0, 120.0f + i * 35.0f, 400.0f, 30.0f },
         label,
         aRes.data[i].attr_id,
+        aRes.data[i].value_type,
         0
       );
       ini.placeholder = "Enter Value Here";
@@ -189,6 +199,7 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
         Rectangle{ x0, 120.0f + i * 35.0f, 400.0f, 30.0f },
         label,
         vRes.data[i].attr_id,
+        vRes.data[i].value_type,
         vRes.data[i].value_id
       );
       ini.placeholder = "Enter Value Here";
@@ -207,6 +218,7 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
             Rectangle{ x0, 120.0f + i * 35.0f, 400.0f, 30.0f },
             label,
             vRes.data[i].attr_id,
+            vRes.data[i].value_type,
             0
           );
           filledMultiAttrs.push_back(inf);

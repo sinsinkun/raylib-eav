@@ -43,7 +43,6 @@ void EavEntity::fillBody() {
   for (int i=0; i<values.size(); i++) {
     DbI::EavItem v = values[i];
     std::string str = v.attr + ": ";
-    if (v.allow_multiple) str = v.attr + ":: ";
     if (v.value_type == DbI::BOOL && v.bool_value) {
       str += "Yes";
     } else if (v.value_type == DbI::BOOL && !v.bool_value) {

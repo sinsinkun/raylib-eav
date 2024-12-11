@@ -46,7 +46,7 @@ void UIState::postUpdate() {
     holdIds.clear();
   }
   // update mouse state
-  if (clickId != 0 || (!invisHover && hoverId != 0)) {
+  if (!invisHover && (clickId != 0 || hoverId != 0)) {
     SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
   } else {
     SetMouseCursor(MOUSE_CURSOR_DEFAULT);
