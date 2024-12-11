@@ -20,10 +20,12 @@ removing the need for running a separate MySQL instance in the background.
 - units can be added by inputting the unit in the value type box separated by "-" (e.g. "float - kgs");
 
 ### Future Ideas
-- confirmation modal for deletion
 - deleting values from entities
-- differentiating null values from false/0/0.0f
-- more search options (one category only, display category on entity, search by attr value)
+- more search options
+  - single category search
+  - display category on entity
+  - search by attr value
+  - comparison operators
 
 
 ## Installation (with MSYS2)

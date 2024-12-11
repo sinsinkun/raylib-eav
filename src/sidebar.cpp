@@ -86,7 +86,12 @@ int SideBar::update() {
   btn2.posSize.x = box.posSize.x + box.posSize.width - 150.0f;
   btn2.posSize.y = yOffset;
   if (btn1.update()) actioned = 1;
-  if (btn2.update()) actioned = 2;
+  if (btn2.update()) {
+    actioned = 2;
+    if (action == NEW_BLUEPRINT || action == EDIT_BLUEPRINT) {
+      changeDialog(NEW_ATTR, "", blueprintId, entityId, attrId, valueId);
+    }
+  }
   if (closeBtn.update()) open = !open;
 
   box.update();
@@ -149,7 +154,8 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     }
     btn1 = UIButton(box.state, { x0 + 50.0f, 600.0f, 100.0f, 30.0f }, "Add New");
     btn1.renderBorder = true;
-    btn2.state = NULL;
+    btn2 = UIButton(box.state, { x0 + 250.0f, 600.0f, 100.0f, 30.0f }, "Add Attr");
+    btn2.renderBorder = true;
   }
   else if (act == EDIT_BLUEPRINT) {
     box.title = "Edit ";
@@ -190,18 +196,31 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     }
     btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Update");
     btn1.renderBorder = true;
-    btn2.state = NULL;
+    btn2 = UIButton(box.state, { x0 + 250.0f, 600.0f, 100.0f, 30.0f }, "Add Attr");
+    btn2.renderBorder = true;
   }
   else if (act == DEL_BLUEPRINT) {
     box.title = "Delete ";
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
     box.title += "?";
-    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "TODO");
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Confirm");
+    btn1.renderBorder = true;
     btn2.state = NULL;
   }
   else if (act == NEW_ATTR) {
-    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "TODO");
-    btn2.state = NULL;
+    box.title = "New Attribute";
+    // input for blueprint name
+    EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
+    in1.placeholder = "New Attribute Name";
+    in1.botMargin = 20.0f;
+    inputs.push_back(in1);
+    // select type
+    // select allow_multiple
+    // set unit
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Add New");
+    btn1.renderBorder = true;
+    btn2 = UIButton(box.state, { x0 + 250.0f, 600.0f, 100.0f, 30.0f }, "Cancel");
+    btn2.renderBorder = true;
   }
   else if (act == NEW_ENTITY) {
     box.title = "Add to ";
@@ -296,12 +315,15 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     box.title = "Delete ";
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
     box.title += "?";
-    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "TODO");
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Confirm");
+    btn1.renderBorder = true;
+    btn2.state = NULL;
   }
   else {
-    box.title = "Unknown Menu";
+    box.title = "--";
     btn1.state = NULL;
     btn2.state = NULL;
+    open = false;
   }
 }
 

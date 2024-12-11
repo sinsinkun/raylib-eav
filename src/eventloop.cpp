@@ -239,19 +239,25 @@ bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
 }
 
 void EventLoop::_handleSideBar(SideBar* sb, int btn) {
-  if (sb->action == NEW_BLUEPRINT) {
+  if (sb->action == NEW_BLUEPRINT && btn == 1) {
     // new blueprint
+    // new/update ba_links
   }
-  else if (sb->action == EDIT_BLUEPRINT) {
+  else if (sb->action == EDIT_BLUEPRINT && btn == 1) {
     // edit blueprint
+    // new/update ba_links
   }
-  else if (sb->action == DEL_BLUEPRINT) {
-    // del blueprint
+  else if (sb->action == DEL_BLUEPRINT && btn == 1) {
+    errBox.setError("ERR: Please reconsider this action");
+    _fetchCategory(sb->blueprintId);
+    sb->changeDialog(NO_ACTION, "-", 0, 0, 0, 0);
   }
-  else if (sb->action == NEW_ATTR) {
-    // new attr
+  else if (sb->action == NEW_ATTR && btn == 1) {
+    errBox.setError("ERR: Come back later");
+    _fetchCategory(sb->blueprintId);
+    sb->changeDialog(NO_ACTION, "-", 0, 0, 0, 0);
   }
-  else if (sb->action == NEW_ENTITY || sb->action == EDIT_ENTITY) {
+  else if ((sb->action == NEW_ENTITY || sb->action == EDIT_ENTITY) && btn == 1) {
     if (sb->blueprintId == 0) {
       std::string msg = "Missing blueprint id";
       std::cout << msg << std::endl;
@@ -310,7 +316,7 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
     _fetchCategory(sb->blueprintId);
     sb->changeDialog(EDIT_ENTITY, sb->inputs[0].input, sb->blueprintId, sb->entityId, 0, 0);
   }
-  else if (sb->action == DEL_ENTITY) {
+  else if (sb->action == DEL_ENTITY && btn == 1) {
     if (sb->entityId == 0) {
       std::string msg = "Missing entity id";
       std::cout << msg << std::endl;
@@ -331,6 +337,8 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
       errBox.setError(res.msg);
       return;
     }
+    _fetchCategory(sb->blueprintId);
+    sb->changeDialog(NO_ACTION, sb->inputs[0].input, 0, 0, 0, 0);
   }
 }
 
