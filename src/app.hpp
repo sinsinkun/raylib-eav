@@ -118,7 +118,14 @@ namespace App {
     public:
       EnhancedInput(UIState* globalState) : UIInput(globalState) {};
       EnhancedInput(UIState* globalState, Rectangle bounds);
-      EnhancedInput(UIState* globalState, Rectangle bounds, std::string label, int attrId, DbI::EavValueType valueType, int valueId);
+      EnhancedInput(
+        UIState* globalState,
+        Rectangle bounds,
+        std::string label,
+        int attrId,
+        DbI::EavValueType valueType,
+        int valueId
+      );
       int attrId = 0;
       int valueId = 0;
       float botMargin = 5.0f;
@@ -126,6 +133,23 @@ namespace App {
       std::string label;
       void updatePos(float boxLeft, float yOffset);
       void render();
+  };
+  class AttrRadio : public UIRadio {
+    public:
+      AttrRadio(UIState* globalState) : UIRadio(globalState) {};
+      AttrRadio(
+        UIState* globalState,
+        Vector2 topLeft,
+        int attrId,
+        std::string attr,
+        DbI::EavValueType valueType,
+        bool allowMultiple,
+        std::string unit
+      );
+      int attrId = 0;
+      DbI::EavValueType valueType = DbI::NONE;
+      bool allowMultiple = false;
+      std::string unit;
   };
   class SideBar {
     public:

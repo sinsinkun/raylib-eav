@@ -73,7 +73,7 @@ int SideBar::update() {
     for (int i=0; i<radios.size(); i++) {
       radios[i].posSize.x = box.posSize.x + 60.0f;
       radios[i].posSize.y = yOffset;
-      yOffset += 35.0f;
+      yOffset += 30.0f;
       radios[i].update();
     }
   }
@@ -147,8 +147,15 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     for (int i=0; i<aRes.data.size(); i++) {
       if (aRes.data[i].attr_id == 0) continue;
       // generate radio button
-      std::string txt = aRes.data[i].attr + " (" + DbI::value_type_to_str(aRes.data[i].value_type) + ")";
-      UIRadio rad = UIRadio(box.state, Vector2{ x0 + 50.0f, 200.0f + i * 35.0f }, txt);
+      AttrRadio rad = AttrRadio(
+        box.state,
+        Vector2{ x0 + 50.0f, 200.0f + i * 30.0f },
+        aRes.data[i].attr_id,
+        aRes.data[i].attr,
+        aRes.data[i].value_type,
+        aRes.data[i].allow_multiple,
+        aRes.data[i].value_unit
+      );
       rad.on = !aRes.data[i].blueprint_id == 0;
       radios.push_back(rad);
     }
@@ -189,8 +196,15 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
         }
       }
       // generate radio button
-      std::string txt = aRes.data[i].attr + " (" + DbI::value_type_to_str(aRes.data[i].value_type) + ")";
-      UIRadio rad = UIRadio(box.state, Vector2{ x0 + 50.0f, 200.0f + i * 35.0f }, txt);
+      AttrRadio rad = AttrRadio(
+        box.state,
+        Vector2{ x0 + 50.0f, 200.0f + i * 30.0f },
+        aRes.data[i].attr_id,
+        aRes.data[i].attr,
+        aRes.data[i].value_type,
+        aRes.data[i].allow_multiple,
+        aRes.data[i].value_unit
+      );
       rad.on = !aRes.data[i].blueprint_id == 0;
       radios.push_back(rad);
     }

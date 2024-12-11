@@ -241,9 +241,15 @@ bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
 void EventLoop::_handleSideBar(SideBar* sb, int btn) {
   if (sb->action == NEW_BLUEPRINT && btn == 1) {
     // new blueprint
-    // new/update ba_links
+    // new ba_links
   }
   else if (sb->action == EDIT_BLUEPRINT && btn == 1) {
+    if (sb->blueprintId == 0) {
+      std::string msg = "Missing blueprint id";
+      std::cout << msg << std::endl;
+      errBox.setError(msg);
+      return;
+    }
     // edit blueprint
     // new/update ba_links
   }
