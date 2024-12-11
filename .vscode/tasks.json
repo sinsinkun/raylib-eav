@@ -9,6 +9,8 @@
         "-g",
         "${fileDirname}\\**.cpp",
         "${fileDirname}\\src\\**.cpp",
+        "${fileDirname}\\src\\ui\\**.cpp",
+        "${fileDirname}\\src\\db\\**.cpp",
         "-o",
         "${fileDirname}\\build\\main.exe",
         "-lraylib",

@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 #include <raylib.h>
-#include "dbi.hpp"
-#include "ui.hpp"
+#include "db/dbi.hpp"
+#include "ui/ui.hpp"
 
 namespace App {
   // specific use

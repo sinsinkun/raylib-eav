@@ -3,7 +3,6 @@
 #include <string>
 #include <raylib.h>
 #include "app.hpp"
-#include "dbi.hpp"
 
 using namespace App;
 
