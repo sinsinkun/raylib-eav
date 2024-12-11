@@ -154,7 +154,8 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
         aRes.data[i].attr,
         aRes.data[i].value_type,
         aRes.data[i].allow_multiple,
-        aRes.data[i].value_unit
+        aRes.data[i].value_unit,
+        0
       );
       rad.on = !aRes.data[i].blueprint_id == 0;
       radios.push_back(rad);
@@ -203,7 +204,8 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
         aRes.data[i].attr,
         aRes.data[i].value_type,
         aRes.data[i].allow_multiple,
-        aRes.data[i].value_unit
+        aRes.data[i].value_unit,
+        aRes.data[i].ba_id
       );
       rad.on = !aRes.data[i].blueprint_id == 0;
       radios.push_back(rad);

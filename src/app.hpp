@@ -144,9 +144,12 @@ namespace App {
         std::string attr,
         DbI::EavValueType valueType,
         bool allowMultiple,
-        std::string unit
+        std::string unit,
+        int baId
       );
       int attrId = 0;
+      int baId = 0;
+      std::string attr;
       DbI::EavValueType valueType = DbI::NONE;
       bool allowMultiple = false;
       std::string unit;
@@ -167,7 +170,7 @@ namespace App {
       UIButton btn1 = UIButton(NULL);
       UIButton btn2 = UIButton(NULL);
       std::vector<EnhancedInput> inputs;
-      std::vector<UIRadio> radios;
+      std::vector<AttrRadio> radios;
       void changeDialog(DialogOption action, std::string metaText,
         int blueprintId, int entityId, int attrId, int valueId);
       int update();

@@ -7,10 +7,16 @@
 using namespace App;
 
 AttrRadio::AttrRadio(
-  UIState* gs, Vector2 tl, int id, std::string attr, DbI::EavValueType vt, bool am, std::string unit
+  UIState* gs, Vector2 tl, int id, std::string a, DbI::EavValueType vt, bool am, std::string u, int id2
 ) : UIRadio(gs) {
-  std::string txt = attr;
-  if (!unit.empty()) txt += " (" + unit + ")";
+  attrId = id;
+  baId = id2;
+  attr = a;
+  valueType = vt;
+  allowMultiple = am;
+  unit = u;
+  std::string txt = a;
+  if (!u.empty()) txt += " (" + unit + ")";
   txt += " - " + DbI::value_type_to_str(vt);
   if (am) txt += "+";
   UIRadio::text = txt;

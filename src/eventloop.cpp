@@ -239,19 +239,53 @@ bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
 }
 
 void EventLoop::_handleSideBar(SideBar* sb, int btn) {
-  if (sb->action == NEW_BLUEPRINT && btn == 1) {
-    // new blueprint
-    // new ba_links
-  }
-  else if (sb->action == EDIT_BLUEPRINT && btn == 1) {
-    if (sb->blueprintId == 0) {
-      std::string msg = "Missing blueprint id";
+  if ((sb->action == NEW_BLUEPRINT || sb->action == EDIT_BLUEPRINT) && btn == 1) {
+    // validate blueprint name
+    if (sb->inputs[0].input.empty()) {
+      std::string msg = "Missing name";
       std::cout << msg << std::endl;
       errBox.setError(msg);
       return;
     }
-    // edit blueprint
-    // new/update ba_links
+    DbResponse res = DbResponse(0);
+    // new blueprint
+    if (sb->blueprintId == 0) {
+      res = dbInterface.new_blueprint(sb->inputs[0].input);
+      int blueprintId = res.data;
+    } else {
+      res = dbInterface.update_blueprint(sb->blueprintId, sb->inputs[0].input);
+    }
+    if (res.code != 0) {
+      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
+      return;
+    }
+    int blueprintId = res.data;
+    // validate attrs
+    for (int i=0; i<sb->radios.size(); i++) {
+      if (sb->radios[i].attrId == 0) {
+        std::string msg = "Attr " + sb->radios[i].attr + " is invalid";
+        std::cout << msg << std::endl;
+        errBox.setError(msg);
+        return;
+      }
+    }
+    // new/remove ba_links
+    for (int i=0; i<sb->radios.size(); i++) {
+      if (sb->radios[i].on && sb->radios[i].baId == 0) {
+        res = dbInterface.new_ba_link(blueprintId, sb->radios[i].attrId);
+      } else if (!sb->radios[i].on && sb->radios[i].baId != 0) {
+        res = dbInterface.delete_any(DbI::BA_LINK, sb->radios[i].baId);
+      }
+      if (res.code != 0) {
+        std::cout << res.msg << std::endl;
+        errBox.setError(res.msg);
+        return;
+      }
+    }
+    _fetchAllCategories();
+    _fetchCategory(blueprintId);
+    sb->changeDialog(EDIT_BLUEPRINT, sb->inputs[0].input, blueprintId, 0, 0, 0);
   }
   else if (sb->action == DEL_BLUEPRINT && btn == 1) {
     errBox.setError("ERR: Please reconsider this action");
@@ -286,12 +320,23 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
     // validate attr/value data
     std::string err;
     for (int i=1; i<sb->inputs.size(); i++) {
+      // skip empty inputs
+      if (sb->inputs[i].input.empty()) continue;
       if (sb->inputs[i].attrId == 0) {
-        err = "ERR: attrId for field " + std::to_string(i) + " not provided";
+        err = "ERR: attrId for field " + sb->inputs[i].label + " not provided";
         break;
       }
+      // auto-translate booleans
+      if (sb->inputs[i].valueType == DbI::BOOL) {
+        if (sb->inputs[i].input == "Yes" || sb->inputs[i].input == "yes") {
+          sb->inputs[i].input = "true";
+        }
+        if (sb->inputs[i].input == "No" || sb->inputs[i].input == "no") {
+          sb->inputs[i].input = "false";
+        }
+      }
       if (!_valueTypeIsValid(sb->inputs[i].input, sb->inputs[i].valueType)) {
-        err = "ERR: value for field" + std::to_string(i) + " not valid";
+        err = "ERR: value for field " + sb->inputs[i].label + " not valid";
         break;
       }
     }
