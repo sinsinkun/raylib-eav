@@ -67,6 +67,17 @@ int SideBar::update() {
     inputs[0].isActive = true;
   }
   
+  // handle radios
+  if (!radios.empty()) {
+    yOffset = 180.0f;
+    for (int i=0; i<radios.size(); i++) {
+      radios[i].posSize.x = box.posSize.x + 60.0f;
+      radios[i].posSize.y = yOffset;
+      yOffset += 35.0f;
+      radios[i].update();
+    }
+  }
+
   // handle buttons
   yOffset += 20.0f;
   int actioned = 0;
@@ -88,6 +99,9 @@ void SideBar::render() {
   closeBtn.render();
   for (int i=0; i<inputs.size(); i++) {
     inputs[i].render();
+  }
+  for (int i=0; i<radios.size(); i++) {
+    radios[i].render();
   }
   // draw border around close btn
   Vector2 p1 = { closeBtn.posSize.x, closeBtn.posSize.y };
@@ -118,17 +132,63 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     in1.placeholder = "New Category Name";
     in1.botMargin = 20.0f;
     inputs.push_back(in1);
+    // fetch all attrs
+    DbI::EavResponse aRes = db->get_attrs();
+    if (aRes.code != 0) {
+      std::cout << aRes.msg << std::endl;
+      return;
+    }
 
-    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Add New");
+    for (int i=0; i<aRes.data.size(); i++) {
+      if (aRes.data[i].attr_id == 0) continue;
+      // generate radio button
+      std::string txt = aRes.data[i].attr + " (" + DbI::value_type_to_str(aRes.data[i].value_type) + ")";
+      UIRadio rad = UIRadio(box.state, Vector2{ x0 + 50.0f, 200.0f + i * 35.0f }, txt);
+      rad.on = !aRes.data[i].blueprint_id == 0;
+      radios.push_back(rad);
+    }
+    btn1 = UIButton(box.state, { x0 + 50.0f, 600.0f, 100.0f, 30.0f }, "Add New");
     btn1.renderBorder = true;
     btn2.state = NULL;
   }
   else if (act == EDIT_BLUEPRINT) {
     box.title = "Edit ";
     box.title += mTxt.empty() ? "(Unknown)" : mTxt;
-    // todo: add attributes
-    // todo: remove attributes
-    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Add New");
+    // input for blueprint name
+    EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
+    in1.placeholder = "Category Name";
+    in1.input = mTxt;
+    in1.botMargin = 20.0f;
+    inputs.push_back(in1);
+    // fetch all attrs
+    DbI::EavResponse aRes = db->get_attrs();
+    if (aRes.code != 0) {
+      std::cout << aRes.msg << std::endl;
+      return;
+    }
+    // fetch only attached attrs
+    DbI::EavResponse bRes = db->get_blueprint_attrs(blueprintId);
+    if (bRes.code != 0) {
+      std::cout << aRes.msg << std::endl;
+      return;
+    }
+    for (int i=0; i<aRes.data.size(); i++) {
+      if (aRes.data[i].attr_id == 0) continue;
+      // update attrs list with blueprint info
+      for (int j=0; j<bRes.data.size(); j++) {
+        if (aRes.data[i].attr_id == bRes.data[j].attr_id) {
+          aRes.data[i].ba_id = bRes.data[j].ba_id;
+          aRes.data[i].blueprint = bRes.data[j].blueprint;
+          aRes.data[i].blueprint_id = bRes.data[j].blueprint_id;
+        }
+      }
+      // generate radio button
+      std::string txt = aRes.data[i].attr + " (" + DbI::value_type_to_str(aRes.data[i].value_type) + ")";
+      UIRadio rad = UIRadio(box.state, Vector2{ x0 + 50.0f, 200.0f + i * 35.0f }, txt);
+      rad.on = !aRes.data[i].blueprint_id == 0;
+      radios.push_back(rad);
+    }
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Update");
     btn1.renderBorder = true;
     btn2.state = NULL;
   }
@@ -254,4 +314,5 @@ void SideBar::clearInputs() {
     inputs[i].cleanup();
   }
   inputs.clear();
+  radios.clear();
 }

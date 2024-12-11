@@ -642,7 +642,7 @@ EavResponse DbInterface::get_blueprint_attrs(int id) {
     res.msg = "Blueprint does not exist";
     return res;
   }
-  std::string query = "SELECT b.id as blueprint_id, b.blueprint, " \
+  std::string query = "SELECT b.id as blueprint_id, b.blueprint, ba.id as ba_id, " \
     "a.id as attr_id, a.attr, a.value_type, a.allow_multiple, a.value_unit " \
     "FROM eav_blueprints b " \
     "INNER JOIN eav_ba_links ba ON ba.blueprint_id = b.id " \
@@ -666,6 +666,12 @@ EavResponse DbInterface::get_blueprint_entities(int id) {
     "INNER JOIN eav_entities e ON e.blueprint_id = b.id " \
     "WHERE b.id = " + std::to_string(id) + ";";
   EavResponse res = _exec_get_eav(query, EavItemType::VIEW);
+  return res;
+}
+
+EavResponse DbInterface::get_attrs() {
+  std::string query = "SELECT * FROM eav_attrs";
+  EavResponse res = _exec_get_eav(query, EavItemType::ATTR);
   return res;
 }
 

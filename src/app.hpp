@@ -143,6 +143,7 @@ namespace App {
       UIButton btn1 = UIButton(NULL);
       UIButton btn2 = UIButton(NULL);
       std::vector<EnhancedInput> inputs;
+      std::vector<UIRadio> radios;
       void changeDialog(DialogOption action, std::string metaText,
         int blueprintId, int entityId, int attrId, int valueId);
       int update();
