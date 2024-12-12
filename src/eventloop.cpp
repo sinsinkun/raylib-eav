@@ -22,8 +22,6 @@ void EventLoop::init() {
   }
   _fetchAllCategories();
   // setup universal ui components
-  dialog = DialogBox(&uiGlobal, Rectangle { 980.0f, 10.0f, 210.0f, 110.0f }, "-");
-  dialog.show(false, 0);
   menu = OptionsMenu(&uiGlobal, OP_NONE);
   appBar = AppBar(&uiGlobal, Rectangle {0.0f, 0.0f, 1200.0f, 80.0f });
   sideBar = SideBar(&uiGlobal, &dbInterface, Rectangle { 0.0f, 0.0f, 360.0f, 700.0f });
@@ -123,7 +121,6 @@ void EventLoop::render() {
 
 void EventLoop::cleanup() {
   // destroy instantiated resources
-  dialog.cleanup();
   appBar.cleanup();
   dbInterface.disconnect();
 }

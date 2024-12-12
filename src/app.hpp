@@ -9,32 +9,8 @@
 namespace App {
   // specific use
   enum DialogOption {
-    NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_ATTR_M,
-    EDIT_BLUEPRINT, EDIT_ENTITY,
-    NEW_VALUE, NEW_VALUE_M, DEL_BLUEPRINT, DEL_ENTITY, DEL_VALUE
-  };
-  class DialogBox {
-    public:
-      DialogBox() {};
-      DialogBox(UIState* gState, Rectangle bounds, std::string titleIn);
-      DialogOption activeDialog = NO_ACTION;
-      int entityId = 0;
-      int blueprintId = 0;
-      int attrId = 0;
-      int valueId = 0;
-      bool isVisible = true;
-      bool isDoubleInput = false;
-      UIBox box = UIBox(NULL);
-      UIInput input = UIInput(NULL);
-      UIInput input2 = UIInput(NULL);
-      UIButton btn = UIButton(NULL);
-      UIButton btn2 = UIButton(NULL);
-      UIButton closeBtn = UIButton(NULL);
-      void changeDialog(DialogOption action, std::string metaText, int blueprintId, int entityId, int attrId, int valueId);
-      void show(bool onOff, int position);
-      bool update();
-      void render();
-      void cleanup();
+    NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_VALUE,
+    EDIT_BLUEPRINT, EDIT_ENTITY, DEL_BLUEPRINT, DEL_ENTITY, DEL_VALUE
   };
   enum OptionsParent { OP_NONE, OP_BLUEPRINT, OP_ENTITY };
   class OptionsMenu {
@@ -137,6 +113,7 @@ namespace App {
   class AttrRadio : public UIRadio {
     public:
       AttrRadio(UIState* globalState) : UIRadio(globalState) {};
+      AttrRadio(UIState* gs, Vector2 tl, std::string txt) : UIRadio(gs, tl, txt) {};
       AttrRadio(
         UIState* globalState,
         Vector2 topLeft,
@@ -185,7 +162,6 @@ namespace App {
       Color bgColor = Color { 35, 35, 40, 255 };
       // ui objects
       UIState uiGlobal;
-      DialogBox dialog;
       OptionsMenu menu;
       ErrorBox errBox = ErrorBox(NULL);
       AppBar appBar;

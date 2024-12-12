@@ -68,13 +68,14 @@ int SideBar::update() {
   
   // handle radios
   if (!radios.empty()) {
-    yOffset = 180.0f;
+    float yOffset2 = 180.0f;
     for (int i=0; i<radios.size(); i++) {
       radios[i].posSize.x = box.posSize.x + 60.0f;
-      radios[i].posSize.y = yOffset;
-      yOffset += 30.0f;
+      radios[i].posSize.y = yOffset2;
+      yOffset2 += 30.0f;
       radios[i].update();
     }
+    if (yOffset2 > yOffset) yOffset = yOffset2;
   }
 
   // handle buttons
@@ -89,6 +90,10 @@ int SideBar::update() {
     actioned = 2;
     if (action == NEW_BLUEPRINT || action == EDIT_BLUEPRINT) {
       changeDialog(NEW_ATTR, "", blueprintId, entityId, attrId, valueId);
+    } else if (action == NEW_ATTR || action == DEL_BLUEPRINT || action == DEL_ENTITY) {
+      changeDialog(NO_ACTION, "", 0, 0, 0, 0);
+    } else if (action == NEW_ENTITY || action == EDIT_ENTITY) {
+      open = false;
     }
   }
   if (closeBtn.update()) open = !open;
@@ -220,19 +225,34 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     box.title += "?";
     btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Confirm");
     btn1.renderBorder = true;
-    btn2.state = NULL;
+    btn2 = UIButton(box.state, { x0 + 250.0f, 600.0f, 100.0f, 30.0f }, "Cancel");
+    btn2.renderBorder = true;
   }
   else if (act == NEW_ATTR) {
     box.title = "New Attribute";
     // input for blueprint name
     EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
     in1.placeholder = "New Attribute Name";
-    in1.botMargin = 20.0f;
+    in1.botMargin = 200.0f;
     inputs.push_back(in1);
     // select type
+    AttrRadio rad1 = AttrRadio(box.state, { x0, 150.0f }, "String");
+    radios.push_back(rad1);
+    AttrRadio rad2 = AttrRadio(box.state, { x0, 150.0f }, "Integer");
+    radios.push_back(rad2);
+    AttrRadio rad3 = AttrRadio(box.state, { x0, 150.0f }, "Float");
+    radios.push_back(rad3);
+    AttrRadio rad4 = AttrRadio(box.state, { x0, 150.0f }, "Boolean");
+    radios.push_back(rad4);
     // select allow_multiple
+    AttrRadio rad5 = AttrRadio(box.state, { x0, 150.0f }, "Allow multiple");
+    radios.push_back(rad5);
     // set unit
-    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Add New");
+    EnhancedInput in2 = EnhancedInput(box.state, Rectangle{ x0, 320.0f, 400.0f, 30.0f });
+    in2.placeholder = "Attribute unit (optional)";
+    inputs.push_back(in2);
+    // buttons
+    btn1 = UIButton(box.state, { x0 + 50.0f, 600.0f, 100.0f, 30.0f }, "Add New");
     btn1.renderBorder = true;
     btn2 = UIButton(box.state, { x0 + 250.0f, 600.0f, 100.0f, 30.0f }, "Cancel");
     btn2.renderBorder = true;
@@ -267,7 +287,8 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     }
     btn1 = UIButton(box.state, { x0 + 50.0f, 650.0f, 100.0f, 30.0f }, "Add New");
     btn1.renderBorder = true;
-    btn2.state = NULL;
+    btn2 = UIButton(box.state, { x0 + 250.0f, 600.0f, 100.0f, 30.0f }, "Cancel");
+    btn2.renderBorder = true;
   }
   else if (act == EDIT_ENTITY) {
     box.title = "Update Entity";
@@ -324,7 +345,8 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     }
     btn1 = UIButton(box.state, { x0 + 50.0f, 650.0f, 100.0f, 30.0f }, "Update");
     btn1.renderBorder = true;
-    btn2.state = NULL;
+    btn2 = UIButton(box.state, { x0 + 250.0f, 600.0f, 100.0f, 30.0f }, "Cancel");
+    btn2.renderBorder = true;
   }
   else if (act == DEL_ENTITY) {
     box.title = "Delete ";
@@ -332,7 +354,8 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     box.title += "?";
     btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Confirm");
     btn1.renderBorder = true;
-    btn2.state = NULL;
+    btn2 = UIButton(box.state, { x0 + 250.0f, 600.0f, 100.0f, 30.0f }, "Cancel");
+    btn2.renderBorder = true;
   }
   else {
     box.title = "--";
@@ -340,6 +363,7 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     btn2.state = NULL;
     open = false;
   }
+  std::cout << "btn2 id: " << btn2.id << std::endl;
 }
 
 void SideBar::cleanup() {
