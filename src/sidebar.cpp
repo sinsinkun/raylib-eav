@@ -73,7 +73,11 @@ int SideBar::update() {
       radios[i].posSize.x = box.posSize.x + 60.0f;
       radios[i].posSize.y = yOffset2;
       yOffset2 += 30.0f;
-      radios[i].update();
+      bool clicked = radios[i].update();
+      if (action == NEW_ATTR && i < 4) {
+        if (clicked) attrId = i + 1;
+        else if (attrId != i + 1 && i < 4) radios[i].on = false;
+      }
     }
     if (yOffset2 > yOffset) yOffset = yOffset2;
   }
@@ -89,7 +93,7 @@ int SideBar::update() {
   if (btn2.update()) {
     actioned = 2;
     if (action == NEW_BLUEPRINT || action == EDIT_BLUEPRINT) {
-      changeDialog(NEW_ATTR, "", blueprintId, entityId, attrId, valueId);
+      changeDialog(NEW_ATTR, inputs[0].input, blueprintId, 0, 0, 0);
     } else if (action == NEW_ATTR || action == DEL_BLUEPRINT || action == DEL_ENTITY) {
       changeDialog(NO_ACTION, "", 0, 0, 0, 0);
     } else if (action == NEW_ENTITY || action == EDIT_ENTITY) {
@@ -230,10 +234,11 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
   }
   else if (act == NEW_ATTR) {
     box.title = "New Attribute";
+    if (!mTxt.empty()) box.title += " for " + mTxt;
     // input for blueprint name
     EnhancedInput in1 = EnhancedInput(box.state, Rectangle{ x0, 120.0f, 400.0f, 30.0f });
     in1.placeholder = "New Attribute Name";
-    in1.botMargin = 200.0f;
+    in1.botMargin = 210.0f;
     inputs.push_back(in1);
     // select type
     AttrRadio rad1 = AttrRadio(box.state, { x0, 150.0f }, "String");
@@ -245,6 +250,7 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     AttrRadio rad4 = AttrRadio(box.state, { x0, 150.0f }, "Boolean");
     radios.push_back(rad4);
     // select allow_multiple
+    radios.push_back(AttrRadio(NULL));
     AttrRadio rad5 = AttrRadio(box.state, { x0, 150.0f }, "Allow multiple");
     radios.push_back(rad5);
     // set unit

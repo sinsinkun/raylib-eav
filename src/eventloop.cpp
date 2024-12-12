@@ -290,7 +290,30 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
     sb->changeDialog(NO_ACTION, "-", 0, 0, 0, 0);
   }
   else if (sb->action == NEW_ATTR && btn == 1) {
-    errBox.setError("ERR: Come back later");
+    // get attr
+    std::string attr = sb->inputs[0].input;
+    // get value type
+    DbI::EavValueType vt = DbI::NONE;
+    if (sb->radios[0].on) vt = DbI::STR;
+    else if (sb->radios[1].on) vt = DbI::INT;
+    else if (sb->radios[2].on) vt = DbI::FLOAT;
+    else if (sb->radios[3].on) vt = DbI::BOOL;
+    // allow multiple
+    bool aMul = sb->radios[5].on;
+    std::string unit = sb->inputs[1].input;
+    DbResponse res = DbResponse(0);
+    if (sb->blueprintId != 0) {
+      res = dbInterface.new_attr_for_blueprint(sb->blueprintId, attr, vt, aMul, unit);
+    } else if (unit.empty()) {
+      res = dbInterface.new_attr(attr, vt, aMul);
+    } else {
+      res = dbInterface.new_attr(attr, vt, aMul, unit);
+    }
+    if (res.code != 0) {
+      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
+      return;
+    }
     _fetchCategory(sb->blueprintId);
     sb->changeDialog(NO_ACTION, "-", 0, 0, 0, 0);
   }
