@@ -281,7 +281,6 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
       }
     }
     _fetchAllCategories();
-    _fetchCategory(blueprintId);
     sb->changeDialog(EDIT_BLUEPRINT, sb->inputs[0].input, blueprintId, 0, 0, 0);
   }
   else if (sb->action == DEL_BLUEPRINT && btn == 1) {
@@ -384,7 +383,12 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
       if (valueId == 0) sb->inputs[i].valueId = res.data;
     }
     // refresh data
-    _fetchCategory(sb->blueprintId);
+    for (int i=0; i<entities.size(); i++) {
+      if (entities[i].id == sb->entityId) {
+        entities[i].refreshBody(&dbInterface);
+        break;
+      }
+    }
     sb->changeDialog(EDIT_ENTITY, sb->inputs[0].input, sb->blueprintId, sb->entityId, 0, 0);
   }
   else if (sb->action == DEL_ENTITY && btn == 1) {

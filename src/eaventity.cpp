@@ -38,6 +38,14 @@ EavEntity::EavEntity(UIState* globalState, DbI::EavItem item, Rectangle posSizeI
   }
 }
 
+void EavEntity::refreshBody(DbI::DbInterface* db) {
+  DbI::EavResponse vRes = db->get_entity_values(id);
+  if (vRes.code == 0) {
+    values = vRes.data;
+    fillBody();
+  }
+}
+
 void EavEntity::fillBody() {
   box.body.clear();
   for (int i=0; i<values.size(); i++) {

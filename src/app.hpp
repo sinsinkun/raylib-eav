@@ -47,10 +47,10 @@ namespace App {
       EavEntity(UIState* globalState, DbI::EavItem item, Rectangle posSizeIn, DbI::DbInterface* dbi);
       int blueprintId = 0;
       int id = 0;
-      int dragId = 0;
       std::string name = "";
       std::vector<DbI::EavItem> values;
       UIBox box = UIBox(NULL);
+      void refreshBody(DbI::DbInterface* db);
       void fillBody();
       bool update();
       void render();
