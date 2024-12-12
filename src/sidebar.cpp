@@ -45,31 +45,59 @@ int SideBar::update() {
   closeBtn.posSize.x = x0 - 20.0f;
   closeBtn.posSize.y = h/2.0f - 20.0f;
 
-  // handle inputs
-  bool gotoNextInput = IsKeyPressed(KEY_TAB);
-  int activeIdx = -1;
+  // scroll event
   float yOffset = 120.0f;
-  for (int i=0; i<inputs.size(); i++) {
-    // update position
-    inputs[i].updatePos(box.posSize.x, yOffset);
-    yOffset += inputs[i].posSize.height + inputs[i].botMargin;
-    inputs[i].update();
-    // switch active input
-    if (i == activeIdx) inputs[i].isActive = true;
-    else if (gotoNextInput && inputs[i].isActive) {
-      activeIdx = i + 1;
-      inputs[i].isActive = false;
-    }
+  float yLimit = box.posSize.height * 0.8;
+  // approximate size of inputs 
+  float aprHi = 170.0f + inputs.size() * 30.0f;
+  int maxScrollDepthi = (int)((aprHi - yLimit) / 30.0f) + 1;
+  float aprHr = 170.0f + radios.size() * 30.0f;
+  int maxScrollDepthr = (int)((aprHr - yLimit) / 30.0f) + 1;
+  if (open) {
+    float mWheel = GetMouseWheelMove();
+    if (aprHi > yLimit && mWheel > 0 && inputStarti > 1) inputStarti -= 1;
+    if (aprHr > yLimit && mWheel > 0 && radioStarti > 0) radioStarti -= 1;
+    if (aprHi > yLimit && mWheel < 0 && inputStarti < maxScrollDepthi) inputStarti += 1;
+    if (aprHr > yLimit && mWheel < 0 && radioStarti < maxScrollDepthr) radioStarti += 1;
   }
-  // reset tabbing to first input
-  if (activeIdx == inputs.size()) {
-    inputs[0].isActive = true;
+
+  // handle inputs
+  if (!inputs.empty()) {
+    bool gotoNextInput = IsKeyPressed(KEY_TAB);
+    int activeIdx = -1;
+    // handle input 0 separately so it always shows at the top
+    inputs[0].updatePos(box.posSize.x, yOffset);
+    yOffset += inputs[0].posSize.height + inputs[0].botMargin;
+    inputs[0].update();
+    inputEndi = inputs.size();
+    for (int i=inputStarti; i<inputs.size(); i++) {
+      // update position
+      inputs[i].updatePos(box.posSize.x, yOffset);
+      yOffset += inputs[i].posSize.height + inputs[i].botMargin;
+      inputs[i].update();
+      // switch active input
+      if (i == activeIdx) inputs[i].isActive = true;
+      else if (gotoNextInput && inputs[i].isActive) {
+        activeIdx = i + 1;
+        inputs[i].isActive = false;
+      }
+      // stop rendering at ylimit
+      if (yOffset > yLimit) {
+        inputEndi = i + 1;
+        break;
+      }
+    }
+    // reset tabbing to first input
+    if (activeIdx == inputs.size()) {
+      inputs[0].isActive = true;
+    }
   }
   
   // handle radios
   if (!radios.empty()) {
-    float yOffset2 = 180.0f;
-    for (int i=0; i<radios.size(); i++) {
+    float yOffset2 = 170.0f;
+    radioEndi = radios.size();
+    for (int i=radioStarti; i<radios.size(); i++) {
       radios[i].posSize.x = box.posSize.x + 60.0f;
       radios[i].posSize.y = yOffset2;
       yOffset2 += 30.0f;
@@ -78,12 +106,16 @@ int SideBar::update() {
         if (clicked) attrId = i + 1;
         else if (attrId != i + 1 && i < 4) radios[i].on = false;
       }
+      // stop rendering at ylimit
+      if (yOffset2 > yLimit) {
+        radioEndi = i + 1;
+        break;
+      }
     }
-    if (yOffset2 > yOffset) yOffset = yOffset2;
   }
 
   // handle buttons
-  yOffset += 20.0f;
+  yOffset = yLimit + 40.0f;
   int actioned = 0;
   btn1.posSize.x = box.posSize.x + 50.0f;
   btn1.posSize.y = yOffset;
@@ -110,10 +142,15 @@ void SideBar::render() {
   if (box.state == NULL) return;
   box.render();
   closeBtn.render();
-  for (int i=0; i<inputs.size(); i++) {
+  if (!inputs.empty()) inputs[0].render();
+  for (int i=inputStarti; i<inputEndi; i++) {
+    // prevent accessing old components
+    if (i >= inputs.size()) break;
     inputs[i].render();
   }
-  for (int i=0; i<radios.size(); i++) {
+  for (int i=radioStarti; i<radioEndi; i++) {
+    // prevent accessing old components
+    if (i >= radios.size()) break;
     radios[i].render();
   }
   // draw border around close btn
@@ -369,7 +406,6 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     btn2.state = NULL;
     open = false;
   }
-  std::cout << "btn2 id: " << btn2.id << std::endl;
 }
 
 void SideBar::cleanup() {
@@ -382,4 +418,6 @@ void SideBar::clearInputs() {
   }
   inputs.clear();
   radios.clear();
+  inputStarti = 1;
+  radioStarti = 0;
 }

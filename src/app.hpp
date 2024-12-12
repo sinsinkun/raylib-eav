@@ -155,6 +155,10 @@ namespace App {
       void cleanup();
     private:
       void clearInputs();
+      int inputStarti = 1;
+      int inputEndi = 0;
+      int radioStarti = 0;
+      int radioEndi = 0;
   };
   class EventLoop {
     public:
