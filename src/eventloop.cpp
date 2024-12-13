@@ -25,6 +25,7 @@ void EventLoop::init() {
   menu = OptionsMenu(&uiGlobal, OP_NONE);
   appBar = AppBar(&uiGlobal, Rectangle {0.0f, 0.0f, 1200.0f, 80.0f });
   sideBar = SideBar(&uiGlobal, &dbInterface, Rectangle { 0.0f, 0.0f, 360.0f, 700.0f });
+  sideBar.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
 }
 
 void EventLoop::update() {

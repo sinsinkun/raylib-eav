@@ -14,7 +14,7 @@ SideBar::SideBar(UIState* globalState, DbI::DbInterface* dbi, Rectangle scrn) {
   Color clr = Color { 180, 180, 180, 255 };
   box.boxColor = clr;
   box.boxHoverColor = clr;
-  box.title = "Test";
+  box.title = "--";
   box.shadowColor = Color { 0, 0, 0, 100 };
 
   closeBtn = UIButton(
@@ -47,18 +47,31 @@ int SideBar::update() {
 
   // scroll event
   float yOffset = 120.0f;
-  float yLimit = box.posSize.height * 0.8;
+  yLimit = box.posSize.height * 0.8;
   // approximate size of inputs 
   float aprHi = 170.0f + inputs.size() * 30.0f;
   int maxScrollDepthi = (int)((aprHi - yLimit) / 30.0f) + 1;
   float aprHr = 170.0f + radios.size() * 30.0f;
   int maxScrollDepthr = (int)((aprHr - yLimit) / 30.0f) + 1;
-  if (open) {
-    float mWheel = GetMouseWheelMove();
-    if (aprHi > yLimit && mWheel > 0 && inputStarti > 1) inputStarti -= 1;
-    if (aprHr > yLimit && mWheel > 0 && radioStarti > 0) radioStarti -= 1;
-    if (aprHi > yLimit && mWheel < 0 && inputStarti < maxScrollDepthi) inputStarti += 1;
-    if (aprHr > yLimit && mWheel < 0 && radioStarti < maxScrollDepthr) radioStarti += 1;
+  // scroll handling
+  if (aprHi > yLimit || aprHr > yLimit) showScroll = true;
+  else showScroll = false;
+  if (showScroll) {
+    Rectangle scrollBounds = Rectangle{
+      box.posSize.x,
+      160.0f,
+      box.posSize.width,
+      yLimit - 130.0f,
+    };
+    if (CheckCollisionPointRec(box.state->mousePos, scrollBounds)) {
+      scrollDelta = GetMouseWheelMove();
+    }
+  }
+  if (scrollDelta != 0.0f) {
+    if (aprHi > yLimit && scrollDelta > 0 && inputStarti > 1) inputStarti -= 1;
+    if (aprHr > yLimit && scrollDelta > 0 && radioStarti > 0) radioStarti -= 1;
+    if (aprHi > yLimit && scrollDelta < 0 && inputStarti < maxScrollDepthi) inputStarti += 1;
+    if (aprHr > yLimit && scrollDelta < 0 && radioStarti < maxScrollDepthr) radioStarti += 1;
   }
 
   // handle inputs
@@ -132,7 +145,7 @@ int SideBar::update() {
       open = false;
     }
   }
-  if (closeBtn.update()) open = !open;
+  if (closeBtn.update() && action != NO_ACTION) open = !open;
 
   box.update();
   return actioned;
@@ -163,6 +176,26 @@ void SideBar::render() {
   DrawLineEx(p3, p4, 1.5f, box.borderColor);
   btn1.render();
   btn2.render();
+  // draw scroll bar
+  if (showScroll) {
+    float x = box.posSize.x + box.posSize.width - 8.0f;
+    float y = yLimit - 130;
+    DrawRectangle(x, 160, 8, y, Color{ 100, 100, 100, 255 });
+    // draw thumb on scroll bar
+    float pc = 0.0f;
+    float pc0 = 0.0f;
+    if (!inputs.empty()) {
+      pc = ((float)inputEndi - (float)inputStarti + 1.0f) / (float)inputs.size();
+      pc0 = ((float)inputStarti - 1.0f) / (float)inputs.size();
+    }
+    if (!radios.empty()) {
+      float pcr = ((float)radioEndi - (float)radioStarti) / (float)radios.size();
+      float pc0r = (float)radioStarti / (float)radios.size();
+      if (pcr > pc) pc = pcr;
+      if (pc0r > pc0) pc0 = pc0r;
+    }
+    DrawRectangle(x, 160 + (pc0 * y), 8, pc * y, Color{ 50, 50, 50, 255 });
+  }
 }
 
 void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId, int aId, int vId) {

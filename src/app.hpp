@@ -159,6 +159,9 @@ namespace App {
       int inputEndi = 0;
       int radioStarti = 0;
       int radioEndi = 0;
+      float scrollDelta = 0.0f;
+      float yLimit = 100.0f;
+      bool showScroll = false;
   };
   class EventLoop {
     public:
