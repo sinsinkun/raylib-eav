@@ -17,15 +17,16 @@ removing the need for running a separate MySQL instance in the background.
 - Attributes define what type of value they take as an input
 - Valid value types: int, float, str, bool
 - int and float values can optionally have units displayed next to their values
-- units can be added by inputting the unit in the value type box separated by "-" (e.g. "float - kgs");
+- search bar supports searching for values with the format "{attr}: {value}"
+- numerical values can be compared with "{attr} > {value}" / "{attr} < {value}"
+- unfilled fields can be found with "{attr}: _empty"
 
 ### Future Ideas
 - deleting values from entities
 - more search options
   - single category search
   - display category on entity
-  - search by attr value
-  - comparison operators
+  - multiple search parameters
 
 
 ## Installation (with MSYS2)

@@ -56,3 +56,37 @@ std::string App::trim_space(std::string str) {
   o = str.substr(start, end - start);
   return o;
 }
+
+bool App::isValidInteger(std::string str) {
+  // Handle empty string case
+  if (str.empty()) return false;
+  int start = 0;
+  // Check for optional leading '+' or '-'
+  if (str[0] == '+' || str[0] == '-') start = 1;
+  // Check if the rest of the string contains only digits
+  for (int i = start; i < str.length(); i++) {
+    if (!isdigit(str[i])) return false;
+  }
+  return true;
+}
+
+bool App::isValidDecimal(std::string str) {
+  // Handle empty string case
+  if (str.empty()) return false;
+  bool hasDecimalPoint = false;
+  int start = 0;
+  // Check for optional leading '+' or '-'
+  if (str[0] == '+' || str[0] == '-') start = 1;
+  // Traverse the string to check for valid digits and at most one decimal point
+  for (int i = start; i < str.length(); i++) {
+    if (str[i] == '.') {
+      // If we've already encountered a decimal point, it's invalid
+      if (hasDecimalPoint) return false;
+      hasDecimalPoint = true;
+    } else if (!isdigit(str[i])) {
+      // If any character is not a digit and not a decimal point, return false
+      return false;
+    }
+  }
+  return true;
+}

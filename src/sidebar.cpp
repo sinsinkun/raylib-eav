@@ -82,6 +82,10 @@ int SideBar::update() {
     inputs[0].updatePos(box.posSize.x, yOffset);
     yOffset += inputs[0].posSize.height + inputs[0].botMargin;
     inputs[0].update();
+    if (gotoNextInput && inputs[0].isActive) {
+      activeIdx = 1;
+      inputs[0].isActive = false;
+    }
     inputEndi = inputs.size();
     for (int i=inputStarti; i<inputs.size(); i++) {
       // update position
@@ -358,7 +362,7 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
         aRes.data[i].value_type,
         0
       );
-      ini.placeholder = "Enter Value Here";
+      ini.placeholder = "Enter value (" + DbI::value_type_to_str(aRes.data[i].value_type) + ")";
       inputs.push_back(ini);
     }
     btn1 = UIButton(box.state, { x0 + 50.0f, 650.0f, 100.0f, 30.0f }, "Add New");
@@ -393,7 +397,7 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
         vRes.data[i].value_type,
         vRes.data[i].value_id
       );
-      ini.placeholder = "Enter Value Here";
+      ini.placeholder = "Enter value (" + DbI::value_type_to_str(vRes.data[i].value_type) + ")";
       ini.input = vRes.data[i].str_value;
       inputs.push_back(ini);
       // append to fma items that allow multiple
@@ -412,6 +416,7 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
             vRes.data[i].value_type,
             0
           );
+          ini.placeholder = "Enter value (" + DbI::value_type_to_str(vRes.data[i].value_type) + ")";
           filledMultiAttrs.push_back(inf);
         }
       }

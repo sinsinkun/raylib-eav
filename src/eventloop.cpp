@@ -245,15 +245,9 @@ bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
         return true;
       } else return false;
     case INT:
-      try {
-        int i = std::atoi(strV.c_str());
-        return true;
-      } catch (...) { return false; }
+      return isValidInteger(strV);
     case FLOAT:
-      try {
-        float f = std::atof(strV.c_str());
-        return true;
-      } catch (...) { return false; }
+      return isValidDecimal(strV);
     case STR:
       return true;
     default:
