@@ -20,14 +20,14 @@ removing the need for running a separate MySQL instance in the background.
 - search bar supports searching for values with the format "{attr}: {value}"
 - numerical values can be compared with "{attr} > {value}" / "{attr} < {value}"
 - unfilled fields can be found with "{attr}: _empty"
+- multiple search parameters can be separated with commas
 
 ### Future Ideas
 - deleting values from entities
 - deleting attributes (sidebar right-click)
-- more search options
-  - single category search
-  - display category on entity
-  - multiple search parameters
+- single category search
+- display category on entity (when mixed)
+- optimize multi search
 
 
 ## Installation (with MSYS2)

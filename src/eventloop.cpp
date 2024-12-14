@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <unordered_set>
 #include <raylib.h>
 #include "app.hpp"
 #include "font.c"
@@ -68,7 +69,7 @@ void EventLoop::update() {
   }
   // update appbar
   if (appBar.update() == 1) {
-    _search(appBar.searchInput.input);
+    _multisearch(appBar.searchInput.input);
   };
   int sideBarAction = sideBar.update();
   if (sideBarAction > 0) {
@@ -195,23 +196,53 @@ void EventLoop::_fetchCategory(int blueprintId) {
   }
 }
 
-void EventLoop::_searchEntities(std::string q, int altId) {
+void EventLoop::_multisearch(std::string q) {
   entities.clear();
-  EavResponse eRes = EavResponse({});
-  if (altId > 0) eRes = dbInterface.get_entities_like(q, altId);
-  else eRes = dbInterface.get_entities_like(q);
-  if (eRes.code == 0) {
-    _fillEntities(&eRes);
-    // clear active category
-    for (int i=0; i<categories.size(); i++) {
-      categories[i].isActive = false;
+  std::vector<std::string> searches = str_split(q, ",");
+  std::vector<std::vector<EavItem>> allRes;
+  // perform searches individually
+  for (std::string s : searches) {
+    EavResponse r = _search(trim_space(s));
+    if (r.code != 0) {
+      errBox.setError(r.msg);
+      return;
     }
-  } else {
-    errBox.setError("ERR: could not find category");
+    allRes.push_back(r.data);
+  }
+  // use 0th element as base
+  std::unordered_set<int> entityIds;
+  std::vector<EavItem> entityDump = allRes[0];
+  for (int i=0; i<entityDump.size(); i++) {
+    entityIds.insert(entityDump[i].entity_id);
+  }
+  // filter for results found in all responses
+  for (int i=1; i<allRes.size(); i++) {
+    std::unordered_set<int> tempIds;
+    for (int j=0; j<allRes[i].size(); j++) {
+      int entityId = allRes[i][j].entity_id;
+      if (entityIds.find(entityId) != entityIds.end()) {
+        tempIds.insert(entityId);
+      }
+    }
+    entityIds = tempIds;
+  }
+  // combine into 1 response
+  EavResponse endRes = EavResponse({});
+  for (int id : entityIds) {
+    for (int i=0; i<entityDump.size(); i++) {
+      if (entityDump[i].entity_id == id) {
+        endRes.data.push_back(entityDump[i]);
+      }
+    }
+  }
+  _fillEntities(&endRes);
+  // clear active category
+  for (int i=0; i<categories.size(); i++) {
+    categories[i].isActive = false;
   }
 }
 
-void EventLoop::_search(std::string q) {
+EavResponse EventLoop::_search(std::string q) {
   entities.clear();
   // split for attr comparisons
   std::vector<std::string> cmprs = { ">", "<", "=", ":" };
@@ -224,16 +255,11 @@ void EventLoop::_search(std::string q) {
       EavResponse res = EavResponse({});
       if (v == "_empty") res = dbInterface.get_entities_attrs_empty(a);
       else res = dbInterface.get_entities_attrs_like(a, v, cmp);
-      if (res.code != 0) {
-        errBox.setError(res.msg);
-        return;
-      }
-      _fillEntities(&res);
-      return;
+      return res;
     }
   }
   // search entities
-  _searchEntities(q, 0);
+  return dbInterface.get_entities_like(q);
 }
 #pragma endregion db actions
 
