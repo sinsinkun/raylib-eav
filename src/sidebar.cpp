@@ -195,8 +195,10 @@ void SideBar::render() {
     if (!radios.empty()) {
       float pcr = ((float)radioEndi - (float)radioStarti) / (float)radios.size();
       float pc0r = (float)radioStarti / (float)radios.size();
-      if (pcr > pc) pc = pcr;
-      if (pc0r > pc0) pc0 = pc0r;
+      if (radios.size() > inputs.size()) {
+        pc = pcr;
+        pc0 = pc0r;
+      }
     }
     DrawRectangle(x, 160 + (pc0 * y), 8, pc * y, Color{ 50, 50, 50, 255 });
   }

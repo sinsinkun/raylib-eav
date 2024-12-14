@@ -23,6 +23,7 @@ removing the need for running a separate MySQL instance in the background.
 
 ### Future Ideas
 - deleting values from entities
+- deleting attributes (sidebar right-click)
 - more search options
   - single category search
   - display category on entity
