@@ -21,6 +21,7 @@ removing the need for running a separate MySQL instance in the background.
 - numerical values can be compared with "{attr} > {value}" / "{attr} < {value}"
 - unfilled fields can be found with "{attr}: _empty"
 - multiple search parameters can be separated with commas
+- treat multiple filters as OR instead of AND by appending the search with "(or) ..."
 
 ### Future Ideas
 - deleting values from entities

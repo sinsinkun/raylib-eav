@@ -749,16 +749,16 @@ EavResponse DbInterface::get_entities_attrs_empty(std::string a) {
   if (aRes.code != 0) return aRes;
   if (aRes.data.empty()) {
     aRes.code = 924;
-    aRes.msg = "ERR: Attribute not found";
+    aRes.msg = "ERR: Attribute not found: " + a;
     return aRes;
   }
-  int attrId = aRes.data[0].attr_id;
   // fetch entities using attr comparison
+  std::string attrId = std::to_string(aRes.data[0].attr_id);
   std::string query = "SELECT ee.* from eav_blueprints eb " \
-    "LEFT JOIN eav_entities ee ON eb.id = ee.blueprint_id " \
-    "LEFT JOIN eav_ba_links ebl ON ebl.blueprint_id = eb.id " \
-    "LEFT JOIN eav_values ev ON ev.entity_id = ee.id " \
-    "WHERE ev.value IS NULL AND ebl.attr_id = " + std::to_string(attrId);
+    "INNER JOIN eav_entities ee ON eb.id = ee.blueprint_id " \
+    "INNER JOIN eav_ba_links ebl ON ebl.blueprint_id = eb.id AND ebl.attr_id = " + attrId + " " \
+    "LEFT JOIN eav_values ev ON ev.entity_id = ee.id AND ev.attr_id = " + attrId + " " \
+    "WHERE ev.value IS NULL";
   EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
   return res;
 }

@@ -196,8 +196,59 @@ void EventLoop::_fetchCategory(int blueprintId) {
   }
 }
 
+std::vector<EavItem> andFilter(std::vector<std::vector<EavItem>> all) {
+  // use 0th element as base
+  std::unordered_set<int> entityIds;
+  std::vector<EavItem> entityDump = all[0];
+  for (int i=0; i<entityDump.size(); i++) {
+    entityIds.insert(entityDump[i].entity_id);
+  }
+  // filter for results found in all responses
+  for (int i=1; i<all.size(); i++) {
+    std::unordered_set<int> tempIds;
+    for (int j=0; j<all[i].size(); j++) {
+      int entityId = all[i][j].entity_id;
+      if (entityIds.find(entityId) != entityIds.end()) {
+        tempIds.insert(entityId);
+      }
+    }
+    entityIds = tempIds;
+  }
+  // filter entityDump for filtered ids
+  std::vector<EavItem> out;
+  for (int id : entityIds) {
+    for (int i=0; i<entityDump.size(); i++) {
+      if (entityDump[i].entity_id == id) {
+        out.push_back(entityDump[i]);
+      }
+    }
+  }
+  return out;
+}
+
+std::vector<EavItem> orFilter(std::vector<std::vector<EavItem>> all) {
+  std::unordered_set<int> entityIds;
+  std::vector<EavItem> entityDump;
+  // filter for unique results
+  for (int i=0; i<all.size(); i++) {
+    for (int j=0; j<all[i].size(); j++) {
+      int entityId = all[i][j].entity_id;
+      if (entityIds.find(entityId) == entityIds.end()) {
+        entityIds.insert(entityId);
+        entityDump.push_back(all[i][j]);
+      }
+    }
+  }
+  return entityDump;
+}
+
 void EventLoop::_multisearch(std::string q) {
   entities.clear();
+  bool orOp = false;
+  if (q.size() > 4 && q[0] == '(' && q[1] == 'o' && q[2] == 'r' && q[3] == ')') {
+    orOp = true;
+    q = q.substr(4);
+  }
   std::vector<std::string> searches = str_split(q, ",");
   std::vector<std::vector<EavItem>> allRes;
   // perform searches individually
@@ -209,32 +260,11 @@ void EventLoop::_multisearch(std::string q) {
     }
     allRes.push_back(r.data);
   }
-  // use 0th element as base
-  std::unordered_set<int> entityIds;
-  std::vector<EavItem> entityDump = allRes[0];
-  for (int i=0; i<entityDump.size(); i++) {
-    entityIds.insert(entityDump[i].entity_id);
-  }
-  // filter for results found in all responses
-  for (int i=1; i<allRes.size(); i++) {
-    std::unordered_set<int> tempIds;
-    for (int j=0; j<allRes[i].size(); j++) {
-      int entityId = allRes[i][j].entity_id;
-      if (entityIds.find(entityId) != entityIds.end()) {
-        tempIds.insert(entityId);
-      }
-    }
-    entityIds = tempIds;
-  }
   // combine into 1 response
   EavResponse endRes = EavResponse({});
-  for (int id : entityIds) {
-    for (int i=0; i<entityDump.size(); i++) {
-      if (entityDump[i].entity_id == id) {
-        endRes.data.push_back(entityDump[i]);
-      }
-    }
-  }
+  if (orOp) endRes = orFilter(allRes);
+  else endRes = andFilter(allRes);
+  // spawn entries
   _fillEntities(&endRes);
   // clear active category
   for (int i=0; i<categories.size(); i++) {
