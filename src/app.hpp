@@ -189,6 +189,7 @@ namespace App {
       void _fillEntities(DbI::EavResponse* res);
       void _fetchCategory(int blueprintId);
       void _searchEntities(std::string query, int altNameId);
+      void _search(std::string query);
       // helpers
       void _handleSideBar(SideBar* sideBar, int action);
       void _handleOption(OptionsMenu* menu, int action);

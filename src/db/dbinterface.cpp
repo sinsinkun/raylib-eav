@@ -707,7 +707,58 @@ EavResponse DbInterface::get_entities_like(std::string q, int attrId) {
   std::string query = "SELECT ee.* FROM eav_entities ee " \
     "LEFT JOIN eav_values ev ON ev.entity_id = ee.id " \
     "WHERE ee.entity LIKE \"%" + q + "%\" OR " \
-    "(ev.attr_id = " + std::to_string(attrId) + " AND ev.value LIKE \"%" + q + "%\"";
+    "(ev.attr_id = " + std::to_string(attrId) + " AND ev.value LIKE \"%" + q + "%\")";
+  EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
+  return res;
+}
+
+EavResponse DbInterface::get_entities_attrs_like(std::string a, std::string v, std::string cmp) {
+  // fetch attr
+  std::string aquery = "SELECT * FROM eav_attrs WHERE attr = \"" + a + "\"";
+  EavResponse aRes = _exec_get_eav(aquery, EavItemType::ATTR);
+  if (aRes.code != 0) return aRes;
+  if (aRes.data.empty()) {
+    aRes.code = 924;
+    aRes.msg = "ERR: Attribute not found";
+    return aRes;
+  }
+  int attrId = aRes.data[0].attr_id;
+  // value converters
+  if (aRes.data[0].value_type == BOOL) {
+    cmp = "=";
+    if (v == "yes" || v == "Yes") v = "\"true\"";
+    else if (v == "no" || v == "No") v = "\"false\"";
+    else v = "\"" + v + "\"";
+  } else if (cmp == "LIKE") {
+    v = "\"%" + v + "%\"";
+  } else if (aRes.data[0].value_type == STR) {
+    v = "\"" + v + "\"";
+  }
+  // fetch entities using attr comparison
+  std::string query = "SELECT ee.* FROM eav_entities ee " \
+    "LEFT JOIN eav_values ev ON ev.entity_id = ee.id " \
+    "WHERE ev.attr_id = " + std::to_string(attrId) + " AND ev.value " + cmp + " " + v;
+  EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
+  return res;
+}
+
+EavResponse DbInterface::get_entities_attrs_empty(std::string a) {
+  // fetch attr
+  std::string aquery = "SELECT * FROM eav_attrs WHERE attr = \"" + a + "\"";
+  EavResponse aRes = _exec_get_eav(aquery, EavItemType::ATTR);
+  if (aRes.code != 0) return aRes;
+  if (aRes.data.empty()) {
+    aRes.code = 924;
+    aRes.msg = "ERR: Attribute not found";
+    return aRes;
+  }
+  int attrId = aRes.data[0].attr_id;
+  // fetch entities using attr comparison
+  std::string query = "SELECT ee.* from eav_blueprints eb " \
+    "LEFT JOIN eav_entities ee ON eb.id = ee.blueprint_id " \
+    "LEFT JOIN eav_ba_links ebl ON ebl.blueprint_id = eb.id " \
+    "LEFT JOIN eav_values ev ON ev.entity_id = ee.id " \
+    "WHERE ev.value IS NULL AND ebl.attr_id = " + std::to_string(attrId);
   EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
   return res;
 }

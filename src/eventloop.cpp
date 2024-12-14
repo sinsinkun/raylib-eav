@@ -68,7 +68,7 @@ void EventLoop::update() {
   }
   // update appbar
   if (appBar.update() == 1) {
-    _searchEntities(appBar.searchInput.input, 0);
+    _search(appBar.searchInput.input);
   };
   int sideBarAction = sideBar.update();
   if (sideBarAction > 0) {
@@ -209,6 +209,31 @@ void EventLoop::_searchEntities(std::string q, int altId) {
   } else {
     errBox.setError("ERR: could not find category");
   }
+}
+
+void EventLoop::_search(std::string q) {
+  entities.clear();
+  // split for attr comparisons
+  std::vector<std::string> cmprs = { ">", "<", "=", ":" };
+  for (int i=0; i<cmprs.size(); i++) {
+    std::vector<std::string> cmpVec = str_split(q, cmprs[i]);
+    if (cmpVec.size() == 2) {
+      std::string cmp = cmprs[i] == ":" ? "LIKE" : cmprs[i];
+      std::string a = trim_space(cmpVec[0]);
+      std::string v = trim_space(cmpVec[1]);
+      EavResponse res = EavResponse({});
+      if (v == "_empty") res = dbInterface.get_entities_attrs_empty(a);
+      else res = dbInterface.get_entities_attrs_like(a, v, cmp);
+      if (res.code != 0) {
+        errBox.setError(res.msg);
+        return;
+      }
+      _fillEntities(&res);
+      return;
+    }
+  }
+  // search entities
+  _searchEntities(q, 0);
 }
 #pragma endregion db actions
 

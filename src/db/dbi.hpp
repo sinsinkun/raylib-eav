@@ -65,6 +65,8 @@ namespace DbI {
       EavResponse get_entity_values(int id);
       EavResponse get_entities_like(std::string query);
       EavResponse get_entities_like(std::string query, int altTitleAttrId);
+      EavResponse get_entities_attrs_like(std::string a, std::string v, std::string cmp);
+      EavResponse get_entities_attrs_empty(std::string a);
       EavResponse get_values_like(int attrId, std::string query);
       // update entries
       DbResponse<int> update_blueprint(int id, std::string name);
