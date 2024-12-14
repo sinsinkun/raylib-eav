@@ -249,7 +249,9 @@ bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
     case FLOAT:
       return isValidDecimal(strV);
     case STR:
-      return true;
+      // prevent saving special search terms
+      if (strV == "_empty") return false;
+      else return true;
     default:
       return false;
   }
