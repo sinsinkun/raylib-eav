@@ -183,6 +183,7 @@ void EventLoop::_fillEntities(EavResponse* res) {
 
 void EventLoop::_fetchCategory(int blueprintId) {
   entities.clear();
+  appBar.searchInput.clear();
   EavResponse eRes = dbInterface.get_blueprint_entities(blueprintId);
   if (eRes.code == 0) {
     _fillEntities(&eRes);
