@@ -22,6 +22,7 @@ removing the need for running a separate MySQL instance in the background.
 - unfilled fields can be found with "{attr}: _empty"
 - multiple search parameters can be separated with commas
 - treat multiple filters as OR instead of AND by appending the search with "(or) ..."
+- filter for only 1 category with "@{category}, ..."
 
 ### Future Ideas
 - deleting values from entities

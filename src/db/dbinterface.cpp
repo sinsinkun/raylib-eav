@@ -703,11 +703,11 @@ EavResponse DbInterface::get_entities_like(std::string q) {
   return res;
 }
 
-EavResponse DbInterface::get_entities_like(std::string q, int attrId) {
+EavResponse DbInterface::get_entities_like(std::string q, int bpId) {
   std::string query = "SELECT ee.* FROM eav_entities ee " \
     "LEFT JOIN eav_values ev ON ev.entity_id = ee.id " \
-    "WHERE ee.entity LIKE \"%" + q + "%\" OR " \
-    "(ev.attr_id = " + std::to_string(attrId) + " AND ev.value LIKE \"%" + q + "%\")";
+    "WHERE ee.entity LIKE \"%" + q + "%\" " \
+    "AND ee.blueprint_id = " + std::to_string(bpId);
   EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
   return res;
 }

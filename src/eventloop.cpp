@@ -275,7 +275,7 @@ void EventLoop::_multisearch(std::string q) {
 EavResponse EventLoop::_search(std::string q) {
   entities.clear();
   // split for attr comparisons
-  std::vector<std::string> cmprs = { ">", "<", "=", ":" };
+  std::vector<std::string> cmprs = { ">", "<", "=", ": ", "@" };
   for (int i=0; i<cmprs.size(); i++) {
     std::vector<std::string> cmpVec = str_split(q, cmprs[i]);
     if (cmpVec.size() == 2) {
@@ -284,6 +284,18 @@ EavResponse EventLoop::_search(std::string q) {
       std::string v = trim_space(cmpVec[1]);
       EavResponse res = EavResponse({});
       if (v == "_empty") res = dbInterface.get_entities_attrs_empty(a);
+      else if (cmp == "@" && a.empty()) {
+        int bpId = 0;
+        for (int i=0; i<categories.size(); i++) {
+          if (v == categories[i].name) bpId = categories[i].id;
+        }
+        if (bpId == 0) {
+          res.code = 9;
+          res.msg = "ERR: Category not found";
+          return res;
+        }
+        res = dbInterface.get_blueprint_entities(bpId);
+      }
       else res = dbInterface.get_entities_attrs_like(a, v, cmp);
       return res;
     }
