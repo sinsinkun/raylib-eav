@@ -75,6 +75,7 @@ int SideBar::update() {
   }
 
   // handle inputs
+  int actioned = 0;
   if (!inputs.empty()) {
     bool gotoNextInput = IsKeyPressed(KEY_TAB);
     int activeIdx = -1;
@@ -123,6 +124,11 @@ int SideBar::update() {
         if (clicked) attrId = i + 1;
         else if (attrId != i + 1 && i < 4) radios[i].on = false;
       }
+      // check right click
+      if (box.state->uiIsRClicked(radios[i].id)) {
+        actioned = 3;
+        attrId = radios[i].attrId;
+      }
       // stop rendering at ylimit
       if (yOffset2 > yLimit) {
         radioEndi = i + 1;
@@ -133,7 +139,6 @@ int SideBar::update() {
 
   // handle buttons
   yOffset = yLimit + 40.0f;
-  int actioned = 0;
   btn1.posSize.x = box.posSize.x + 50.0f;
   btn1.posSize.y = yOffset;
   btn2.posSize.x = box.posSize.x + box.posSize.width - 150.0f;
@@ -143,7 +148,7 @@ int SideBar::update() {
     actioned = 2;
     if (action == NEW_BLUEPRINT || action == EDIT_BLUEPRINT) {
       changeDialog(NEW_ATTR, inputs[0].input, blueprintId, 0, 0, 0);
-    } else if (action == NEW_ATTR || action == DEL_BLUEPRINT || action == DEL_ENTITY) {
+    } else if (action == NEW_ATTR || action == DEL_BLUEPRINT || action == DEL_ATTR || action == DEL_ENTITY) {
       changeDialog(NO_ACTION, "", 0, 0, 0, 0);
     } else if (action == NEW_ENTITY || action == EDIT_ENTITY) {
       open = false;
@@ -335,6 +340,15 @@ void SideBar::changeDialog(DialogOption act, std::string mTxt, int bId, int eId,
     inputs.push_back(in2);
     // buttons
     btn1 = UIButton(box.state, { x0 + 50.0f, 600.0f, 100.0f, 30.0f }, "Add New");
+    btn1.renderBorder = true;
+    btn2 = UIButton(box.state, { x0 + 250.0f, 600.0f, 100.0f, 30.0f }, "Cancel");
+    btn2.renderBorder = true;
+  }
+  else if (act == DEL_ATTR) {
+    box.title = "Delete Attr ";
+    box.title += mTxt.empty() ? "(Unknown)" : mTxt;
+    box.title += "?";
+    btn1 = UIButton(box.state, { x0 + 50.0f, 160.0f, 100.0f, 30.0f }, "Confirm");
     btn1.renderBorder = true;
     btn2 = UIButton(box.state, { x0 + 250.0f, 600.0f, 100.0f, 30.0f }, "Cancel");
     btn2.renderBorder = true;

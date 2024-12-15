@@ -72,8 +72,19 @@ void EventLoop::update() {
     _multisearch(appBar.searchInput.input);
   };
   int sideBarAction = sideBar.update();
-  if (sideBarAction > 0) {
-    _handleSideBar(&sideBar, sideBarAction);
+  if (sideBarAction == 1) {
+    _handleSideBar(&sideBar);
+  } else if (sideBarAction == 3) {
+    // open delete menu for attr
+    menu = OptionsMenu(&uiGlobal, OP_ATTR);
+    for (int i=0; i<sideBar.radios.size(); i++) {
+      if (sideBar.attrId == sideBar.radios[i].attrId) {
+        menu.attrId = sideBar.attrId;
+        menu.metaText = sideBar.radios[i].attr;
+        menu.open();
+        break;
+      }
+    }
   }
   // update entities
   sortIndex = -1;
@@ -326,8 +337,8 @@ bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
   }
 }
 
-void EventLoop::_handleSideBar(SideBar* sb, int btn) {
-  if ((sb->action == NEW_BLUEPRINT || sb->action == EDIT_BLUEPRINT) && btn == 1) {
+void EventLoop::_handleSideBar(SideBar* sb) {
+  if (sb->action == NEW_BLUEPRINT || sb->action == EDIT_BLUEPRINT) {
     // validate blueprint name
     if (sb->inputs[0].input.empty()) {
       std::string msg = "Missing name";
@@ -374,12 +385,12 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
     _fetchAllCategories();
     sb->changeDialog(EDIT_BLUEPRINT, sb->inputs[0].input, blueprintId, 0, 0, 0);
   }
-  else if (sb->action == DEL_BLUEPRINT && btn == 1) {
+  else if (sb->action == DEL_BLUEPRINT) {
     errBox.setError("ERR: Please reconsider this action");
     _fetchCategory(sb->blueprintId);
     sb->changeDialog(NO_ACTION, "-", 0, 0, 0, 0);
   }
-  else if (sb->action == NEW_ATTR && btn == 1) {
+  else if (sb->action == NEW_ATTR) {
     // get attr
     std::string attr = sb->inputs[0].input;
     // get value type
@@ -407,7 +418,32 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
     _fetchCategory(sb->blueprintId);
     sb->changeDialog(NO_ACTION, "-", 0, 0, 0, 0);
   }
-  else if ((sb->action == NEW_ENTITY || sb->action == EDIT_ENTITY) && btn == 1) {
+  else if (sb->action == DEL_ATTR) {
+    // delete values
+    DbResponse res = dbInterface.delete_all_attr_values(sb->attrId);
+    if (res.code != 0) {
+      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
+      return;
+    }
+    // delete ba_links
+    res = dbInterface.delete_all_attr_links(sb->attrId);
+    if (res.code != 0) {
+      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
+      return;
+    }
+    // delete attr
+    res = dbInterface.delete_any(DbI::ATTR, sb->attrId);
+    if (res.code != 0) {
+      std::cout << res.msg << std::endl;
+      errBox.setError(res.msg);
+      return;
+    }
+    _fetchCategory(sb->blueprintId);
+    sb->changeDialog(NO_ACTION, "-", 0, 0, 0, 0);
+  }
+  else if (sb->action == NEW_ENTITY || sb->action == EDIT_ENTITY) {
     if (sb->blueprintId == 0) {
       std::string msg = "Missing blueprint id";
       std::cout << msg << std::endl;
@@ -458,13 +494,15 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
     // update attrs for entity
     for (int i=1; i<sb->inputs.size(); i++) {
       // skip empty inputs
-      if (sb->inputs[i].input.empty()) continue;
+      bool inputEmpty = sb->inputs[i].input.empty();
       int attrId = sb->inputs[i].attrId;
       int valueId = sb->inputs[i].valueId;
-      if (attrId != 0 && valueId == 0) {
+      if (attrId != 0 && valueId == 0 && !inputEmpty) {
         res = dbInterface.new_value(sb->entityId, attrId, sb->inputs[i].input);
-      } else if (valueId != 0) {
+      } else if (valueId != 0 && !inputEmpty) {
         res = dbInterface.update_value(valueId, sb->inputs[i].input);
+      } else if (valueId != 0 && inputEmpty) {
+        res = dbInterface.delete_any(DbI::VALUE, valueId);
       }
       if (res.code != 0) {
         std::cout << res.msg << std::endl;
@@ -485,7 +523,7 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
     if (isNew) _fetchCategory(sb->blueprintId);
     sb->changeDialog(EDIT_ENTITY, sb->inputs[0].input, sb->blueprintId, sb->entityId, 0, 0);
   }
-  else if (sb->action == DEL_ENTITY && btn == 1) {
+  else if (sb->action == DEL_ENTITY) {
     if (sb->entityId == 0) {
       std::string msg = "Missing entity id";
       std::cout << msg << std::endl;
@@ -512,6 +550,12 @@ void EventLoop::_handleSideBar(SideBar* sb, int btn) {
 }
 
 void EventLoop::_handleOption(OptionsMenu* menu, int action)  {
+  if (menu->parent == OP_ATTR) {
+    if (action == 1 && menu->attrId != 0) {
+      sideBar.changeDialog(DEL_ATTR, menu->metaText, sideBar.blueprintId, sideBar.entityId, sideBar.attrId, 0);
+      sideBar.open = true;
+    }
+  }
   if (menu->parent == OP_ENTITY) {
     if (action == 1 && menu->entityId != 0) {
       sideBar.changeDialog(EDIT_ENTITY, menu->metaText, menu->blueprintId, menu->entityId, 0, 0);

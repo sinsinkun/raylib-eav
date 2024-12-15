@@ -9,10 +9,10 @@
 namespace App {
   // specific use
   enum DialogOption {
-    NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_VALUE,
-    EDIT_BLUEPRINT, EDIT_ENTITY, DEL_BLUEPRINT, DEL_ENTITY, DEL_VALUE
+    NO_ACTION, NEW_BLUEPRINT, NEW_ENTITY, NEW_ATTR, NEW_VALUE, EDIT_BLUEPRINT, 
+    EDIT_ENTITY, DEL_BLUEPRINT, DEL_ATTR, DEL_ENTITY, DEL_VALUE
   };
-  enum OptionsParent { OP_NONE, OP_BLUEPRINT, OP_ENTITY };
+  enum OptionsParent { OP_NONE, OP_BLUEPRINT, OP_ATTR, OP_ENTITY };
   class OptionsMenu {
     public:
       OptionsMenu() {};
@@ -191,7 +191,7 @@ namespace App {
       void _multisearch(std::string query);
       DbI::EavResponse _search(std::string query);
       // helpers
-      void _handleSideBar(SideBar* sideBar, int action);
+      void _handleSideBar(SideBar* sideBar);
       void _handleOption(OptionsMenu* menu, int action);
   };
   // util functions

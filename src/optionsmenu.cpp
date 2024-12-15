@@ -12,6 +12,9 @@ OptionsMenu::OptionsMenu(UIState* gState, OptionsParent prt) {
   box.hideHover = true;
   box.posSize = { 0.0f, 0.0f, 150.0f, 34.0f };
   box.boxHoverColor = box.boxColor;
+  if (parent == OP_ATTR) {
+    btn1 = UIButton(gState, Rectangle{ 0.0f, 2.0f, 146.0f, 30.0f }, "Delete Attribute");
+  }
   if (parent == OP_ENTITY) {
     box.posSize.height = 66.0f;
     btn1 = UIButton(gState, Rectangle{ 0.0f, 2.0f, 146.0f, 30.0f }, "Update Entity");

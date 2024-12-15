@@ -895,6 +895,20 @@ DbResponse<int> DbInterface::delete_any(EavItemType type, int id) {
   return res;
 }
 
+DbResponse<int> DbInterface::delete_all_attr_links(int id) {
+  DbResponse<int> res = DbResponse(0);
+  std::string query = "DELETE FROM eav_ba_links WHERE attr_id = " + std::to_string(id);
+  res = _exec(query);
+  return res;
+}
+
+DbResponse<int> DbInterface::delete_all_attr_values(int id) {
+  DbResponse<int> res = DbResponse(0);
+  std::string query = "DELETE FROM eav_values WHERE attr_id = " + std::to_string(id);
+  res = _exec(query);
+  return res;
+}
+
 DbResponse<int> DbInterface::delete_all_entity_values(int id) {
   DbResponse<int> res = DbResponse(0);
   std::string query = "DELETE FROM eav_values WHERE entity_id = " + std::to_string(id);
