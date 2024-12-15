@@ -19,7 +19,7 @@ void UIBox::render() {
   }
   Color activeColor = boxColor;
   if (state->uiIsHovering(id)) activeColor = boxHoverColor;
-  DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, activeColor);
+  DrawRectangleRec(posSize, activeColor);
   // draw text
   if (title != "") {
     Vector2 titlePos = { posSize.x + 5.0f, posSize.y + 5.0f };

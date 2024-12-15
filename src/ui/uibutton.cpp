@@ -18,7 +18,7 @@ void UIButton::render() {
   Color activeColor = btnColor;
   if (state->uiIsClicking(id)) activeColor = btnDownColor;
   else if (state->uiIsHovering(id)) activeColor = btnHoverColor;
-  DrawRectangle(posSize.x, posSize.y, posSize.width, posSize.height, activeColor);
+  DrawRectangleRec(posSize, activeColor);
   // draw text
   if (text != "") {
     Vector2 txtDim = MeasureTextEx(state->font, text.c_str(), fontSize, 0.0);
