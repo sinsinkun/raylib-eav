@@ -21,16 +21,11 @@ EavEntity::EavEntity(UIState* globalState, DbI::EavItem item, Rectangle posSizeI
   if (dbi == NULL) return;
   DbI::EavResponse vRes = dbi->get_entity_values(item.entity_id);
   // randomly generate box color
-  int r = GetRandomValue(160, 250);
-  int g = GetRandomValue(160, 220);
-  int b = GetRandomValue(120, 240);
-  box.boxColor = Color { (unsigned char)r, (unsigned char)g, (unsigned char)b, 255 };
-  box.boxHoverColor = Color { 
-    (unsigned char)(std::min(r + 20, 255)),
-    (unsigned char)(std::min(g + 20, 255)),
-    (unsigned char)b,
-    255
-  };
+  int h0 = (blueprintId * 43) % 360;
+  int h = h0 > 180 ? GetRandomValue(h0-20, h0) : GetRandomValue(h0, h0+20);
+  int s = GetRandomValue(600, 800);
+  box.boxColor = ColorFromHSV((float)h, s/1000.0f, 0.8f);
+  box.boxHoverColor = ColorFromHSV((float)h, s/1000.0f, 0.7f);
   // save values
   if (vRes.code == 0) {
     values = vRes.data;

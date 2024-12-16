@@ -27,7 +27,6 @@ removing the need for running a separate MySQL instance in the background.
 ### Future Ideas
 - display category on entity (when mixed)
 - optimize multi search
-- group entities by color per category
 
 
 ## Installation (with MSYS2)
