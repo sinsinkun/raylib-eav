@@ -256,6 +256,7 @@ std::vector<EavItem> orFilter(std::vector<std::vector<EavItem>> all) {
 
 void EventLoop::_multisearch(std::string q) {
   entities.clear();
+  sideBar.open = false;
   bool orOp = false;
   if (q.size() > 4 && q[0] == '(' && q[1] == 'o' && q[2] == 'r' && q[3] == ')') {
     orOp = true;
