@@ -698,7 +698,7 @@ EavResponse DbInterface::get_entity_values(int id) {
 }
 
 EavResponse DbInterface::get_entities_like(std::string q) {
-  std::string query = "SELECT * FROM eav_entities WHERE entity LIKE \"%" + q + "%\" ORDER BY blueprint_id";
+  std::string query = "SELECT * FROM eav_entities WHERE entity LIKE \"%" + q + "%\" ORDER BY blueprint_id DESC";
   EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
   return res;
 }
@@ -738,7 +738,7 @@ EavResponse DbInterface::get_entities_attrs_like(std::string a, std::string v, s
   std::string query = "SELECT ee.* FROM eav_entities ee " \
     "LEFT JOIN eav_values ev ON ev.entity_id = ee.id " \
     "WHERE ev.attr_id = " + std::to_string(attrId) + " AND ev.value " \
-    + cmp + " " + v + " ORDER BY blueprint_id";
+    + cmp + " " + v + " ORDER BY blueprint_id DESC";
   EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
   return res;
 }
@@ -759,7 +759,7 @@ EavResponse DbInterface::get_entities_attrs_empty(std::string a) {
     "INNER JOIN eav_entities ee ON eb.id = ee.blueprint_id " \
     "INNER JOIN eav_ba_links ebl ON ebl.blueprint_id = eb.id AND ebl.attr_id = " + attrId + " " \
     "LEFT JOIN eav_values ev ON ev.entity_id = ee.id AND ev.attr_id = " + attrId + " " \
-    "WHERE ev.value IS NULL ORDER BY blueprint_id";
+    "WHERE ev.value IS NULL ORDER BY blueprint_id DESC";
   EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
   return res;
 }
