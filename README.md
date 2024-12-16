@@ -25,7 +25,7 @@ removing the need for running a separate MySQL instance in the background.
 - filter for only 1 category with "@{category}, ..."
 
 ### Future Ideas
-- display category on entity (when mixed)
+- scrolling text on cards
 - optimize multi search
 
 
