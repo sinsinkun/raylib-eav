@@ -10,6 +10,8 @@ removing the need for running a separate MySQL instance in the background.
 
 <img src="assets/screenshot.png" width="600x" />
 <img src="assets/screenshot2.png" width="600x" />
+<img src="assets/screenshot3.png" width="600x" />
+<img src="assets/screenshot4.png" width="600x" />
 
 ### Usage
 - Entities are grouped by category
