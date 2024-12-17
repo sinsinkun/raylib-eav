@@ -7,6 +7,8 @@
 namespace DbI {
   enum EavValueType { NONE, INT, FLOAT, STR, BOOL };
   enum EavItemType { UNKNOWN, BLUEPRINT, ENTITY, ATTR, BA_LINK, VALUE, VIEW };
+  enum QueryComparator { ENTITY_NAMED, BP_ID, ATTR_LIKE, ATTR_EQUAL, ATTR_GT, ATTR_GTE, ATTR_LT, ATTR_LTE, ATTR_NULL };
+  enum QueryChain { Q_AND, Q_OR };
   struct EavItem {
     EavItemType type = EavItemType::UNKNOWN;
     int blueprint_id = 0;
@@ -25,6 +27,15 @@ namespace DbI {
     int int_value = 0;
     float float_value = 0.0;
     bool bool_value = false;
+  };
+  struct EntityQuery {
+    public:
+      QueryComparator comparator = ENTITY_NAMED;
+      QueryChain chain = Q_AND;
+      int id = 0;
+      std::string entity;
+      std::string attr;
+      std::string value;
   };
   template <typename T>
   struct DbResponse {
@@ -63,10 +74,7 @@ namespace DbI {
       EavResponse get_blueprint_entities(int id);
       EavResponse get_attrs();
       EavResponse get_entity_values(int id);
-      EavResponse get_entities_like(std::string query);
-      EavResponse get_entities_like(std::string query, int bpId);
-      EavResponse get_entities_attrs_like(std::string a, std::string v, std::string cmp);
-      EavResponse get_entities_attrs_empty(std::string a);
+      EavResponse search_entities(std::vector<EntityQuery> queries);
       EavResponse get_values_like(int attrId, std::string query);
       // update entries
       DbResponse<int> update_blueprint(int id, std::string name);
@@ -86,6 +94,9 @@ namespace DbI {
       DbResponse<int> _exec(std::string query);
       EavResponse _exec_get_eav(std::string query, EavItemType type);
   };
+  // util functions
   std::string value_type_to_str(EavValueType type);
   EavValueType str_to_value_type(std::string str);
+  bool isValidDecimal(std::string str);
+  bool isValidInteger(std::string str);
 }

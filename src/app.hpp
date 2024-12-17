@@ -188,8 +188,8 @@ namespace App {
       void _fetchAllCategories();
       void _fillEntities(DbI::EavResponse* res);
       void _fetchCategory(int blueprintId);
-      void _multisearch(std::string query);
-      DbI::EavResponse _search(std::string query);
+      int _queryBuilder(std::string query, DbI::EntityQuery* eq);
+      void _search(std::string query);
       // helpers
       void _handleSideBar(SideBar* sideBar);
       void _handleOption(OptionsMenu* menu, int action);
@@ -198,6 +198,4 @@ namespace App {
   std::vector<std::string> str_split(std::string str, std::string delimiter);
   std::vector<std::string> str_split_length(std::string str, int size);
   std::string trim_space(std::string str);
-  bool isValidDecimal(std::string str);
-  bool isValidInteger(std::string str);
 }

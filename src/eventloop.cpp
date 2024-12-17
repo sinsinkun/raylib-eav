@@ -69,7 +69,7 @@ void EventLoop::update() {
   }
   // update appbar
   if (appBar.update() == 1) {
-    _multisearch(appBar.searchInput.input);
+    _search(appBar.searchInput.input);
   };
   int sideBarAction = sideBar.update();
   if (sideBarAction == 1) {
@@ -208,113 +208,107 @@ void EventLoop::_fetchCategory(int blueprintId) {
   }
 }
 
-std::vector<EavItem> andFilter(std::vector<std::vector<EavItem>> all) {
-  // use 0th element as base
-  std::unordered_set<int> entityIds;
-  std::vector<EavItem> entityDump = all[0];
-  for (int i=0; i<entityDump.size(); i++) {
-    entityIds.insert(entityDump[i].entity_id);
-  }
-  // filter for results found in all responses
-  for (int i=1; i<all.size(); i++) {
-    std::unordered_set<int> tempIds;
-    for (int j=0; j<all[i].size(); j++) {
-      int entityId = all[i][j].entity_id;
-      if (entityIds.find(entityId) != entityIds.end()) {
-        tempIds.insert(entityId);
-      }
-    }
-    entityIds = tempIds;
-  }
-  // filter entityDump for filtered ids
-  std::vector<EavItem> out;
-  for (int id : entityIds) {
-    for (int i=0; i<entityDump.size(); i++) {
-      if (entityDump[i].entity_id == id) {
-        out.push_back(entityDump[i]);
-      }
-    }
-  }
-  return out;
-}
-
-std::vector<EavItem> orFilter(std::vector<std::vector<EavItem>> all) {
-  std::unordered_set<int> entityIds;
-  std::vector<EavItem> entityDump;
-  // filter for unique results
-  for (int i=0; i<all.size(); i++) {
-    for (int j=0; j<all[i].size(); j++) {
-      int entityId = all[i][j].entity_id;
-      if (entityIds.find(entityId) == entityIds.end()) {
-        entityIds.insert(entityId);
-        entityDump.push_back(all[i][j]);
-      }
-    }
-  }
-  return entityDump;
-}
-
-void EventLoop::_multisearch(std::string q) {
-  entities.clear();
-  sideBar.open = false;
-  bool orOp = false;
-  if (q.size() > 4 && q[0] == '(' && q[1] == 'o' && q[2] == 'r' && q[3] == ')') {
-    orOp = true;
-    q = q.substr(4);
-  }
-  std::vector<std::string> searches = str_split(q, ",");
-  std::vector<std::vector<EavItem>> allRes;
-  // perform searches individually
-  for (std::string s : searches) {
-    EavResponse r = _search(trim_space(s));
-    if (r.code != 0) {
-      errBox.setError(r.msg);
-      return;
-    }
-    allRes.push_back(r.data);
-  }
-  // combine into 1 response
-  EavResponse endRes = EavResponse({});
-  if (orOp) endRes = orFilter(allRes);
-  else endRes = andFilter(allRes);
-  // spawn entries
-  _fillEntities(&endRes);
-  // clear active category
-  for (int i=0; i<categories.size(); i++) {
-    categories[i].isActive = false;
-  }
-}
-
-EavResponse EventLoop::_search(std::string q) {
-  entities.clear();
-  // split for attr comparisons
-  std::vector<std::string> cmprs = { ">", "<", "=", ": ", "@" };
+int EventLoop::_queryBuilder(std::string q, EntityQuery* eq) {
+  q = trim_space(q);
+  std::vector<std::string> cmprs = { ">=", "<=", ">", "<", "=", ": ", "in ", "IN " };
   for (int i=0; i<cmprs.size(); i++) {
     std::vector<std::string> cmpVec = str_split(q, cmprs[i]);
     if (cmpVec.size() == 2) {
-      std::string cmp = cmprs[i] == ":" ? "LIKE" : cmprs[i];
       std::string a = trim_space(cmpVec[0]);
       std::string v = trim_space(cmpVec[1]);
-      EavResponse res = EavResponse({});
-      if (v == "_empty") res = dbInterface.get_entities_attrs_empty(a);
-      else if (cmp == "@" && a.empty()) {
+      if (v == "_null") {
+        eq->comparator = ATTR_NULL;
+        eq->attr = a;
+      }
+      else if ((cmprs[i] == "in " || cmprs[i] == "IN ") && a.empty()) {
         int bpId = 0;
+        eq->comparator = BP_ID;
+        // grab bp id
         for (int i=0; i<categories.size(); i++) {
           if (v == categories[i].name) bpId = categories[i].id;
         }
         if (bpId == 0) {
-          res.code = 9;
-          res.msg = "ERR: Category not found";
-          return res;
+          return 2;
         }
-        res = dbInterface.get_blueprint_entities(bpId);
+        eq->id = bpId;
       }
-      else res = dbInterface.get_entities_attrs_like(a, v, cmp);
-      return res;
+      else {
+        if (cmprs[i] == ">=") eq->comparator = ATTR_GTE;
+        else if (cmprs[i] == "<=") eq->comparator = ATTR_LTE;
+        else if (cmprs[i] == ">") eq->comparator = ATTR_GT;
+        else if (cmprs[i] == "<") eq->comparator = ATTR_LT;
+        else if (cmprs[i] == "=") {
+          eq->comparator = ATTR_EQUAL;
+          if (!isValidDecimal(v)) v = "\"" + v + "\"";
+        }
+        else if (cmprs[i] == ": ") {
+          eq->comparator = ATTR_LIKE;
+          // conversions for bools
+          if (v == "yes" || v == "Yes") {
+            eq->comparator = ATTR_EQUAL;
+            v = "\"true\"";
+          }
+          else if (v == "no" || v == "No") {
+            eq->comparator = ATTR_EQUAL;
+            v = "\"false\"";
+          }
+        }
+        eq->attr = a;
+        eq->value = v;
+      }
+      break;
     }
   }
-  // search entities
-  return dbInterface.get_entities_like(q);
+  // note: entity_named is the default comparator
+  if (eq->comparator == ENTITY_NAMED) {
+    eq->entity = q;
+  }
+  return 0;
+}
+
+void EventLoop::_search(std::string query) {
+  entities.clear();
+  sideBar.open = false;
+  // break q into EntityQuery entries
+  std::vector<std::string> qs = str_split(query, ",");
+  std::vector<EntityQuery> eqs;
+  std::vector<std::string> cmprs = { ">=", "<=", ">", "<", "=", ": ", "@" };
+  for (int i=0; i < qs.size(); i++) {
+    std::string q = trim_space(qs[i]);
+    EntityQuery eq;
+    // extract chain
+    if (i == 0) eq.chain = Q_AND;
+    else if (
+      (q[0] == 'a' || q[0] == 'A') && 
+      (q[1] == 'n' || q[1] == 'N') && 
+      (q[2] == 'd' || q[2] == 'D')
+    ) {
+      eq.chain = Q_AND;
+      q = q.substr(3);
+    }
+    else if (q[0] == 'o' && q[1] == 'r') {
+      eq.chain = Q_OR;
+      q = q.substr(2);
+    }
+    else {
+      errBox.setError("ERR: and/or operator expected");
+      return;
+    }
+    // extract query params
+    int errCode = _queryBuilder(q, &eq);
+    if (errCode == 2) {
+      errBox.setError("ERR: Category not found");
+      return;
+    }
+    eqs.push_back(eq);
+  }
+  EavResponse res = dbInterface.search_entities(eqs);
+  // spawn entries
+  _fillEntities(&res);
+  // clear active category
+  for (int i=0; i<categories.size(); i++) {
+    categories[i].isActive = false;
+  }
 }
 #pragma endregion db actions
 

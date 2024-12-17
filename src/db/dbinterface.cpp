@@ -20,30 +20,18 @@ void DbInterface::init() {
   }
 }
 
+void DbInterface::disconnect() {
+  int rcode = sqlite3_close(db);
+  std::string srcode = std::to_string(rcode);
+  std::cout << "Closed db (" + srcode + ")" << std::endl;
+}
+
 #pragma region helpers
 // get time since epoch in ms
 unsigned int DbInterface::_now() {
   auto instant = std::chrono::system_clock::now();
   auto duration = instant.time_since_epoch();
   return duration.count();
-}
-
-std::string DbI::value_type_to_str(EavValueType type) {
-  switch (type) {
-    case EavValueType::STR: return "str";
-    case EavValueType::INT: return "int";
-    case EavValueType::BOOL: return "bool";
-    case EavValueType::FLOAT: return "float";
-    default: return "null";
-  }
-}
-
-EavValueType DbI::str_to_value_type(std::string str) {
-  if (str == "str") return EavValueType::STR;
-  else if (str == "int") return EavValueType::INT;
-  else if (str == "bool") return EavValueType::BOOL;
-  else if (str == "float") return EavValueType::FLOAT;
-  else return EavValueType::NONE;
 }
 
 DbResponse<int> DbInterface::_last_inserted_id() {
@@ -697,69 +685,52 @@ EavResponse DbInterface::get_entity_values(int id) {
   return res;
 }
 
-EavResponse DbInterface::get_entities_like(std::string q) {
-  std::string query = "SELECT * FROM eav_entities WHERE entity LIKE \"%" + q + "%\" ORDER BY blueprint_id DESC";
-  EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
-  return res;
-}
-
-EavResponse DbInterface::get_entities_like(std::string q, int bpId) {
-  std::string query = "SELECT ee.* FROM eav_entities ee " \
-    "LEFT JOIN eav_values ev ON ev.entity_id = ee.id " \
-    "WHERE ee.entity LIKE \"%" + q + "%\" " \
-    "AND ee.blueprint_id = " + std::to_string(bpId);
-  EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
-  return res;
-}
-
-EavResponse DbInterface::get_entities_attrs_like(std::string a, std::string v, std::string cmp) {
-  // fetch attr
-  std::string aquery = "SELECT * FROM eav_attrs WHERE attr = \"" + a + "\"";
-  EavResponse aRes = _exec_get_eav(aquery, EavItemType::ATTR);
-  if (aRes.code != 0) return aRes;
-  if (aRes.data.empty()) {
-    aRes.code = 924;
-    aRes.msg = "ERR: Attribute not found";
-    return aRes;
+EavResponse DbInterface::search_entities(std::vector<EntityQuery> queries) {
+  if (queries.empty()) {
+    EavResponse r = EavResponse({});
+    r.code = 2;
+    r.msg = "ERR: No query provided";
+    return r;
   }
-  int attrId = aRes.data[0].attr_id;
-  // value converters
-  if (aRes.data[0].value_type == BOOL) {
-    cmp = "=";
-    if (v == "yes" || v == "Yes") v = "\"true\"";
-    else if (v == "no" || v == "No") v = "\"false\"";
-    else v = "\"" + v + "\"";
-  } else if (cmp == "LIKE") {
-    v = "\"%" + v + "%\"";
-  } else if (aRes.data[0].value_type == STR) {
-    v = "\"" + v + "\"";
-  }
-  // fetch entities using attr comparison
-  std::string query = "SELECT ee.* FROM eav_entities ee " \
-    "LEFT JOIN eav_values ev ON ev.entity_id = ee.id " \
-    "WHERE ev.attr_id = " + std::to_string(attrId) + " AND ev.value " \
-    + cmp + " " + v + " ORDER BY blueprint_id DESC";
-  EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
-  return res;
-}
-
-EavResponse DbInterface::get_entities_attrs_empty(std::string a) {
-  // fetch attr
-  std::string aquery = "SELECT * FROM eav_attrs WHERE attr = \"" + a + "\"";
-  EavResponse aRes = _exec_get_eav(aquery, EavItemType::ATTR);
-  if (aRes.code != 0) return aRes;
-  if (aRes.data.empty()) {
-    aRes.code = 924;
-    aRes.msg = "ERR: Attribute not found: " + a;
-    return aRes;
-  }
-  // fetch entities using attr comparison
-  std::string attrId = std::to_string(aRes.data[0].attr_id);
-  std::string query = "SELECT ee.* from eav_blueprints eb " \
+  std::string query = "SELECT DISTINCT ee.*, eb.blueprint FROM eav_blueprints eb " \
     "INNER JOIN eav_entities ee ON eb.id = ee.blueprint_id " \
-    "INNER JOIN eav_ba_links ebl ON ebl.blueprint_id = eb.id AND ebl.attr_id = " + attrId + " " \
-    "LEFT JOIN eav_values ev ON ev.entity_id = ee.id AND ev.attr_id = " + attrId + " " \
-    "WHERE ev.value IS NULL ORDER BY blueprint_id DESC";
+    "INNER JOIN eav_ba_links ebl ON ebl.blueprint_id = eb.id " \
+    "INNER JOIN eav_attrs ea ON ea.id = ebl.attr_id " \
+    "LEFT JOIN eav_values ev ON ev.attr_id = ea.id AND ev.entity_id = ee.id " \
+    "WHERE ";
+  // append each query
+  for (int i=0; i<queries.size(); i++) {
+    if (i > 0) query += queries[i].chain == Q_AND ? " AND " : " OR ";
+    if (queries[i].comparator == ENTITY_NAMED) {
+      query += "(ee.entity LIKE '%" + queries[i].entity + "%')";
+    } else if (queries[i].comparator == BP_ID) {
+      query += "(ee.blueprint_id = " + std::to_string(queries[i].id) + ")";
+    } else if (queries[i].comparator == ATTR_LIKE) {
+      if (queries[i].value[0] != '\'' || queries[i].value[0] != '\"') {
+        queries[i].value = "\"%" + queries[i].value + "%\"";
+      }
+      query += "(ea.attr = \"" + queries[i].attr +
+        "\" AND ev.value LIKE " + queries[i].value + ")";
+    } else if (queries[i].comparator == ATTR_EQUAL) {
+      query += "(ea.attr = \"" + queries[i].attr +
+        "\" AND ev.value = " + queries[i].value + ")";
+    } else if (queries[i].comparator == ATTR_GT) {
+      query += "(ea.attr = \"" + queries[i].attr +
+        "\" AND ev.value > " + queries[i].value + ")";
+    } else if (queries[i].comparator == ATTR_GTE) {
+      query += "(ea.attr = \"" + queries[i].attr +
+        "\" AND ev.value >= " + queries[i].value + ")";
+    } else if (queries[i].comparator == ATTR_LT) {
+      query += "(ea.attr = \"" + queries[i].attr +
+        "\" AND ev.value < " + queries[i].value + ")";
+    } else if (queries[i].comparator == ATTR_LTE) {
+      query += "(ea.attr = \"" + queries[i].attr +
+        "\" AND ev.value <= " + queries[i].value + ")";
+    } else if (queries[i].comparator == ATTR_NULL) {
+      query += "(ea.attr = \"" + queries[i].attr + "\" AND ev.value IS NULL)";
+    }
+  }
+  query += " ORDER BY blueprint_id";
   EavResponse res = _exec_get_eav(query, EavItemType::ENTITY);
   return res;
 }
@@ -863,6 +834,7 @@ DbResponse<int> DbInterface::update_value(int id, std::string value) {
 }
 #pragma endregion update_entries
 
+#pragma region delete_entries
 DbResponse<int> DbInterface::delete_any(EavItemType type, int id) {
   DbResponse<int> res = DbResponse(0);
   std::string table = "";
@@ -916,9 +888,4 @@ DbResponse<int> DbInterface::delete_all_entity_values(int id) {
   res = _exec(query);
   return res;
 }
-
-void DbInterface::disconnect() {
-  int rcode = sqlite3_close(db);
-  std::string srcode = std::to_string(rcode);
-  std::cout << "Closed db (" + srcode + ")" << std::endl;
-}
+#pragma endregion delete_entries
