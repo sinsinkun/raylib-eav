@@ -27,7 +27,6 @@ removing the need for running a separate MySQL instance in the background.
 
 ### Future Ideas
 - scrolling text on cards
-- optimize multi search
 
 
 ## Installation (with MSYS2)
