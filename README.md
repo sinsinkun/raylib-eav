@@ -20,11 +20,10 @@ removing the need for running a separate MySQL instance in the background.
 - Valid value types: int, float, str, bool
 - int and float values can optionally have units displayed next to their values
 - search bar supports searching for values with the format "{attr}: {value}"
-- numerical values can be compared with "{attr} > {value}" / "{attr} < {value}"
-- unfilled fields can be found with "{attr}: _empty"
-- multiple search parameters can be separated with commas
-- treat multiple filters as OR instead of AND by appending the search with "(or) ..."
-- filter for only 1 category with "@{category}, ..."
+- numerical attributes can be compared with ">", "<", ">=", "<="
+- empty/null attributes can be searched with the keyword "_null"
+- multiple searches can be chained together with "{attr}: {value}, or {attr}: {value}, and {attr}: {value}"
+- searches can be restricted to a single category with "..., in {category}"
 
 ### Future Ideas
 - scrolling text on cards

@@ -325,7 +325,7 @@ bool _valueTypeIsValid(std::string strV, DbI::EavValueType vType) {
       return isValidDecimal(strV);
     case STR:
       // prevent saving special search terms
-      if (strV == "_empty") return false;
+      if (strV == "_null") return false;
       else return true;
     default:
       return false;
