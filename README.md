@@ -27,7 +27,6 @@ removing the need for running a separate MySQL instance in the background.
 - searches can be restricted to a single category with "..., and in {category}"
 
 ### Future Ideas
-- proper input blinker
 - toggle to only show filled values on cards
 
 

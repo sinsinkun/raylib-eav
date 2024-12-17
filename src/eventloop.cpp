@@ -27,6 +27,11 @@ void EventLoop::init() {
   appBar = AppBar(&uiGlobal, Rectangle {0.0f, 0.0f, 1200.0f, 80.0f });
   sideBar = SideBar(&uiGlobal, &dbInterface, Rectangle { 0.0f, 0.0f, 360.0f, 700.0f });
   sideBar.changeDialog(NEW_BLUEPRINT, "", 0, 0, 0, 0);
+
+  Vector2 a = MeasureTextEx(uiGlobal.font, "Hello World", 18.0f, 0.0f);
+  Vector2 b = MeasureTextEx(uiGlobal.font, "Hello World    ", 18.0f, 0.0f);
+  std::cout << a.x << " : " << b.x << std::endl;
+
 }
 
 void EventLoop::update() {

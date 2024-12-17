@@ -99,9 +99,13 @@ void UIInput::render() {
   );
   // draw blinker
   if (_blinkState) {
+    Vector2 textSize = MeasureTextEx(state->font, input.c_str(), fontSize, 0.0f);
+    float x = posSize.x + textSize.x + 5.0f;
+    float xLimit = posSize.x + posSize.width - 4.0f;
+    if (x > xLimit) x = xLimit;
     DrawLineEx(
-      Vector2{posSize.x + posSize.width - 4.0f, posSize.y + 2.0f },
-      Vector2{posSize.x + posSize.width - 4.0f, posSize.y + posSize.height - 4.0f},
+      Vector2{x, posSize.y + 2.0f },
+      Vector2{x, posSize.y + posSize.height - 4.0f},
       2.0f,
       Color { 40, 20, 20, 255 }
     );
