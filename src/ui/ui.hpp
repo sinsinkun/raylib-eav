@@ -125,6 +125,11 @@ namespace App {
       Color txtColor = BLACK;
       bool update();
       void render();
+    private:
+      int bodyStarti = 0;
+      float scrollDelta = 0.0f;
+      float hLimit = 0.0f;
+      bool showScroll = false;
   };
   class UIRadio {
     public:

@@ -63,7 +63,7 @@ int SideBar::update() {
       box.posSize.width,
       yLimit - 130.0f,
     };
-    if (CheckCollisionPointRec(box.state->mousePos, scrollBounds)) {
+    if (box.state->uiIsHovering(box.id) && CheckCollisionPointRec(box.state->mousePos, scrollBounds)) {
       scrollDelta = GetMouseWheelMove();
     }
   }
