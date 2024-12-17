@@ -19,6 +19,7 @@ removing the need for running a separate MySQL instance in the background.
 - Attributes define what type of value they take as an input
 - Valid value types: int, float, str, bool
 - int and float values can optionally have units displayed next to their values
+
 - search bar supports searching for values with the format "{attr}: {value}"
 - numerical attributes can be compared with ">", "<", ">=", "<="
 - empty/null attributes can be searched with the keyword "_null"
@@ -27,6 +28,8 @@ removing the need for running a separate MySQL instance in the background.
 
 ### Future Ideas
 - scrolling text on cards
+- proper input blinker
+- toggle to only show filled values on cards
 
 
 ## Installation (with MSYS2)
