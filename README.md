@@ -23,7 +23,7 @@ removing the need for running a separate MySQL instance in the background.
 - numerical attributes can be compared with ">", "<", ">=", "<="
 - empty/null attributes can be searched with the keyword "_null"
 - multiple searches can be chained together with "{attr}: {value}, or {attr}: {value}, and {attr}: {value}"
-- searches can be restricted to a single category with "..., in {category}"
+- searches can be restricted to a single category with "..., and in {category}"
 
 ### Future Ideas
 - scrolling text on cards
