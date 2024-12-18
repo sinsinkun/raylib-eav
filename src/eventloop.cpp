@@ -227,15 +227,8 @@ int EventLoop::_queryBuilder(std::string q, EntityQuery* eq) {
       }
       else if ((cmprs[i] == "in " || cmprs[i] == "IN ") && a.empty()) {
         int bpId = 0;
-        eq->comparator = BP_ID;
-        // grab bp id
-        for (int i=0; i<categories.size(); i++) {
-          if (v == categories[i].name) bpId = categories[i].id;
-        }
-        if (bpId == 0) {
-          return 2;
-        }
-        eq->id = bpId;
+        eq->comparator = BP_NAMED;
+        eq->blueprint = v;
       }
       else {
         if (cmprs[i] == ">=") eq->comparator = ATTR_GTE;

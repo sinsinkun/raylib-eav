@@ -703,8 +703,8 @@ EavResponse DbInterface::search_entities(std::vector<EntityQuery> queries) {
     if (i > 0) query += queries[i].chain == Q_AND ? " AND " : " OR ";
     if (queries[i].comparator == ENTITY_NAMED) {
       query += "(ee.entity LIKE '%" + queries[i].entity + "%')";
-    } else if (queries[i].comparator == BP_ID) {
-      query += "(ee.blueprint_id = " + std::to_string(queries[i].id) + ")";
+    } else if (queries[i].comparator == BP_NAMED) {
+      query += "(eb.blueprint LIKE \"" + queries[i].blueprint + "\")";
     } else if (queries[i].comparator == ATTR_LIKE) {
       if (queries[i].value[0] != '\'' || queries[i].value[0] != '\"') {
         queries[i].value = "\"%" + queries[i].value + "%\"";

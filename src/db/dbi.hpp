@@ -7,7 +7,7 @@
 namespace DbI {
   enum EavValueType { NONE, INT, FLOAT, STR, BOOL };
   enum EavItemType { UNKNOWN, BLUEPRINT, ENTITY, ATTR, BA_LINK, VALUE, VIEW };
-  enum QueryComparator { ENTITY_NAMED, BP_ID, ATTR_LIKE, ATTR_EQUAL, ATTR_GT, ATTR_GTE, ATTR_LT, ATTR_LTE, ATTR_NULL };
+  enum QueryComparator { ENTITY_NAMED, BP_NAMED, ATTR_LIKE, ATTR_EQUAL, ATTR_GT, ATTR_GTE, ATTR_LT, ATTR_LTE, ATTR_NULL };
   enum QueryChain { Q_AND, Q_OR };
   struct EavItem {
     EavItemType type = EavItemType::UNKNOWN;
@@ -32,7 +32,7 @@ namespace DbI {
     public:
       QueryComparator comparator = ENTITY_NAMED;
       QueryChain chain = Q_AND;
-      int id = 0;
+      std::string blueprint;
       std::string entity;
       std::string attr;
       std::string value;
