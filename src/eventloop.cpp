@@ -200,6 +200,7 @@ void EventLoop::_fillEntities(EavResponse* res) {
 void EventLoop::_fetchCategory(int blueprintId) {
   entities.clear();
   appBar.searchInput.clear();
+  sideBar.open = false;
   EavResponse eRes = dbInterface.get_blueprint_entities(blueprintId);
   if (eRes.code == 0) {
     _fillEntities(&eRes);
@@ -550,11 +551,20 @@ void EventLoop::_handleOption(OptionsMenu* menu, int action)  {
     }
   }
   if (menu->parent == OP_ENTITY) {
-    if (action == 1 && menu->entityId != 0) {
-      sideBar.changeDialog(EDIT_ENTITY, menu->metaText, menu->blueprintId, menu->entityId, 0, 0);
+    if (action == 1) {
+      // grab category name
+      std::string metaTxt;
+      for (int i=0; i<categories.size(); i++) {
+        if (categories[i].id == menu->blueprintId) metaTxt = categories[i].name;
+      }
+      sideBar.changeDialog(NEW_ENTITY, metaTxt, menu->blueprintId, 0, 0, 0);
       sideBar.open = true;
     }
     if (action == 2 && menu->entityId != 0) {
+      sideBar.changeDialog(EDIT_ENTITY, menu->metaText, menu->blueprintId, menu->entityId, 0, 0);
+      sideBar.open = true;
+    }
+    if (action == 3 && menu->entityId != 0) {
       sideBar.changeDialog(DEL_ENTITY, menu->metaText, menu->blueprintId, menu->entityId, 0, 0);
       sideBar.open = true;
     }
