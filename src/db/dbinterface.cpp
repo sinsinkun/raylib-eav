@@ -716,16 +716,16 @@ EavResponse DbInterface::search_entities(std::vector<EntityQuery> queries) {
         "\" AND ev.value = " + queries[i].value + ")";
     } else if (queries[i].comparator == ATTR_GT) {
       query += "(ea.attr = \"" + queries[i].attr +
-        "\" AND ev.value > " + queries[i].value + ")";
+        "\" AND CAST(ev.value as NUMBER) > " + queries[i].value + ")";
     } else if (queries[i].comparator == ATTR_GTE) {
       query += "(ea.attr = \"" + queries[i].attr +
-        "\" AND ev.value >= " + queries[i].value + ")";
+        "\" AND CAST(ev.value as NUMBER) >= " + queries[i].value + ")";
     } else if (queries[i].comparator == ATTR_LT) {
       query += "(ea.attr = \"" + queries[i].attr +
-        "\" AND ev.value < " + queries[i].value + ")";
+        "\" AND CAST(ev.value as NUMBER) < " + queries[i].value + ")";
     } else if (queries[i].comparator == ATTR_LTE) {
       query += "(ea.attr = \"" + queries[i].attr +
-        "\" AND ev.value <= " + queries[i].value + ")";
+        "\" AND CAST(ev.value as NUMBER) <= " + queries[i].value + ")";
     } else if (queries[i].comparator == ATTR_NULL) {
       query += "(ea.attr = \"" + queries[i].attr + "\" AND ev.value IS NULL)";
     }
