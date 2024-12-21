@@ -64,7 +64,6 @@ UIEvent UIState::componentUpdate(int id, Rectangle* posSize, bool clickOnDown, b
     hoverId = id;
     evt = UI_HOVER;
     invisHover = hideHover;
-    if (mouseState == MOUSE_NONE) mouseState = MOUSE_OVER;
     MouseState clickState = clickOnDown ? MOUSE_DOWN : MOUSE_UP;
     if (mouseState == clickState && clickId == 0) {
       clickId = id;

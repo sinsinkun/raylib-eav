@@ -6,7 +6,7 @@
 
 namespace App {
   enum UIEvent { UI_NONE, UI_HOVER, UI_HOLD, UI_CLICK, UI_R_CLICK, UI_BOTH_CLICK, UI_RELEASE, UI_R_RELEASE };
-  enum MouseState { MOUSE_NONE, MOUSE_OVER, MOUSE_DOWN, MOUSE_HOLD, MOUSE_UP };
+  enum MouseState { MOUSE_NONE, MOUSE_DOWN, MOUSE_HOLD, MOUSE_UP };
   class UIState {
     public:
       Rectangle screen = Rectangle { 0.0f, 0.0f, 0.0f, 0.0f };
