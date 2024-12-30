@@ -37,12 +37,19 @@ bool UIInput::update() {
     // capture key inputs
     float dt = GetFrameTime();
     int key = GetCharPressed();
-    if (key >= 32 && key <= 125 && input.size() < maxInputSize) {
-      input += (char)key;
-      _updateTextPos();
+    while (key != 0) {
+      // note: handles unicode characters only
+      if (key >= 32 && key <= 125) {
+        input += (char)key;
+        _updateTextPos();
+      }
+      key = GetCharPressed();
     }
     if (IsKeyPressed(KEY_ENTER)) isActive = false;
-    if (IsKeyDown(KEY_BACKSPACE) && input.size() > 0) {
+    if (IsKeyPressed(KEY_BACKSPACE) && !input.empty()) {
+      input.pop_back();
+      _bkspCooldown = 0.5f;
+    } else if (IsKeyDown(KEY_BACKSPACE) && input.size() > 0) {
       // check cooldown
       if (_bkspCooldown > 0.0f) {
         _bkspCooldown -= dt;
